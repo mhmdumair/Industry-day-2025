@@ -25,12 +25,7 @@ export default async function RoomAdminLayout({
 
   return (
     <main className={`flex ${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem
-        disableTransitionOnChange
-        >
+
         <SidebarProvider defaultOpen={defaultOpen}>
             <RoomAdminSidebar />
             <div className="w-full">
@@ -38,7 +33,7 @@ export default async function RoomAdminLayout({
             <div className="px-4">{children}</div>
             </div>
         </SidebarProvider>
-        </ThemeProvider>
+
     </main>
     );
 

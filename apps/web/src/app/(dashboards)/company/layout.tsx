@@ -25,12 +25,7 @@ export default async function CompanyLayout({
 
   return (
   <main className={`flex ${geistSans.variable} ${geistMono.variable} antialiased`}>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      disableTransitionOnChange
-    >
+
       <SidebarProvider defaultOpen={defaultOpen}>
         <CompanySidebar />
         <div className="w-full">
@@ -38,7 +33,6 @@ export default async function CompanyLayout({
           <div className="px-4">{children}</div>
         </div>
       </SidebarProvider>
-    </ThemeProvider>
   </main>
 );
 

@@ -5,15 +5,6 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export default async function StudentLayout({
   children,
@@ -24,13 +15,8 @@ export default async function StudentLayout({
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-  <main className={`flex ${geistSans.variable} ${geistMono.variable} antialiased`}>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      disableTransitionOnChange
-    >
+  <main className={`flex `}>
+  
       <SidebarProvider defaultOpen={defaultOpen}>
         <StudentSidebar />
         <div className="w-full">
@@ -38,7 +24,7 @@ export default async function StudentLayout({
           <div className="px-4">{children}</div>
         </div>
       </SidebarProvider>
-    </ThemeProvider>
+
   </main>
 );
 

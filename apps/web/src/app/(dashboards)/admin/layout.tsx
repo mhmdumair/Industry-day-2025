@@ -25,12 +25,6 @@ export default async function AdminLayout({
 
   return (
     <main className={`flex ${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem
-        disableTransitionOnChange
-        >
         <SidebarProvider defaultOpen={defaultOpen}>
             <AdminSidebar />
             <div className="w-full">
@@ -38,7 +32,6 @@ export default async function AdminLayout({
             <div className="px-4">{children}</div>
             </div>
         </SidebarProvider>
-        </ThemeProvider>
     </main>
     );
 
