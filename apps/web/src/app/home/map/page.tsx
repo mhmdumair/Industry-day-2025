@@ -2,7 +2,9 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div>Map page</div>
+    <div className='flex justify-center items-center h-full w-full'>
+      <div>Map page</div>
+    </div>
   )
 }
 

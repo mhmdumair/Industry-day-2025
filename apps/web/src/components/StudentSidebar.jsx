@@ -44,30 +44,25 @@ import {
 
 const items = [
   {
-    title: "Home",
-    url: "/",
+    title: "Profile",
+    url: "/student/profile",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
+    title: "Registered Interviews",
+    url: "/student/interviews",
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    url: "#",
+    title: "Register for Interviews",
+    url: "/student/register",
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
+    title: "Notification",
+    url: "/student/notification",
     icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
+  }
 ];
 
 const StudentSidebar = () => {
