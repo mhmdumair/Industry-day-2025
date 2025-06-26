@@ -44,30 +44,20 @@ import {
 
 const items = [
   {
-    title: "Home",
-    url: "/",
+    title: "profile",
+    url: "/room-admin/profile",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
+    title: "Stalls",
+    url: "/room-admin/stalls",
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    url: "#",
+    title: "Announcements",
+    url: "/room-admin/announcements",
     icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
+  }
 ];
 
 const RoomAdminSidebar = () => {
@@ -107,7 +97,7 @@ const RoomAdminSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
+        {/* <SidebarGroup>
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupAction>
             <Plus /> <span className="sr-only">Add Project</span>
@@ -132,7 +122,7 @@ const RoomAdminSidebar = () => {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup> */}
 
 
       </SidebarContent>
