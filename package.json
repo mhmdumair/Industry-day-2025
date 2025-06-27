@@ -24,6 +24,9 @@
     "packages/*"
   ],
   "dependencies": {
-    "@radix-ui/react-navigation-menu": "^1.2.13"
+    "@nestjs/typeorm": "^11.0.0",
+    "@radix-ui/react-navigation-menu": "^1.2.13",
+    "mysql2": "^3.14.1",
+    "typeorm": "^0.3.25"
   }
 }
