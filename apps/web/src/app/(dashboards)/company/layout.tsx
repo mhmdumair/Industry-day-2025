@@ -5,15 +5,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 import CompanySidebar from "@/components/CompanySidebar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export default async function CompanyLayout({
   children,
@@ -24,7 +15,7 @@ export default async function CompanyLayout({
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-  <main className={`flex ${geistSans.variable} ${geistMono.variable} antialiased`}>
+  <main className={`flex antialiased`}>
 
       <SidebarProvider defaultOpen={defaultOpen}>
         <CompanySidebar />
