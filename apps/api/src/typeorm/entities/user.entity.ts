@@ -1,11 +1,16 @@
-// src/entities/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum UserRole {
   STUDENT = 'student',
   ADMIN = 'admin',
   ROOM_ADMIN = 'room_admin',
-  SIIC_ADMIN = 'siic_admin'
+  SIIC_ADMIN = 'siic_admin',
 }
 
 @Entity('users')

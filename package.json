@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@types/passport-google-oauth20": "^2.0.16",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.31.0",
     "prettier": "^3.5.3",
@@ -24,9 +25,13 @@
     "packages/*"
   ],
   "dependencies": {
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/typeorm": "^11.0.0",
     "@radix-ui/react-navigation-menu": "^1.2.13",
     "mysql2": "^3.14.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "typeorm": "^0.3.25"
   }
 }
