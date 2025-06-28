@@ -8,7 +8,7 @@ export default function AuthLayout({
 }) {
 
   return (
-    <main className={`flex `}>
+    <main className="">
           <div className="px-4">{children}</div>
     </main>
 );
