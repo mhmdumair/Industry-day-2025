@@ -4,12 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToOne,
 } from 'typeorm';
-import { Admin } from './admin.entity';
-import { Student } from '../student/student.entity';
-import {RoomAdmin} from "./room-admin.entity";
-import {SiicAdmin} from "./siic-admin.entity";
 
 export enum UserRole {
   STUDENT = 'student',
@@ -31,7 +26,7 @@ export class User {
 
   // Google OAuth fields
   @Column({ unique: true })
-  google_id: string;
+  google_id: string; // Google's 'sub' field
 
   // Profile fields from Google
   @Column()
@@ -41,11 +36,11 @@ export class User {
   last_name: string;
 
   @Column({ nullable: true })
-  profile_picture: string;
+  profile_picture: string; // Google avatar URL
 
   // Account status
   @Column({ default: true })
-  email_verified: boolean;
+  email_verified: boolean; // Always true for Google users
 
   @Column({ default: true })
   is_active: boolean;
@@ -55,17 +50,4 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  // Relationships
-  @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
-  admin: Admin | null;
-
-  @OneToOne(() => Student, (student) => student.user, { nullable: true })
-  student: Student | null;
-
-  @OneToOne(() => RoomAdmin, (roomAdmin) => roomAdmin.user, { nullable: true })
-  roomAdmin: RoomAdmin | null;
-
-  @OneToOne(() => SiicAdmin, (siicAdmin) => siicAdmin.user, { nullable: true })
-  siicAdmin: SiicAdmin | null;
 }

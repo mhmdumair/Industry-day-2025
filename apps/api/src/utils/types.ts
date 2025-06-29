@@ -1,4 +1,4 @@
-import { UserRole } from '../typeorm/entities/user/user.entity';
+import { UserRole } from '../typeorm/entities/user.entity';
 
 // createUserParams
 export interface CreateUserParams {
