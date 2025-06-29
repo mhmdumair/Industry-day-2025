@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { GoogleStrategy } from './utils/GoogleStrategy';
 import { UsersService } from '../users/service/users/users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../typeorm/entities/user.entity';
+import { User } from '../typeorm/entities/user/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import {SessionSerializer} from "./session.serializer";
 
