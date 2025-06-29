@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
-    // @ts-ignore
+    //@ts-ignore
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
@@ -16,8 +16,22 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    console.log(profile);
-    console.log(accessToken);
-    console.log(refreshToken);
+    const email = profile.emails?.[0]?.value;
+    const firstName = profile.name?.givenName;
+    const lastName = profile.name?.familyName;
+    const profilePicture = profile.photos?.[0]?.value;
+
+    if (!email || !firstName || !lastName) {
+      throw new Error('Required profile information missing from Google');
+    }
+
+    return {
+      google_id: profile.id,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      profile_picture: profilePicture,
+      accessToken,
+    };
   }
 }
