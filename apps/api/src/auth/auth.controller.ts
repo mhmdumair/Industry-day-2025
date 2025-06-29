@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/service/users/users.service';
-import { UserRole } from '../typeorm/entities/user/user.entity';
+import { UserRole } from '../typeorm/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -53,7 +53,7 @@ export class AuthController {
             last_name: googleUser.last_name,
             profile_picture: googleUser.profile_picture,
             role: UserRole.STUDENT, // Default role for new users
-            email_verified: true,
+            email_verified: true, // Google emails are always verified
             is_active: true,
           });
         }
