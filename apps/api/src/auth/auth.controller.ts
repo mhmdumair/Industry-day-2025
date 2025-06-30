@@ -1,14 +1,14 @@
 import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/service/users/users.service';
+import { UserService } from '../user/user.service';
 import { UserRole } from '../typeorm/entities/user/user.entity';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly usersService: UsersService,
+    private readonly usersService: UserService,
   ) {}
 
   @Get('hello')
@@ -39,7 +39,7 @@ export class AuthController {
 
         if (user) {
           // User exists with same email, update with Google ID
-          // You might want to add an update method to UsersService
+          // You might want to add an update method to UserService
           return {
             msg: 'User exists with this email but different auth method',
             user: user,
@@ -52,15 +52,14 @@ export class AuthController {
             first_name: googleUser.first_name,
             last_name: googleUser.last_name,
             profile_picture: googleUser.profile_picture,
-            role: UserRole.STUDENT, // Default role for new users
+            role: UserRole.STUDENT, // Default role for new user
             email_verified: true,
             is_active: true,
           });
         }
       }
 
-        return res.redirect(
-          `http://localhost:3000/student`);
+      return res.redirect(`http://localhost:3000/student`);
       // return {
       //   msg: 'Google authentication successful',
       //   user: {

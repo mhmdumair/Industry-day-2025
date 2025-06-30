@@ -18,7 +18,7 @@ export enum UserRole {
   SIIC_ADMIN = 'siic_admin',
 }
 
-@Entity('users')
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   userID: string;
