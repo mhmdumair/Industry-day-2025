@@ -27,7 +27,8 @@ const Page = () => {
             <Button type="submit" className="w-full">
               Login
             </Button>
-            <Button
+            <a href="http://localhost:3001/api/auth/google/login">
+              <Button
               variant="outline"
               type="button"
               className="w-full flex items-center justify-center gap-2"
@@ -35,6 +36,7 @@ const Page = () => {
               <LogIn className="h-5 w-5" />
               Continue with Google
             </Button>
+            </a>
           </form>
         </CardContent>
       </Card>
