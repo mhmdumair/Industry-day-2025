@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/service/users/users.service';
@@ -24,7 +24,7 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req) {
+  async handleRedirect(@Req() req, @Res() res) {
     const googleUser = req.user; // Data from GoogleStrategy.validate()
 
     try {
@@ -59,17 +59,19 @@ export class AuthController {
         }
       }
 
-      return {
-        msg: 'Google authentication successful',
-        user: {
-          userID: user.userID,
-          email: user.email,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          role: user.role,
-          profile_picture: user.profile_picture,
-        },
-      };
+        return res.redirect(
+          `http://localhost:3000/student`);
+      // return {
+      //   msg: 'Google authentication successful',
+      //   user: {
+      //     userID: user.userID,
+      //     email: user.email,
+      //     first_name: user.first_name,
+      //     last_name: user.last_name,
+      //     role: user.role,
+      //     profile_picture: user.profile_picture,
+      //   },
+      // };
     } catch (error) {
       return {
         msg: 'Authentication failed',
