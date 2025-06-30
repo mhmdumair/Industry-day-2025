@@ -27,9 +27,6 @@ export class Room {
   @Column({ default: true })
   isActive: boolean;
 
-  @CreateDateColumn()
-  created_at: Date;
-
   // Relationships
   @OneToOne(() => RoomAdmin, (roomAdmin) => roomAdmin.room, { nullable: false })
   @JoinColumn({ name: 'roomAdminID' })

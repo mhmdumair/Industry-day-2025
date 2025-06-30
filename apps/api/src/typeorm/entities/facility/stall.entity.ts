@@ -15,8 +15,8 @@ import { Queue } from '../queue/queue.entity';
 
 export enum StallStatus {
   ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  MAINTENANCE = 'maintenance',
+  FINISHED = 'finished',
+  PAUSED = 'paused',
 }
 
 @Entity('stalls')
@@ -35,9 +35,6 @@ export class Stall {
 
   @Column()
   stallNumber: string;
-
-  @CreateDateColumn()
-  created_at: Date;
 
   // Relationships
   @ManyToOne(() => Room, (room) => room.stalls, { nullable: false })

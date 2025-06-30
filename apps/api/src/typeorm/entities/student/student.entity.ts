@@ -10,7 +10,7 @@ import {
 import { User } from '../user/user.entity';
 import { StudentCv } from './student-cv.entity';
 import { Interview } from '../facility/interview.entity';
-import { QueueStudent } from '../queue/queue-student.entity';
+import { QueueEntry } from '../queue/queue-entry.entity';
 import { CompanyShortlist } from '../company/company-shortlist.entity';
 
 export enum StudentGroup {
@@ -40,7 +40,6 @@ export class Student {
   @Column({ unique: true })
   nic: string;
 
-  // Removed firstname and lastname since they're now in User entity as first_name and last_name
   @Column({ nullable: true })
   linkedin: string;
 
@@ -69,8 +68,8 @@ export class Student {
   })
   interviews: Interview[] | null;
 
-  @OneToMany(() => QueueStudent, (queueStudent) => queueStudent.student, {
+  @OneToMany(() => QueueEntry, (queueStudent) => queueStudent.student, {
     nullable: true,
   })
-  queueEntries: QueueStudent[] | null;
+  queueEntries: QueueEntry[] | null;
 }

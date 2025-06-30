@@ -9,24 +9,23 @@ import {
 import { CompanyShortlist } from './company-shortlist.entity';
 import { Stall } from '../facility/stall.entity';
 
-export enum CompanyStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PENDING = 'pending',
-}
-
 export enum CompanyStream {
-  IT = 'it',
-  ENGINEERING = 'engineering',
-  BUSINESS = 'business',
-  FINANCE = 'finance',
-}
-
-export enum CompanyLocation {
-  COLOMBO = 'colombo',
-  KANDY = 'kandy',
-  GALLE = 'galle',
-  JAFFNA = 'jaffna',
+  ZL = 'ZL',
+  BT = 'BT',
+  CH = 'CH',
+  MT = 'MT',
+  BMS = 'BMS',
+  ST = 'ST',
+  GL = 'GL',
+  CS = 'CS',
+  DS = 'DS',
+  ML = 'ML',
+  BL = 'BL',
+  MB = 'MB',
+  CM = 'CM',
+  AS = 'AS',
+  ES = 'ES',
+  SOR = 'SOR',
 }
 
 @Entity('companies')
@@ -49,17 +48,14 @@ export class Company {
   @Column()
   contactNumber: string;
 
-  @Column({ type: 'enum', enum: CompanyStatus })
-  status: CompanyStatus;
-
   @Column({ nullable: true })
   logo: string;
 
   @Column({ type: 'enum', enum: CompanyStream })
   stream: CompanyStream;
 
-  @Column({ type: 'enum', enum: CompanyLocation })
-  location: CompanyLocation;
+  @Column()
+  location: string;
 
   @Column()
   companyWebsite: string;

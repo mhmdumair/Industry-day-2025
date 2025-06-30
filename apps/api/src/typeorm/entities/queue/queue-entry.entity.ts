@@ -9,6 +9,18 @@ import {
 import { Queue } from './queue.entity';
 import { Student } from '../student/student.entity';
 
+export enum QueueStudentType {
+  PRELISTED = 'prelisted',
+  WALKIN = 'walkin',
+}
+
+export enum QueuePriority {
+  FIRST = 1,
+  SECOND = 2,
+  THIRD = 3,
+  BUFFER = 99,
+}
+
 export enum QueueStatus {
   WAITING = 'waiting',
   IN_PROGRESS = 'in_progress',
@@ -16,10 +28,10 @@ export enum QueueStatus {
   LEFT = 'left',
 }
 
-@Entity('queue_students')
-export class QueueStudent {
+@Entity('queue_entries')
+export class QueueEntry {
   @PrimaryGeneratedColumn('uuid')
-  queueStudentID: string;
+  id: string;
 
   @Column()
   queueID: string;
@@ -30,14 +42,20 @@ export class QueueStudent {
   @Column('int')
   position: number;
 
+  @Column({ type: 'enum', enum: QueueStudentType })
+  studentType: QueueStudentType;
+
+  @Column({ type: 'int', nullable: true })
+  priority: number; // 1, 2, 3, 99 for buffer, null for walk-in
+
+  @Column({ type: 'enum', enum: QueueStatus, default: QueueStatus.WAITING })
+  status: QueueStatus;
+
   @CreateDateColumn()
   joinedAt: Date;
 
-  @Column({ type: 'enum', enum: QueueStatus })
-  status: QueueStatus;
-
   // Relationships
-  @ManyToOne(() => Queue, (queue) => queue.students)
+  @ManyToOne(() => Queue, (queue) => queue.queueEntries)
   @JoinColumn({ name: 'queueID' })
   queue: Queue;
 

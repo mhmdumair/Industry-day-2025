@@ -2,8 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -11,14 +9,12 @@ import { Stall } from './stall.entity';
 import { Student } from '../student/student.entity';
 import { StudentCv } from '../student/student-cv.entity';
 
-export enum InterviewCategory {
-  TECHNICAL = 'technical',
-  HR = 'hr',
-  FINAL = 'final',
+export enum InterviewType {
+  PRE_LISTED = 'pre-listed',
+  WALK_IN = 'walk-in',
 }
 
 export enum InterviewStatus {
-  SCHEDULED = 'scheduled',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
@@ -38,8 +34,14 @@ export class Interview {
   @Column()
   cvID: string;
 
-  @Column({ type: 'enum', enum: InterviewCategory })
-  category: InterviewCategory;
+  @Column()
+  queueID: string;
+
+  @Column()
+  priority: string; //studentID_companyId_priority (e.g., "stu123_COMP1_1")
+
+  @Column({ type: 'enum', enum: InterviewType })
+  category: InterviewType;
 
   @Column({ type: 'enum', enum: InterviewStatus })
   status: InterviewStatus;
@@ -52,12 +54,6 @@ export class Interview {
 
   @Column({ type: 'timestamp', nullable: true })
   actualTime: Date;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 
   // Relationships
   @ManyToOne(() => Stall, (stall) => stall.interviews, { nullable: true })

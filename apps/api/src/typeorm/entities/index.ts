@@ -19,9 +19,9 @@ export { Interview } from './facility/interview.entity';
 
 // Queue-related entities
 export { Queue } from './queue/queue.entity';
-export { QueueStudent } from './queue/queue-student.entity';
+export { QueueEntry } from './queue/queue-entry.entity';
 
-// // Event-related entities
+// Event-related entities
 // export { EventDetails } from './event/event-details.entity';
 // export { EventVenue } from './event/event-venue.entity';
 // export { EventImage } from './event/event-image.entity';

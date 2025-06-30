@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Stall } from '../facility/stall.entity';
-import { QueueStudent } from './queue-student.entity';
+import { QueueEntry } from '../queue/queue-entry.entity';
 
 @Entity('queues')
 export class Queue {
@@ -26,6 +26,6 @@ export class Queue {
   @JoinColumn({ name: 'stallID' })
   stall: Stall | null;
 
-  @OneToMany(() => QueueStudent, (queueStudent) => queueStudent.queue)
-  students: QueueStudent[];
+  @OneToMany(() => QueueEntry, (entry) => entry.queue)
+  queueEntries: QueueEntry[];
 }
