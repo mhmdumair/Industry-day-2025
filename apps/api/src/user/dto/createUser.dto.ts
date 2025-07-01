@@ -2,14 +2,16 @@ import {
   IsEmail,
   IsEnum,
   IsString,
-  IsOptional,
-  IsBoolean,
+  IsOptional, IsDate,
 } from 'class-validator';
 import { UserRole } from '../../typeorm/entities/user/user.entity';
 
 export class CreateUserDto {
   @IsEmail()
   email: string;
+
+  @IsOptional()
+  password: string;
 
   @IsEnum(UserRole)
   role: UserRole;
@@ -27,11 +29,9 @@ export class CreateUserDto {
   @IsString()
   profile_picture?: string;
 
-  @IsOptional()
-  @IsBoolean()
-  email_verified?: boolean;
+  @IsDate()
+  created_at: Date;
 
-  @IsOptional()
-  @IsBoolean()
-  is_active?: boolean;
+  @IsDate()
+  updated_at: Date;
 }

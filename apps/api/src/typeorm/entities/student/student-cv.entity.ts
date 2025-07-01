@@ -7,8 +7,8 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Student } from './student.entity';
-import { Interview } from '../facility/interview.entity';
+import { Student } from '../user/student.entity';
+import { Interview } from './interview.entity';
 
 @Entity('student_cvs')
 export class StudentCv {
@@ -23,12 +23,6 @@ export class StudentCv {
 
   @Column()
   filePath: string;
-
-  @CreateDateColumn()
-  uploadDate: Date;
-
-  @Column({ default: true })
-  isActive: boolean;
 
   // Relationships
   @ManyToOne(() => Student, (student) => student.cvs, { nullable: true })

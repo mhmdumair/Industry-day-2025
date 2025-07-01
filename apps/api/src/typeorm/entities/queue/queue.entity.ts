@@ -2,13 +2,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
-  OneToMany,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { Stall } from '../facility/stall.entity';
-import { QueueEntry } from '../queue/queue-entry.entity';
+import { Interview } from '../student/interview.entity';
 
 @Entity('queues')
 export class Queue {
@@ -18,14 +17,14 @@ export class Queue {
   @Column()
   stallID: string;
 
-  @CreateDateColumn()
-  created_at: Date;
-
   // Relationships
   @OneToOne(() => Stall, (stall) => stall.queue, { nullable: true })
   @JoinColumn({ name: 'stallID' })
   stall: Stall | null;
 
-  @OneToMany(() => QueueEntry, (entry) => entry.queue)
-  queueEntries: QueueEntry[];
+  @ManyToOne(() => Interview, (interview) => interview.queue, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'interviewID' })
+  interview: Interview | null;
 }

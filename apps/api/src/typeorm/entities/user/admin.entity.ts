@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
   JoinColumn,
 } from 'typeorm';
@@ -16,8 +15,8 @@ export class Admin {
   @Column()
   userID: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Column()
+  designation: string;
 
   // Relationships
   @OneToOne(() => User, (user) => user.admin, { nullable: true })

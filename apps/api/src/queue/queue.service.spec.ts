@@ -5,7 +5,7 @@ import {
   Interview,
   InterviewStatus,
   InterviewType,
-} from '../typeorm/entities/facility/interview.entity';
+} from '../typeorm/entities/student/interview.entity';
 
 @Injectable()
 export class QueueService {
