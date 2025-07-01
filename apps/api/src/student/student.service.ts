@@ -3,7 +3,7 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Student } from 'src/typeorm/entities/user/student.entity';
+import { Student, StudentGroup, StudentLevel } from 'src/typeorm/entities/user/student.entity';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 import { UserService } from 'src/user/user.service';
 
@@ -37,18 +37,15 @@ export class StudentService {
   }
 
   
-async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
-  Logger.log(`Service: group=${group}, level=${level}`, 'StudentService');
-  const where: any = {};
-  if (group) where.group = group.trim();
-  if (level) where.level = level.trim();
-  Logger.log(`Where: ${JSON.stringify(where)}`, 'StudentService');
-  const result = await this.studentRepository.find({ where });
-  Logger.log(`Result: ${JSON.stringify(result)}`, 'StudentService');
-  return result;
-}
+  async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
+    const where: any = {};
+    if (group) where.group = group;
+    if (level) where.level = level;
+    return this.studentRepository.find({ where });
+  }
 
-  update(id: number, updateStudentDto: UpdateStudentDto) {
+
+  async update(id: number, updateStudentDto: UpdateStudentDto) {
     return `This action updates a #${id} student`;
   }
 

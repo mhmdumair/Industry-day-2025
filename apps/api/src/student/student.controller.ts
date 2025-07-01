@@ -17,12 +17,7 @@ export class StudentController {
     return this.studentService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.studentService.findOne(id);
-  }
-
-  @Get('filter')
+   @Get('filter')
   filterByGroupAndLevel(
     @Query('group') group?: string,
     @Query('level') level?: string,
@@ -30,6 +25,13 @@ export class StudentController {
     
     return this.studentService.filterByGroupAndLevel(group, level);
   }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.studentService.findOne(id);
+  }
+
+ 
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
