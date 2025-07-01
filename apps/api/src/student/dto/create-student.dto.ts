@@ -15,11 +15,8 @@ export enum StudentLevel {
   LEVEL_4 = 'level_4',
 }
 
-export class CreateStudentDto {
+export class StudentDto {
 
-  @ValidateNested()
-  @Type(() => CreateUserDto)
-  user: CreateUserDto;
 
   @IsString()
   @IsNotEmpty()
@@ -52,4 +49,16 @@ export class CreateStudentDto {
   @IsEnum(StudentLevel)
   @IsNotEmpty()
   level: StudentLevel;
+}
+
+export class CreateStudentDto {
+
+  @ValidateNested()
+  @Type(() => CreateUserDto)
+  user: CreateUserDto;
+
+  
+  @ValidateNested()
+  @Type(() => StudentDto)
+  student: StudentDto;
 }

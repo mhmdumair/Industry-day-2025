@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../typeorm/entities/user/user.entity';
 import { CreateUserParams } from './utils/types';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UserService {
@@ -19,13 +20,17 @@ export class UserService {
   }
 
   async fetchUserByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email} });
   }
 
-  async createUser(userDetails: CreateUserParams): Promise<User> {
+  async createUser(userDetails: CreateUserDto): Promise<User> {
     const existingUser = await this.fetchUserByEmail(userDetails.email);
 
     if (existingUser) {
+      console.log(userDetails.email);
+      
+      console.log(existingUser.email);
+      
       throw new ConflictException('Email already exists');
     }
 

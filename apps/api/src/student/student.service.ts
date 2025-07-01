@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,17 +11,22 @@ import { UserService } from 'src/user/user.service';
 export class StudentService {
   constructor(
     @InjectRepository(Student) private studentRepository:Repository<Student>,
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ){}
-  async create(createStudentDto: CreateStudentDto) {
-    const userDto = createStudentDto.user;
-    const user = await this.userService.createUser(userDto)
-    const student = await this.studentRepository.create({
-      ...createStudentDto,
-      userID: user.userID, // Ensure the student is linked to the user
-    });
-    return this.create(createStudentDto)
-  }
+
+
+  async create(createStudentDto: CreateStudentDto): Promise<Student> {
+  const createdUser = await this.userService.createUser(createStudentDto.user);
+
+  const student = this.studentRepository.create({
+    ...createStudentDto.student,  // Access student properties here
+    userID: createdUser.userID,   // Link to created user
+  });
+
+  return this.studentRepository.save(student);
+}
+
+
 
   async findAll() : Promise<Student[]> {
     return this.studentRepository.find();
@@ -30,6 +35,18 @@ export class StudentService {
   async findOne(id: string): Promise<Student | null> {
     return this.studentRepository.findOne({ where: { studentID: id } });
   }
+
+  
+async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
+  Logger.log(`Service: group=${group}, level=${level}`, 'StudentService');
+  const where: any = {};
+  if (group) where.group = group.trim();
+  if (level) where.level = level.trim();
+  Logger.log(`Where: ${JSON.stringify(where)}`, 'StudentService');
+  const result = await this.studentRepository.find({ where });
+  Logger.log(`Result: ${JSON.stringify(result)}`, 'StudentService');
+  return result;
+}
 
   update(id: number, updateStudentDto: UpdateStudentDto) {
     return `This action updates a #${id} student`;

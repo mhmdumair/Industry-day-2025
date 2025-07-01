@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -20,6 +20,15 @@ export class StudentController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentService.findOne(id);
+  }
+
+  @Get('filter')
+  filterByGroupAndLevel(
+    @Query('group') group?: string,
+    @Query('level') level?: string,
+  ) {
+    
+    return this.studentService.filterByGroupAndLevel(group, level);
   }
 
   @Patch(':id')

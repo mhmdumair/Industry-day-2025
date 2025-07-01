@@ -41,8 +41,7 @@ export class AuthController {
           last_name: googleUser.last_name,
           profile_picture: googleUser.profile_picture,
           role: UserRole.STUDENT, // Default role for new user
-          created_at: googleUser.created_at,
-          updated_at: googleUser.updated_at,
+       
         });
       } 
       const role :string = user.role
