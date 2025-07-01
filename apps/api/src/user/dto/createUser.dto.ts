@@ -1,34 +1,28 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsString,
-  IsOptional, IsDate,
-} from 'class-validator';
-import { UserRole } from '../../typeorm/entities/user/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-export class CreateUserDto {
-  @IsEmail()
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  userID: string;
+
+  @Column()
   email: string;
 
-  @IsOptional()
-  password: string;
+  @Column()
+  role: string;
 
-  @IsEnum(UserRole)
-  role: UserRole;
-
-  @IsString()
+  @Column()
   first_name: string;
 
-  @IsString()
+  @Column()
   last_name: string;
 
-  @IsOptional()
-  @IsString()
+  @Column({ nullable: true })
   profile_picture?: string;
 
-  @IsDate()
+  @CreateDateColumn()
   created_at: Date;
 
-  @IsDate()
+  @UpdateDateColumn()
   updated_at: Date;
 }

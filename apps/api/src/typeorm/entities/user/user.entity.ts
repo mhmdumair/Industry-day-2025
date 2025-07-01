@@ -15,7 +15,7 @@ export enum UserRole {
   STUDENT = 'student',
   ADMIN = 'admin',
   ROOM_ADMIN = 'room_admin',
-  SIIC_ADMIN = 'siic_admin',
+  COMPANY = 'company',
 }
 
 @Entity('users')
@@ -29,7 +29,6 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
-  // Profile fields from Google
   @Column()
   first_name: string;
 
