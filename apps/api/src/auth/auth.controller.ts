@@ -12,7 +12,7 @@ export class AuthController {
   ) {}
 
   @Get('hello')
-  getHello() {
+  getHello() {    
     return this.authService.getHello();
   }
 
@@ -58,7 +58,8 @@ export class AuthController {
           });
         }
       }
-
+      // console.log(req.user);
+      (req.user)
       return res.redirect(`http://localhost:3000/student`);
       // return {
       //   msg: 'Google authentication successful',

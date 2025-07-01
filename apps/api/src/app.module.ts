@@ -33,6 +33,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     UserModule,
     QueueModule,
+    ConfigModule
   ],
   controllers: [AppController, QueueController],
   providers: [AppService, AuthService],
