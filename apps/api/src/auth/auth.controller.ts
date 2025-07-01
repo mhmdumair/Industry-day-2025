@@ -12,7 +12,7 @@ export class AuthController {
   ) {}
 
   @Get('hello')
-  getHello() {
+  getHello() {    
     return this.authService.getHello();
   }
 
@@ -47,8 +47,6 @@ export class AuthController {
           updated_at: googleUser.updated_at,
         });
       }
-
-      // Redirect to frontend on success
       return res.redirect(`http://localhost:3000/student`);
 
     } catch (error) {

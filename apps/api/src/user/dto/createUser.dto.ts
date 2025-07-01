@@ -17,9 +17,6 @@ export class CreateUserDto {
   role: UserRole;
 
   @IsString()
-  google_id: string;
-
-  @IsString()
   first_name: string;
 
   @IsString()

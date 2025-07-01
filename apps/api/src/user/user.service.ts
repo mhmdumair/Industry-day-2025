@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../typeorm/entities/user/user.entity';
@@ -23,10 +23,13 @@ export class UserService {
   }
 
   async createUser(userDetails: CreateUserParams): Promise<User> {
-    const newUser = this.userRepository.create({
-      ...userDetails,
-      // Remove created_at - TypeORM handles this automatically with @CreateDateColumn
-    });
-    return this.userRepository.save(newUser);
+  const existingUser = await this.fetchUserByEmail(userDetails.email);
+
+  if (existingUser) {
+    throw new ConflictException('Email already exists');
   }
+  const newUser = this.userRepository.create(userDetails);
+  return this.userRepository.save(newUser);
+}
+
 }
