@@ -39,7 +39,7 @@ export class Interview {
   queueID: string;
 
   @Column()
-  priority: string; //studentID_companyId_priority (e.g., "stu123_COMP1_1")
+  priority: string; //studentID_companyId_priority (e.g., "s20381_OCT_1")
 
   @Column({ type: 'enum', enum: InterviewType })
   category: InterviewType;

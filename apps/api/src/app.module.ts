@@ -9,6 +9,8 @@ import { QueueController } from './queue/queue.controller';
 import { QueueModule } from './queue/queue.module';
 import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
+import { QueueService } from './queue/queue.service';
+import { InterviewModule } from './interview/interview.module';
 
 @Module({
   imports: [
@@ -33,8 +35,9 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     UserModule,
     QueueModule,
+    InterviewModule,
   ],
   controllers: [AppController, QueueController],
-  providers: [AppService, AuthService],
+  providers: [AppService, AuthService, QueueService],
 })
 export class AppModule {}
