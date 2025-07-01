@@ -1,10 +1,10 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  PrimaryColumn,
 } from 'typeorm';
 import { Admin } from './admin.entity';
 import { Student } from './student.entity';
@@ -20,7 +20,7 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'varchar', length: 6 })
   userID: string;
 
   @Column({ unique: true })

@@ -23,13 +23,50 @@ export class UserService {
   }
 
   async createUser(userDetails: CreateUserParams): Promise<User> {
-  const existingUser = await this.fetchUserByEmail(userDetails.email);
+    const existingUser = await this.fetchUserByEmail(userDetails.email);
 
-  if (existingUser) {
-    throw new ConflictException('Email already exists');
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const newUser = this.userRepository.create(userDetails);
+
+    // Generate unique 6-character ID
+    newUser.userID = await this.generateUniqueID();
+
+    return this.userRepository.save(newUser);
   }
-  const newUser = this.userRepository.create(userDetails);
-  return this.userRepository.save(newUser);
-}
 
+  private async generateUniqueID(): Promise<string> {
+    let id: string;
+    let exists: boolean;
+    let attempts = 0;
+    const maxAttempts = 10; // Prevent infinite loops
+
+    do {
+      id = this.generateRandomID();
+      const existingUser = await this.userRepository.findOne({
+        where: { userID: id },
+      });
+      exists = !!existingUser;
+      attempts++;
+
+      if (attempts >= maxAttempts) {
+        throw new ConflictException(
+          'Unable to generate unique user ID after multiple attempts',
+        );
+      }
+    } while (exists);
+
+    return id;
+  }
+
+  private generateRandomID(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
 }
