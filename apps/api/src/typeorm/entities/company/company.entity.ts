@@ -2,12 +2,14 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { CompanyShortlist } from './company-shortlist.entity';
 import { Stall } from '../facility/stall.entity';
+import { User } from '../user/user.entity';
+import { CompanyPrelist } from './company-prelist.entity';
 
 export enum CompanyStream {
   ZL = 'ZL',
@@ -32,6 +34,9 @@ export enum CompanyStream {
 export class Company {
   @PrimaryGeneratedColumn('uuid')
   companyID: string;
+
+  @Column()
+  userID: string;
 
   @Column()
   companyName: string;
@@ -60,15 +65,21 @@ export class Company {
   @Column()
   companyWebsite: string;
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
   // Relationships
-  @OneToMany(() => CompanyShortlist, (shortlist) => shortlist.company, { nullable: true })
-  shortlists: CompanyShortlist[] | null;
+
+  @OneToOne(() => User, (user) => user.company, { nullable: true })
+  @JoinColumn({ name: 'userID' })
+  user: User | null;
+
+  @OneToOne(() => CompanyShortlist, (shortlist) => shortlist.company, {
+    nullable: true,
+  })
+  shortlist: CompanyShortlist | null;
+
+  @OneToOne(() => CompanyPrelist, (prelist) => prelist.company, {
+    nullable: true,
+  })
+  prelist: CompanyPrelist | null;
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];

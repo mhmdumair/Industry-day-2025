@@ -22,10 +22,6 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async fetchUserByGoogleId(google_id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { google_id } });
-  }
-
   async createUser(userDetails: CreateUserParams): Promise<User> {
     const newUser = this.userRepository.create({
       ...userDetails,

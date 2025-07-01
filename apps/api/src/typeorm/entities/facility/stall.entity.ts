@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -10,7 +9,7 @@ import {
 } from 'typeorm';
 import { Room } from './room.entity';
 import { Company } from '../company/company.entity';
-import { Interview } from './interview.entity';
+import { Interview } from '../student/interview.entity';
 import { Queue } from '../queue/queue.entity';
 
 export enum StallStatus {
@@ -32,9 +31,6 @@ export class Stall {
 
   @Column({ type: 'enum', enum: StallStatus })
   status: StallStatus;
-
-  @Column()
-  stallNumber: string;
 
   // Relationships
   @ManyToOne(() => Room, (room) => room.stalls, { nullable: false })

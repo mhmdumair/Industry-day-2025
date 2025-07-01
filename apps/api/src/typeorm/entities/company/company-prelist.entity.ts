@@ -7,10 +7,10 @@ import {
 } from 'typeorm';
 import { Company } from './company.entity';
 
-@Entity('company_shortlists')
-export class CompanyShortlist {
+@Entity('company_prelists')
+export class CompanyPrelist {
   @PrimaryGeneratedColumn('uuid')
-  shortlistID: string;
+  prelistID: string;
 
   @Column()
   companyID: string;
@@ -19,7 +19,7 @@ export class CompanyShortlist {
   studentID: string;
 
   // Relationships
-  @ManyToOne(() => Company, (company) => company.shortlist, { nullable: true })
+  @ManyToOne(() => Company, (company) => company.prelist, { nullable: true })
   @JoinColumn({ name: 'companyID' })
   company: Company | null;
 }
