@@ -131,9 +131,9 @@ export default function page() {
                                                 width: "16px",
                                                 height: "16px",
                                                 padding: 0,
-                                                border: "none",         // Remove border
+                                                border: "none",
                                                 boxShadow: "none",
-                                                opacity: 1,// Remove shadow
+                                                opacity: 1,
                                             }}
                                             disabled
                                             tabIndex={-1}
