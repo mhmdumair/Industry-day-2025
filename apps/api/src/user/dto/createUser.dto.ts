@@ -8,9 +8,11 @@ export class CreateUserDto {
   @IsEnum(UserRole)
   role: UserRole;
 
+  @IsOptional()
   @IsString()
   first_name: string;
 
+  @IsOptional()
   @IsString()
   last_name: string;
 

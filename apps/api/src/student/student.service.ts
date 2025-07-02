@@ -36,6 +36,11 @@ export class StudentService {
     return this.studentRepository.findOne({ where: { studentID: id } });
   }
 
+  findByUserId(userId:string): Promise<Student | null> {
+    return this.studentRepository.findOne({ where: { userID: userId } });
+
+  }
+
   
   async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
     const where: any = {};

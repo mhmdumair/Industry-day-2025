@@ -17,13 +17,18 @@ export class StudentController {
     return this.studentService.findAll();
   }
 
-   @Get('filter')
+  @Get('filter')
   filterByGroupAndLevel(
     @Query('group') group?: string,
     @Query('level') level?: string,
   ) {
     
     return this.studentService.filterByGroupAndLevel(group, level);
+  }
+
+  @Get('by-user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.studentService.findByUserId(userId);
   }
 
   @Get(':id')
