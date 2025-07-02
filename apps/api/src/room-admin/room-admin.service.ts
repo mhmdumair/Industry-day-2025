@@ -9,14 +9,17 @@ import { UserService } from 'src/user/user.service';
 @Injectable()
 export class RoomAdminService {
   constructor(
-      @InjectRepository(RoomAdmin) private roomAdminRepository: Repository<RoomAdmin>,
-      private readonly userService: UserService,
+    @InjectRepository(RoomAdmin)
+    private roomAdminRepository: Repository<RoomAdmin>,
+    private readonly userService: UserService,
   ) {}
 
   // we need to check room admin creation after completing room api
 
   async create(createRoomAdminDto: CreateRoomAdminDto): Promise<RoomAdmin> {
-    const createdUser = await this.userService.createUser(createRoomAdminDto.user);
+    const createdUser = await this.userService.createUser(
+      createRoomAdminDto.user,
+    );
     const roomAdmin = this.roomAdminRepository.create({
       ...createRoomAdminDto.roomAdmin,
       userID: createdUser.userID,
@@ -36,16 +39,24 @@ export class RoomAdminService {
     return this.roomAdminRepository.findOne({ where: { userID: userId } });
   }
 
-  async update(id: string, updateRoomAdminDto: UpdateRoomAdminDto): Promise<RoomAdmin> {
-    const roomAdmin = await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+  async update(
+    id: string,
+    updateRoomAdminDto: UpdateRoomAdminDto,
+  ): Promise<RoomAdmin> {
+    const roomAdmin = await this.roomAdminRepository.findOne({
+      where: { roomAdminID: id },
+    });
     if (!roomAdmin) {
       throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
     }
-    const updatedRoomAdmin = this.roomAdminRepository.merge(roomAdmin, updateRoomAdminDto);
+    const updatedRoomAdmin = this.roomAdminRepository.merge(
+      roomAdmin,
+      updateRoomAdminDto,
+    );
     return this.roomAdminRepository.save(updatedRoomAdmin);
   }
 
   remove(id: string): string {
-    return "delete room admin"
+    return 'delete room admin';
   }
 }

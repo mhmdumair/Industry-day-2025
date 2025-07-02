@@ -2,10 +2,10 @@ import { IsString, IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 
-export class RoomAdminDto {
+export class AdminDto {
     @IsString()
     @IsNotEmpty()
-    roomAdminID: string;
+    adminID: string;
 
     @IsString()
     @IsNotEmpty()
@@ -14,18 +14,14 @@ export class RoomAdminDto {
     @IsString()
     @IsNotEmpty()
     designation: string;
-
-    @IsString()
-    @IsNotEmpty()
-    roomID: string;
 }
 
-export class CreateRoomAdminDto {
+export class CreateAdminDto {
     @ValidateNested()
     @Type(() => CreateUserDto)
     user: CreateUserDto;
 
     @ValidateNested()
-    @Type(() => RoomAdminDto)
-    roomAdmin: RoomAdminDto;
+    @Type(() => AdminDto)
+    admin: AdminDto;
 }

@@ -11,6 +11,11 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { StudentModule } from './student/student.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
+import { AdminModule } from './admin/admin.module';
+import { StudentController } from './student/student.controller';
+import { AdminController } from './admin/admin.controller';
+import { RoomAdminController } from './room-admin/room-admin.controller';
+import { AuthController } from './auth/auth.controller';
 
 @Module({
   imports: [
@@ -36,10 +41,18 @@ import { RoomAdminModule } from './room-admin/room-admin.module';
     UserModule,
     QueueModule,
     ConfigModule,
-    StudentModule,
-    RoomAdminModule
+    //StudentModule,
+    //AdminModule,
+    //RoomAdminModule,
   ],
-  controllers: [AppController, QueueController],
+  controllers: [
+    AuthController,
+    AppController,
+    QueueController,
+    //StudentController,
+    //AdminController,
+    //RoomAdminController,
+  ],
   providers: [AppService, AuthService],
 })
 export class AppModule {}

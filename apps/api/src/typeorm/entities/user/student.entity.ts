@@ -12,16 +12,29 @@ import { StudentCv } from '../student/student-cv.entity';
 import { Interview } from '../student/interview.entity';
 
 export enum StudentGroup {
-  GROUP_A = 'group_a',
-  GROUP_B = 'group_b',
-  GROUP_C = 'group_c',
+  ZL = 'ZL',
+  BT = 'BT',
+  CH = 'CH',
+  MT = 'MT',
+  BMS = 'BMS',
+  ST = 'ST',
+  GL = 'GL',
+  CS = 'CS',
+  DS = 'DS',
+  ML = 'ML',
+  BL = 'BL',
+  MB = 'MB',
+  CM = 'CM',
+  AS = 'AS',
+  ES = 'ES',
+  SOR = 'SOR',
 }
 
 export enum StudentLevel {
-  LEVEL_1 = 'level_1',
-  LEVEL_2 = 'level_2',
-  LEVEL_3 = 'level_3',
-  LEVEL_4 = 'level_4',
+  LEVEL_1000 = 'level_1',
+  LEVEL_2000 = 'level_2',
+  LEVEL_3000 = 'level_3',
+  LEVEL_4000 = 'level_4',
 }
 
 @Entity('students')

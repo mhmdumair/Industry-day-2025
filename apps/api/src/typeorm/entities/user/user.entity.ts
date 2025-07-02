@@ -29,10 +29,10 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
-  @Column()
+  @Column({nullable:true})
   first_name: string;
 
-  @Column()
+  @Column({nullable:true})
   last_name: string;
 
   @Column({ nullable: true })

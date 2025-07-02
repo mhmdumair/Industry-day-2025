@@ -8,27 +8,32 @@ export class RoomAdminController {
   constructor(private readonly roomAdminService: RoomAdminService) {}
 
   @Post()
-  create(@Body() createRoomAdminDto: CreateRoomAdminDto) {
+  async create(@Body() createRoomAdminDto: CreateRoomAdminDto) {
     return this.roomAdminService.create(createRoomAdminDto);
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.roomAdminService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.roomAdminService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return this.roomAdminService.findOne(id);
+  }
+
+  @Get('by-user/:userId')
+  async findByUserId(@Param('userId') userId: string) {
+    return this.roomAdminService.findByUserId(userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRoomAdminDto: UpdateRoomAdminDto) {
-    return this.roomAdminService.update(+id, updateRoomAdminDto);
+  async update(@Param('id') id: string, @Body() updateRoomAdminDto: UpdateRoomAdminDto) {
+    return this.roomAdminService.update(id, updateRoomAdminDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.roomAdminService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return this.roomAdminService.remove(id);
   }
 }
