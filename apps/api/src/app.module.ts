@@ -41,9 +41,12 @@ import { CompanyModule } from './company/company.module';
     StudentModule,
     AdminModule,
     RoomAdminModule,
-    CompanyModule
+    CompanyModule,
   ],
-  controllers: [AppController, QueueController],
+  controllers: [
+    AppController,
+    // QueueController
+  ],
   providers: [AppService, AuthService],
 })
 export class AppModule {}
