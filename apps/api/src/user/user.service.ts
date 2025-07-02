@@ -28,9 +28,9 @@ export class UserService {
 
     if (existingUser) {
       console.log(userDetails.email);
-      
+
       console.log(existingUser.email);
-      
+
       throw new ConflictException('Email already exists');
     }
 

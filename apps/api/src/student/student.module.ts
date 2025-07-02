@@ -6,7 +6,7 @@ import { Student } from 'src/typeorm/entities/user/student.entity';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports : [TypeOrmModule.forFeature([Student]),UserModule],
+  imports: [TypeOrmModule.forFeature([Student]),UserModule],
   controllers: [StudentController],
   providers: [StudentService],
 })

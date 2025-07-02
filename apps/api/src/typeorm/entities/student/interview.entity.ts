@@ -8,7 +8,7 @@ import {
 import { Stall } from '../facility/stall.entity';
 import { Student } from '../user/student.entity';
 import { StudentCv } from './student-cv.entity';
-import {Queue} from "../queue/queue.entity";
+import { Queue } from '../queue/queue.entity';
 
 export enum InterviewType {
   PRE_LISTED = 'pre-listed',
@@ -41,6 +41,9 @@ export class Interview {
 
   @Column()
   priority: string; //studentID_companyId_priority (e.g., "stu123_COMP1_1")
+
+  @Column()
+  position: number; // Position in the queue, used for ordering interviews
 
   @Column({ type: 'enum', enum: InterviewType })
   type: InterviewType;
