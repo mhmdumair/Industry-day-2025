@@ -30,24 +30,33 @@ export class AuthController {
     try {
       // Check if user already exists by Google ID
       let user = await this.usersService.fetchUserByEmail(googleUser.email);
-
-      if (user) {
+  
+      
+      if (!user) {
         // User exists with same email, update with Google ID
         // You might want to add an update method to UserService
-        console.log('User exists with this email but different auth method');
-      } else {
-        // Create new user
-        user = await this.usersService.createUser({
+         user = await this.usersService.createUser({
           email: googleUser.email,
           first_name: googleUser.first_name,
           last_name: googleUser.last_name,
           profile_picture: googleUser.profile_picture,
           role: UserRole.STUDENT, // Default role for new user
-          created_at: googleUser.created_at,
-          updated_at: googleUser.updated_at,
+       
         });
+      } 
+      const role :string = user.role
+      if (role.toLowerCase() == "company"){
+        return res.redirect(`http://localhost:3000/company`);
       }
-      return res.redirect(`http://localhost:3000/student`);
+      else if (role.toLowerCase() == "admin"){
+        return res.redirect(`http://localhost:3000/admin`);
+      }
+      else if (role.toLowerCase() == "room_admin"){
+        return res.redirect(`http://localhost:3000/room-admin`);
+      }else{
+        return res.redirect(`http://localhost:3000/student`)
+      }
+      
 
     } catch (error) {
       // Handle errors and redirect to error page or return error response

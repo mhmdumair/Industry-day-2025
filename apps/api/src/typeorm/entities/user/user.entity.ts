@@ -1,10 +1,10 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  PrimaryColumn,
 } from 'typeorm';
 import { Admin } from './admin.entity';
 import { Student } from './student.entity';
@@ -15,12 +15,12 @@ export enum UserRole {
   STUDENT = 'student',
   ADMIN = 'admin',
   ROOM_ADMIN = 'room_admin',
-  SIIC_ADMIN = 'siic_admin',
+  COMPANY = 'company',
 }
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'varchar', length: 6 })
   userID: string;
 
   @Column({ unique: true })
@@ -29,11 +29,10 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
-  // Profile fields from Google
-  @Column()
+  @Column({nullable:true})
   first_name: string;
 
-  @Column()
+  @Column({nullable:true})
   last_name: string;
 
   @Column({ nullable: true })
