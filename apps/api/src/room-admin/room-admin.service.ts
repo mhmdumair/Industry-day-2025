@@ -13,6 +13,8 @@ export class RoomAdminService {
     private readonly userService: UserService,
   ) {}
 
+  // we need to check room admin creation after completing room api
+ 
   async create(createRoomAdminDto: CreateRoomAdminDto): Promise<RoomAdmin> {
     const createdUser = await this.userService.createUser(createRoomAdminDto.user);
     const roomAdmin = this.roomAdminRepository.create({
