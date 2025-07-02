@@ -19,8 +19,8 @@ export class StudentService {
   const createdUser = await this.userService.createUser(createStudentDto.user);
 
   const student = this.studentRepository.create({
-    ...createStudentDto.student,  // Access student properties here
-    userID: createdUser.userID,   // Link to created user
+    ...createStudentDto.student,  
+    userID: createdUser.userID,   
   });
 
   return this.studentRepository.save(student);
