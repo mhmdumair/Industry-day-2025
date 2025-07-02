@@ -11,6 +11,7 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
+import { RoomAdminModule } from './room-admin/room-admin.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { AdminModule } from './admin/admin.module';
     QueueModule,
     ConfigModule,
     StudentModule,
-    AdminModule
+    AdminModule,
+    RoomAdminModule
   ],
   controllers: [AppController, QueueController],
   providers: [AppService, AuthService],
