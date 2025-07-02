@@ -19,9 +19,6 @@ export class Room {
   @Column()
   location: string;
 
-  @Column()
-  roomAdminID: string;
-
   @Column({ default: false })
   isActive: boolean;
 
