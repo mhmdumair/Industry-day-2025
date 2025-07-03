@@ -1,8 +1,7 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../typeorm/entities/user/user.entity';
-import { CreateUserParams } from './utils/types';
 import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
@@ -12,34 +11,49 @@ export class UserService {
   ) {}
 
   async fetchUsers(): Promise<User[]> {
-    return this.userRepository.find();
+    try {
+      return await this.userRepository.find();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch users');
+    }
   }
 
   async fetchUserById(userID: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { userID } });
+    try {
+      return await this.userRepository.findOne({ where: { userID } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch user by ID');
+    }
   }
 
   async fetchUserByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email} });
+    try {
+      return await this.userRepository.findOne({ where: { email } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch user by email');
+    }
   }
 
   async createUser(userDetails: CreateUserDto): Promise<User> {
-    const existingUser = await this.fetchUserByEmail(userDetails.email);
+    try {
+      const existingUser = await this.fetchUserByEmail(userDetails.email);
 
-    if (existingUser) {
-      console.log(userDetails.email);
-      
-      console.log(existingUser.email);
-      
-      throw new ConflictException('Email already exists');
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+
+      const newUser = this.userRepository.create(userDetails);
+
+      // Generate unique 6-character ID
+      newUser.userID = await this.generateUniqueID();
+
+      return await this.userRepository.save(newUser);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create user');
     }
-
-    const newUser = this.userRepository.create(userDetails);
-
-    // Generate unique 6-character ID
-    newUser.userID = await this.generateUniqueID();
-
-    return this.userRepository.save(newUser);
   }
 
   private async generateUniqueID(): Promise<string> {
