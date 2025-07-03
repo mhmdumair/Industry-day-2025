@@ -13,6 +13,7 @@ import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
 import { CompanyModule } from './company/company.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { CompanyModule } from './company/company.module';
     StudentModule,
     AdminModule,
     RoomAdminModule,
-    CompanyModule
+    CompanyModule,
+    RoomModule
   ],
   controllers: [AppController, QueueController],
   providers: [AppService, AuthService],
