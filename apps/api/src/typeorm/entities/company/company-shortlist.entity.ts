@@ -18,11 +18,8 @@ export class CompanyShortlist {
   @Column()
   studentID: string;
 
-  @Column({ nullable: true })
-  notes: string;
-
   // Relationships
-  @ManyToOne(() => Company, (company) => company.shortlists, { nullable: true })
+  @ManyToOne(() => Company, (company) => company.shortlist, { nullable: true })
   @JoinColumn({ name: 'companyID' })
   company: Company | null;
 }

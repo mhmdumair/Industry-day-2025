@@ -2,13 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
   OneToMany,
-  JoinColumn,
 } from 'typeorm';
 import { RoomAdmin } from '../user/room-admin.entity';
-import { Stall } from '../facility/stall.entity';
+import { Stall } from './stall.entity';
 
 @Entity('rooms')
 export class Room {
@@ -21,18 +19,11 @@ export class Room {
   @Column()
   location: string;
 
-  @Column()
-  roomAdminID: string;
-
-  @Column({ default: true })
+  @Column({ default: false })
   isActive: boolean;
-
-  @CreateDateColumn()
-  created_at: Date;
 
   // Relationships
   @OneToOne(() => RoomAdmin, (roomAdmin) => roomAdmin.room, { nullable: false })
-  @JoinColumn({ name: 'roomAdminID' })
   roomAdmin: RoomAdmin;
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })

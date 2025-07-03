@@ -17,8 +17,11 @@ export class RoomAdmin {
   @Column()
   userID: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Column()
+  designation: string;
+
+  @Column()
+  roomID: string;
 
   // Relationships
   @OneToOne(() => User, (user) => user.roomAdmin, { nullable: true })
@@ -26,5 +29,6 @@ export class RoomAdmin {
   user: User;
 
   @OneToOne(() => Room, (room) => room.roomAdmin, { nullable: true })
+  @JoinColumn({ name: 'roomID' })
   room: Room;
 }

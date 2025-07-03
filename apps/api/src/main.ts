@@ -24,6 +24,11 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+  origin: 'http://localhost:3000',
+  credentials: true, // This allows cookies to be sent across origins
+});
+
   // Initialize passport AFTER session
   app.use(passport.initialize());
   app.use(passport.session());

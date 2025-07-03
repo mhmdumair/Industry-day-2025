@@ -4,8 +4,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as entities from './typeorm/entities';
+import { UserModule } from './user/user.module';
+//import { QueueController } from './queue/queue.controller';
+//import { QueueModule } from './queue/queue.module';
+import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { StudentModule } from './student/student.module';
+import { AdminModule } from './admin/admin.module';
+import { RoomAdminModule } from './room-admin/room-admin.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -28,9 +35,18 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
     }),
     AuthModule,
-    UsersModule,
+    UserModule,
+    //QueueModule,
+    ConfigModule,
+    StudentModule,
+    AdminModule,
+    RoomAdminModule,
+    CompanyModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [
+    AppController,
+    //QueueController
+  ],
+  providers: [AppService, AuthService],
 })
 export class AppModule {}
