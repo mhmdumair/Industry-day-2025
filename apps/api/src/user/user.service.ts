@@ -60,7 +60,7 @@ export class UserService {
     let id: string;
     let exists: boolean;
     let attempts = 0;
-    const maxAttempts = 10; // Prevent infinite loops
+    const maxAttempts = 10; 
 
     do {
       id = this.generateRandomID();
@@ -81,7 +81,7 @@ export class UserService {
   }
 
   private generateRandomID(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz';
     let result = '';
     for (let i = 0; i < 6; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
