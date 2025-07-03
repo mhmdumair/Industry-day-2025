@@ -3,11 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn,
+  JoinColumn, Timestamp,
 } from 'typeorm';
-import { Stall } from './stall.entity';
-import { Student } from '../student/student.entity';
-import { StudentCv } from '../student/student-cv.entity';
+import { Stall } from '../facility/stall.entity';
+import { Student } from '../user/student.entity';
+import { StudentCv } from './student-cv.entity';
+import {Queue} from "../queue/queue.entity";
 
 export enum InterviewType {
   PRE_LISTED = 'pre-listed',
@@ -42,7 +43,7 @@ export class Interview {
   priority: string; //studentID_companyId_priority (e.g., "s20381_OCT_1")
 
   @Column({ type: 'enum', enum: InterviewType })
-  category: InterviewType;
+  type: InterviewType;
 
   @Column({ type: 'enum', enum: InterviewStatus })
   status: InterviewStatus;
@@ -51,12 +52,16 @@ export class Interview {
   remark: string;
 
   @Column({ type: 'timestamp' })
-  scheduledTime: Date;
+  scheduledTime: Timestamp;
 
   @Column({ type: 'timestamp', nullable: true })
-  actualTime: Date;
+  actualTime: Timestamp;
 
   // Relationships
+  @ManyToOne(() => Queue, (queue) => queue.interview, { nullable: true })
+  @JoinColumn({ name: 'queueID' })
+  queue: Queue;
+
   @ManyToOne(() => Stall, (stall) => stall.interviews, { nullable: true })
   @JoinColumn({ name: 'stallID' })
   stall: Stall;

@@ -1,26 +1,26 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  PrimaryColumn,
 } from 'typeorm';
 import { Admin } from './admin.entity';
-import { Student } from '../student/student.entity';
-import {RoomAdmin} from "./room-admin.entity";
-import {SiicAdmin} from "./siic-admin.entity";
+import { Student } from './student.entity';
+import { RoomAdmin } from './room-admin.entity';
+import { Company } from '../company/company.entity';
 
 export enum UserRole {
   STUDENT = 'student',
   ADMIN = 'admin',
   ROOM_ADMIN = 'room_admin',
-  SIIC_ADMIN = 'siic_admin',
+  COMPANY = 'company',
 }
 
-@Entity('user')
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'varchar', length: 6 })
   userID: string;
 
   @Column({ unique: true })
@@ -29,26 +29,14 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
-  // Google OAuth fields
-  @Column({ unique: true })
-  google_id: string;
-
-  // Profile fields from Google
-  @Column()
+  @Column({nullable:true})
   first_name: string;
 
-  @Column()
+  @Column({nullable:true})
   last_name: string;
 
   @Column({ nullable: true })
   profile_picture: string;
-
-  // Account status
-  @Column({ default: true })
-  email_verified: boolean;
-
-  @Column({ default: true })
-  is_active: boolean;
 
   @CreateDateColumn()
   created_at: Date;
@@ -66,6 +54,6 @@ export class User {
   @OneToOne(() => RoomAdmin, (roomAdmin) => roomAdmin.user, { nullable: true })
   roomAdmin: RoomAdmin | null;
 
-  @OneToOne(() => SiicAdmin, (siicAdmin) => siicAdmin.user, { nullable: true })
-  siicAdmin: SiicAdmin | null;
+  @OneToOne(() => Company, (company) => company.user, { nullable: true })
+  company: Company | null;
 }

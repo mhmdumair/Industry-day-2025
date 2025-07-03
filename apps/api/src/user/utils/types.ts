@@ -4,10 +4,9 @@ import { UserRole } from '../../typeorm/entities/user/user.entity';
 export interface CreateUserParams {
   email: string;
   role: UserRole;
-  google_id: string;
   first_name: string;
   last_name: string;
   profile_picture?: string;
-  email_verified?: boolean;
-  is_active?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
 }

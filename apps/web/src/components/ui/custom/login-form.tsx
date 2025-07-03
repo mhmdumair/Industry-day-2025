@@ -18,7 +18,7 @@ export function LoginForm({
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Login to your account</CardTitle>
                     <CardDescription className="text-black">
-                        Please use your University Email
+                        Please use your provided Google account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

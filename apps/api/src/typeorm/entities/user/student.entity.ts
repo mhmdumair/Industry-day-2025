@@ -7,16 +7,27 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../user/user.entity';
-import { StudentCv } from './student-cv.entity';
-import { Interview } from '../facility/interview.entity';
-import { QueueEntry } from '../queue/queue-entry.entity';
-import { CompanyShortlist } from '../company/company-shortlist.entity';
+import { User } from './user.entity';
+import { StudentCv } from '../student/student-cv.entity';
+import { Interview } from '../student/interview.entity';
 
 export enum StudentGroup {
-  GROUP_A = 'group_a',
-  GROUP_B = 'group_b',
-  GROUP_C = 'group_c',
+  ZL = 'ZL',
+  BT = 'BT',
+  CH = 'CH',
+  MT = 'MT',
+  BMS = 'BMS',
+  ST = 'ST',
+  GL = 'GL',
+  CS = 'CS',
+  DS = 'DS',
+  ML = 'ML',
+  BL = 'BL',
+  MB = 'MB',
+  CM = 'CM',
+  AS = 'AS',
+  ES = 'ES',
+  SOR = 'SOR',
 }
 
 export enum StudentLevel {
@@ -67,9 +78,4 @@ export class Student {
     nullable: true,
   })
   interviews: Interview[] | null;
-
-  @OneToMany(() => QueueEntry, (queueStudent) => queueStudent.student, {
-    nullable: true,
-  })
-  queueEntries: QueueEntry[] | null;
 }
