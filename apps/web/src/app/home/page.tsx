@@ -41,13 +41,18 @@ const announcementsData = [
 ];
 
 const mainSponsor = {
-    name: "Baurs Pvt Ltd",
-    description: "A leading life sciences and agricultural company in Sri Lanka.",
-    contactPerson: "Mr. Nimal Perera",
-    designation: "HR Manager",
-    contact: "+94 77 123 4567",
+    name: "Hemas Consumer Brands",
+    description: "Hemas Consumer Brands strives to enrich the consumers lifestyle through innovative, trusted and exceptional products that offer greater satisfaction in everyday use. A leader in the personal care sector, Hemas Brands encompass a range of products for babies and adults in hair care, skin care, toiletries, fragrances and oral care.\n" +
+        " \n" +
+        "The FMCG sector is one of the bedrocks of the Hemas Group - a sector whose roots reach back to 1962, when we commenced manufacturing eau-de-colognes. In the ensuing years, we have vastly expanded our operations, and boast a wide range of products that rank amongst the best recognized and trusted brands in Sri Lanka.\n" +
+        "We are in the business of developing FMCG brands – every function from marketing, innovation, supply-chain, and finance, HR through manufacturing and sales & distribution work towards building strong brands. Strong brands will provide us with the best defense, best source of offence and maximize value to the business.\n" +
+        " \n" +
+        "We are proud to be a Sri Lankan company, and as a Sri Lankan company have our home-grown strengths that propel us to supersede & compete against both local global businesses. Spreading our wings in the region. We are now a formidable force in Bangladesh, Maldives & export to 15+ nations around the globe.",
+    contactPerson: "Mr. Cheranga Weerawardana",
+    designation: "Assistant Manager - Talent Acquisition & Employer Branding",
+    contact: "+94 766412014",
     location: "Colombo 03, Sri Lanka",
-    website: "https://www.baurs.com",
+    website: "https://www.hemas.com",
     jobs: [
         "https://via.placeholder.com/300x200?text=Job+1",
         "https://via.placeholder.com/300x200?text=Job+2",
@@ -194,14 +199,21 @@ const AnnouncementsPage = () => {
                         </Card>
                     </DialogTrigger>
 
-                    <DialogContent className="w-3/4 max-w-7xl">
+                    <DialogContent className="w-full sm:w-11/12 max-w-screen-2xl p-8">
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold">
+                            <DialogTitle className="text-3xl font-bold items-center justify-center ">
                                 {mainSponsor.name}
                             </DialogTitle>
+                            <Image
+                                src="/assets/hemas.png"
+                                alt="hemas"
+                                className="rounded-md object-cover mt-4 mx-auto"
+                                width={300}
+                                height={200}
+                            />
                         </DialogHeader>
 
-                        <div className="mt-4 space-y-2 text-sm text-gray-700">
+                        <div className="mt-4 space-y-2 text-base text-gray-700">
                             <p>{mainSponsor.description}</p>
                             <p>
                                 <strong>Contact Person:</strong> {mainSponsor.contactPerson}
