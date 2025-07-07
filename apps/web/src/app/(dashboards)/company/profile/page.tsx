@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Globe, Phone, User, Building } from 'lucide-react';
+import Navbar from "@/components/HomeNavBar";
 
 export default function ProfileCard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,8 +47,8 @@ export default function ProfileCard() {
     };
 
     return (
-        <div className="mt-3">
-            <Card className="bg-gray-50 shadow-lg">
+        <div className="mt-3 w-3/4 mx-auto p-4">
+            <Card className="bg-gray-50 shadow-lg mt-3">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
                         <AvatarImage src={profileData.logo} alt="Company Logo" />
