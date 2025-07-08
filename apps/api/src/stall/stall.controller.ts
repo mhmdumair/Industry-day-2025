@@ -19,16 +19,16 @@ export class StallController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.stallService.findOne(+id);
+    return this.stallService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStallDto: UpdateStallDto) {
-    return this.stallService.update(+id, updateStallDto);
+    return this.stallService.update(id, updateStallDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.stallService.remove(+id);
+    return this.stallService.remove(id);
   }
 }
