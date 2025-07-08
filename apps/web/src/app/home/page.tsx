@@ -1,44 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Header } from "@/components/ui/custom/header";
-import { Badge } from "@/components/ui/badge";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import Image from "next/image"; // ✅ default import (fixes your error)
+import { Header } from "@/components/common/header";
+import HomeAnnouncement from "../../components/home/home-announcement";
+import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
+import SponsorDialog from "../../components/home/sponsor-dialog";
 
 // --- Data Section ---
-
-const announcementsData = [
-    {
-        id: 1,
-        title: "Interviews Started",
-        company: "SIIC",
-        time: "08.00",
-        description: "Pre-Listed students please be in your respective queues",
-    },
-    {
-        id: 2,
-        title: "Lunch Break",
-        company: "MAS Holdings",
-        time: "13.00",
-        description: "Be back by 14.00 for the next interview slot",
-    },
-    {
-        id: 3,
-        title: "Walking Interviews Begin",
-        company: "Octave",
-        time: "13.00",
-        description: "Be back by 14.00 for the next interview slot",
-    },
-];
 
 const mainSponsor = {
     name: "Hemas Consumer Brands",
@@ -53,6 +22,7 @@ const mainSponsor = {
     contact: "+94 766412014",
     location: "Colombo 03, Sri Lanka",
     website: "https://www.hemas.com",
+    logo: "/assets/hemas.png",
     jobs: [
         "https://via.placeholder.com/300x200?text=Job+1",
         "https://via.placeholder.com/300x200?text=Job+2",
@@ -60,127 +30,108 @@ const mainSponsor = {
     ],
 };
 
-const getCompanyBadgeClass = (company: string) => {
-    switch (company.toLowerCase()) {
-        case "siic":
-            return "bg-green-500 border border-green-900 text-white";
-        case "mas holdings":
-            return "bg-red-500 border border-red-900 text-white";
-        case "octave":
-            return "bg-orange-500 border border-orange-900 text-white";
-        default:
-            return "bg-gray-300 text-black";
-    }
+// Sample sponsor data - you can replace with actual data
+const platinumSponsor = {
+    name: "Platinum Sponsor Company",
+    description: "Leading technology company specializing in innovative solutions for modern businesses. We pride ourselves on delivering exceptional products and services that drive growth and success.",
+    contactPerson: "Ms. Sarah Johnson",
+    designation: "HR Manager",
+    contact: "+94 771234567",
+    location: "Colombo 01, Sri Lanka",
+    website: "https://www.platinumcompany.com",
+    logo: "/assets/platinum-logo.png",
+    category: "Platinum",
+    jobs: [
+        "https://via.placeholder.com/300x200?text=Software+Engineer",
+        "https://via.placeholder.com/300x200?text=Data+Analyst",
+    ],
 };
+
+const goldSponsor = {
+    name: "Gold Sponsor Company",
+    description: "Established financial services company with over 25 years of experience in providing comprehensive banking and investment solutions.",
+    contactPerson: "Mr. David Wilson",
+    designation: "Talent Acquisition Specialist",
+    contact: "+94 779876543",
+    location: "Colombo 02, Sri Lanka",
+    website: "https://www.goldcompany.com",
+    logo: "/assets/gold-logo.png",
+    category: "Gold",
+    jobs: [
+        "https://via.placeholder.com/300x200?text=Financial+Analyst",
+        "https://via.placeholder.com/300x200?text=Customer+Service",
+    ],
+};
+
+const silverSponsors = [
+    {
+        name: "Silver Sponsor 1",
+        description: "Innovative startup focused on sustainable technology solutions for environmental challenges.",
+        contactPerson: "Ms. Emma Chen",
+        contact: "+94 761111111",
+        location: "Colombo 03, Sri Lanka",
+        website: "https://www.silvercompany1.com",
+        category: "Silver",
+    },
+    {
+        name: "Silver Sponsor 2",
+        description: "Healthcare technology company developing cutting-edge medical devices and software solutions.",
+        contactPerson: "Dr. Michael Brown",
+        contact: "+94 762222222",
+        location: "Colombo 04, Sri Lanka",
+        website: "https://www.silvercompany2.com",
+        category: "Silver",
+    },
+    {
+        name: "Silver Sponsor 3",
+        description: "E-commerce platform connecting local businesses with global markets through digital transformation.",
+        contactPerson: "Ms. Lisa Wang",
+        contact: "+94 763333333",
+        location: "Colombo 05, Sri Lanka",
+        website: "https://www.silvercompany3.com",
+        category: "Silver",
+    },
+    {
+        name: "Silver Sponsor 4",
+        description: "Educational technology company creating innovative learning solutions for students and professionals.",
+        contactPerson: "Mr. James Taylor",
+        contact: "+94 764444444",
+        location: "Colombo 06, Sri Lanka",
+        website: "https://www.silvercompany4.com",
+        category: "Silver",
+    },
+    {
+        name: "Silver Sponsor 5",
+        description: "Renewable energy company specializing in solar and wind power solutions for residential and commercial use.",
+        contactPerson: "Ms. Rachel Green",
+        contact: "+94 765555555",
+        location: "Colombo 07, Sri Lanka",
+        website: "https://www.silvercompany5.com",
+        category: "Silver",
+    },
+    {
+        name: "Silver Sponsor 6",
+        description: "Digital marketing agency helping businesses build strong online presence and drive customer engagement.",
+        contactPerson: "Mr. Alex Rodriguez",
+        contact: "+94 766666666",
+        location: "Colombo 08, Sri Lanka",
+        website: "https://www.silvercompany6.com",
+        category: "Silver",
+    },
+];
 
 // --- Component ---
 
 const AnnouncementsPage = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCompany, setSelectedCompany] = useState("All");
-
-    const companies = useMemo(() => {
-        const unique = [...new Set(announcementsData.map((item) => item.company))];
-        return ["All", ...unique];
-    }, []);
-
-    const filteredAnnouncements = useMemo(() => {
-        return announcementsData.filter((a) => {
-            const matchesSearch =
-                a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.description.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCompany =
-                selectedCompany === "All" || a.company === selectedCompany;
-            return matchesSearch && matchesCompany;
-        });
-    }, [searchTerm, selectedCompany]);
-
     return (
         <div className="flex flex-col items-center min-h-screen w-3/4 mx-auto p-4">
             <Header />
 
             {/* Announcements */}
-            <Card className="w-11/12 shadow-sm pb-2 pt-2 bg-gray-100 border-black">
-                <div className="flex items-center justify-center w-full pt-4">
-                    <h2 className="font-semibold text-4xl [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
-                        Announcements
-                    </h2>
-                </div>
-
-                <div className="pb-4 px-3">
-                    <div className="flex items-center gap-2 mb-5 w-full">
-                        <Input
-                            placeholder="Search announcements..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full border-gray-500 bg-white"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <p className="text-sm text-gray-600">
-                            Showing {filteredAnnouncements.length} of{" "}
-                            {announcementsData.length} announcements
-                        </p>
-                    </div>
-
-                    <div className="rounded-md border overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                                        Title
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                                        From
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                                        Time
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                                        Description
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-300 bg-white">
-                                {filteredAnnouncements.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="text-center py-8 text-gray-500">
-                                            No announcements found
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredAnnouncements.map((a) => (
-                                        <tr key={a.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                {a.title}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">
-                                                <Badge className={getCompanyBadgeClass(a.company)}>
-                                                    {a.company}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">
-                                                <div className="flex items-center gap-2">{a.time}</div>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600 max-w-xs">
-                                                <div className="truncate" title={a.description}>
-                                                    {a.description}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </Card>
+            <HomeAnnouncement />
 
             {/* Companies Section */}
-            <Card className="w-11/12 shadow-sm bg-gray-100 border-black m-10">
+            <Card className="w-11/12 shadow-sm bg-gray-100 border-black m-10 justify-center items-center">
                 <div className="flex items-center justify-center w-full pt-6">
                     <h2 className="font-semibold text-4xl [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
                         Companies
@@ -188,94 +139,45 @@ const AnnouncementsPage = () => {
                 </div>
 
                 {/* Main Sponsor Card with Dialog */}
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Card className="mt-10 mx-auto w-3/4 shadow-sm bg-gray-100 border-black cursor-pointer hover:shadow-md transition">
-                            <div className="flex items-center justify-center w-full py-6">
-                                <h3 className="font-semibold text-3xl [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
-                                    Main Sponsor
-                                </h3>
-                            </div>
-                        </Card>
-                    </DialogTrigger>
-
-                    <DialogContent className="w-full sm:w-11/12 max-w-screen-2xl p-8">
-                        <DialogHeader>
-                            <DialogTitle className="text-3xl font-bold items-center justify-center ">
-                                {mainSponsor.name}
-                            </DialogTitle>
-                            <Image
-                                src="/assets/hemas.png"
-                                alt="hemas"
-                                className="rounded-md object-cover mt-4 mx-auto"
-                                width={300}
-                                height={200}
-                            />
-                        </DialogHeader>
-
-                        <div className="mt-4 space-y-2 text-base text-gray-700">
-                            <p>{mainSponsor.description}</p>
-                            <p>
-                                <strong>Contact Person:</strong> {mainSponsor.contactPerson}
-                            </p>
-                            <p>
-                                <strong>Designation:</strong> {mainSponsor.designation}
-                            </p>
-                            <p>
-                                <strong>Contact:</strong> {mainSponsor.contact}
-                            </p>
-                            <p>
-                                <strong>Location:</strong> {mainSponsor.location}
-                            </p>
-                            <p>
-                                <strong>Website:</strong>{" "}
-                                <a
-                                    href={mainSponsor.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 underline"
-                                >
-                                    {mainSponsor.website}
-                                </a>
-                            </p>
-                        </div>
-
-                        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {mainSponsor.jobs.map((img, idx) => (
-                                <Image
-                                    key={idx}
-                                    src={img}
-                                    alt={`Job ${idx + 1}`}
-                                    width={300}
-                                    height={200}
-                                    className="rounded-md object-cover border border-gray-300"
-                                />
-                            ))}
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <MainSponsorDialog
+                    sponsor={mainSponsor}
+                    triggerTitle="Main Sponsor"
+                />
 
                 {/* Other Sponsors */}
                 <Card className="w-11/12 shadow-sm bg-gray-100 border-black m-10 p-6">
                     {/* Platinum & Gold Sponsors */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-                        <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold">
-                            Platinum
-                        </div>
-                        <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold">
-                            Gold
-                        </div>
+                        <SponsorDialog
+                            sponsor={platinumSponsor}
+                            triggerComponent={
+                                <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold cursor-pointer hover:bg-slate-500 transition">
+                                    Platinum
+                                </div>
+                            }
+                        />
+                        <SponsorDialog
+                            sponsor={goldSponsor}
+                            triggerComponent={
+                                <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold cursor-pointer hover:bg-slate-500 transition">
+                                    Gold
+                                </div>
+                            }
+                        />
                     </div>
 
                     {/* Silver Sponsors Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div
+                        {silverSponsors.map((sponsor, i) => (
+                            <SponsorDialog
                                 key={i}
-                                className="bg-slate-400 rounded-xl h-28 flex items-center justify-center text-white text-sm font-medium"
-                            >
-                                Other {i + 1}
-                            </div>
+                                sponsor={sponsor}
+                                triggerComponent={
+                                    <div className="bg-slate-400 rounded-xl h-28 flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-slate-500 transition">
+                                        {sponsor.name}
+                                    </div>
+                                }
+                            />
                         ))}
                     </div>
                 </Card>

@@ -2,7 +2,7 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import Link from 'next/link'
 import React from 'react'
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRouter } from "next/navigation"
 

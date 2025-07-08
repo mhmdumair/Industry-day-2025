@@ -1,6 +1,6 @@
 "use client";
 import React, {useState} from 'react'
-import {Header} from "@/components/ui/custom/header";
+import {Header} from "@/components/common/header";
 import {
     Alert,
     AlertTitle,

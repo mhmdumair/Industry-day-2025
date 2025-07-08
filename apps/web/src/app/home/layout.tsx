@@ -1,4 +1,4 @@
-import HomeNavBar from '@/components/HomeNavBar';
+import HomeNavBar from '@/components/home/home-navbar';
 
 export default function RootLayout({
   children,

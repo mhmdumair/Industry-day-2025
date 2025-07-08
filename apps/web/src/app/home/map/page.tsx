@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef } from 'react'
 import {Card} from "@/components/ui/card";
-import {Header} from "@/components/ui/custom/header";
+import {Header} from "@/components/common/header";
 import {
     Table,
     TableBody,

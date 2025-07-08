@@ -27,7 +27,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarSeparator,
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -35,12 +35,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./ui/collapsible";
+} from "../ui/collapsible";
 
 const items = [
   {
@@ -72,7 +72,7 @@ const AdminSidebar = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/">
+              <Link href="/apps/web/public">
                 <Image src="/logo.jpg" alt="logo" width={20} height={20} className="rounded-full" />
                 <span>Industry Day</span>
               </Link>

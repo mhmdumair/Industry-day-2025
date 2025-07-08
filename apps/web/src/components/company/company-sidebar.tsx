@@ -16,9 +16,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";

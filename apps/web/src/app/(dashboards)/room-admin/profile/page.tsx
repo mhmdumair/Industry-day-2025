@@ -1,5 +1,5 @@
 import React from 'react'
-import {Header} from "@/components/ui/custom/header";
+import {Header} from "@/components/common/header";
 import {Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious} from "@/components/ui/carousel";
 import {Card, CardContent} from "@/components/ui/card";
 

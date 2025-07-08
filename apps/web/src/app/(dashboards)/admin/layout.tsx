@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import AdminSidebar from "@/components/AdminSidebar";
-import Navbar from "@/components/Navbar";
+import AdminSidebar from "@/components/admin/admin-sidebar";
+import Navbar from "@/components/common/navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
