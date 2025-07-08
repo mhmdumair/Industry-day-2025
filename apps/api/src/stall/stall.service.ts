@@ -33,6 +33,26 @@ export class StallService {
     }
   }
 
+
+async findByRoomId(roomID: string) {
+  try {
+    const stalls = await this.stallRepository.find({ where: { roomID } });
+    return stalls;
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to fetch stalls by room ID');
+  }
+}
+
+async findByCompanyId(companyID: string) {
+  try {
+    const stalls = await this.stallRepository.find({ where: { companyID } });
+    return stalls;
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to fetch stalls by company ID');
+  }
+}
+
+
   async findOne(id: string) {
     try {
       const stall = await this.stallRepository.findOne({ where: { id } });

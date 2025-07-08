@@ -17,6 +17,18 @@ export class StallController {
     return this.stallService.findAll();
   }
 
+
+  @Get('room/:roomID')
+  getByRoomId(@Param('roomID') roomID: string) {
+    return this.stallService.findByRoomId(roomID);
+  }
+
+  @Get('company/:companyID')
+  getByCompanyId(@Param('companyID') companyID: string) {
+    return this.stallService.findByCompanyId(companyID);
+  }
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.stallService.findOne(id);
