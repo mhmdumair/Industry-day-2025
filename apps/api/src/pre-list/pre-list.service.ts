@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CompanyPrelist } from '../typeorm/entities/company/company-prelist.entity';
 import { CreatePreListDto } from './dto/create-pre-list.dto';
 import { UpdatePreListDto } from './dto/update-pre-list.dto';
 
 @Injectable()
 export class PreListService {
-  create(createPreListDto: CreatePreListDto) {
-    return 'This action adds a new preList';
+  constructor(
+    @InjectRepository(CompanyPrelist)
+    private readonly preListRepository: Repository<CompanyPrelist>,
+  ) {}
+
+  async create(createPreListDto: CreatePreListDto): Promise<CompanyPrelist> {
+    const preList = this.preListRepository.create(createPreListDto);
+    return await this.preListRepository.save(preList);
   }
 
-  findAll() {
-    return `This action returns all preList`;
+  async findAll(): Promise<CompanyPrelist[]> {
+    return await this.preListRepository.find();
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} preList`;
+  async findOne(id: string): Promise<CompanyPrelist> {
+    const preList = await this.preListRepository.findOne({
+      where: { prelistID: id },
+      // relations: ['company'],
+    });
+    if (!preList) {
+      throw new NotFoundException(`PreList with ID ${id} not found`);
+    }
+    return preList;
   }
 
-  update(id: string, updatePreListDto: UpdatePreListDto) {
-    return `This action updates a #${id} preList`;
+  async update(id: string, updatePreListDto: UpdatePreListDto): Promise<CompanyPrelist> {
+    const preList = await this.preListRepository.preload({
+      prelistID: id,
+      ...updatePreListDto,
+    });
+    if (!preList) {
+      throw new NotFoundException(`PreList with ID ${id} not found`);
+    }
+    return await this.preListRepository.save(preList);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} preList`;
+  async remove(id: string): Promise<void> {
+    const result = await this.preListRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`PreList with ID ${id} not found`);
+    }
   }
 }
