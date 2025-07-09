@@ -43,6 +43,18 @@ export class PreListService {
     return await this.preListRepository.save(preList);
   }
 
+  async getPreListByCompanyId(companyID: string): Promise<CompanyPrelist[]> {
+  return await this.preListRepository.find({
+    where: { companyID },
+  });
+}
+
+async getPreListByStudentId(studentID: string): Promise<CompanyPrelist[]> {
+  return await this.preListRepository.find({
+    where: { studentID }
+  });
+}
+
   async remove(id: string): Promise<void> {
     const result = await this.preListRepository.delete(id);
     if (result.affected === 0) {

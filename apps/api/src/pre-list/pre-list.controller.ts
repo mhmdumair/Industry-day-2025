@@ -7,6 +7,16 @@ import { UpdatePreListDto } from './dto/update-pre-list.dto';
 export class PreListController {
   constructor(private readonly preListService: PreListService) {}
 
+  @Get('company/:companyID')
+  getByCompanyID(@Param('companyID') companyID: string) {
+    return this.preListService.getPreListByCompanyId(companyID);
+  }
+
+  @Get('student/:studentID')
+  getByStudentID(@Param('studentID') studentID: string) {
+    return this.preListService.getPreListByStudentId(studentID);
+  }
+
   @Post()
   create(@Body() createPreListDto: CreatePreListDto) {
     return this.preListService.create(createPreListDto);
