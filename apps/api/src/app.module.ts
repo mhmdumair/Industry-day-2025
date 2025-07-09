@@ -15,6 +15,7 @@ import { RoomAdminModule } from './room-admin/room-admin.module';
 import { CompanyModule } from './company/company.module';
 import { RoomModule } from './room/room.module';
 import { StallModule } from './stall/stall.module';
+import { PreListModule } from './pre-list/pre-list.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { StallModule } from './stall/stall.module';
     CompanyModule,
     RoomModule,
     StallModule,
+    PreListModule,
   ],
   controllers: [AppController, QueueController],
   providers: [AppService, AuthService],
