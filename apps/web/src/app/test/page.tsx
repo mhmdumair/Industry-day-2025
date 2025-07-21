@@ -1,16 +1,11 @@
 import React from "react";
 
-import { CarouselDemo } from "@/components/custom/carousel";
+import Header from "@/components/custom/home/header";
 
 const page = () => {
     return(
-    
         <div>
-            
-            <div>
-                <CarouselDemo/>
-            </div>
-            
+            <Header/>
         </div>
     )
 }
