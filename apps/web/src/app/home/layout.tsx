@@ -1,5 +1,3 @@
-import HomeNavBar from '@/components/home/home-navbar';
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -7,7 +5,6 @@ export default function RootLayout({
 }>) {
   return (
       <main className='h-full w-full'>
-        <HomeNavBar />
         {children}
       </main>
   );
