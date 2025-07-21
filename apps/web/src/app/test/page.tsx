@@ -1,13 +1,15 @@
 import React from "react";
 
-import header from "@/components/custom/home/header"
-
+import { CarouselDemo } from "@/components/custom/carousel";
 
 const page = () => {
     return(
     
         <div>
-            <header></header>
+            
+            <div>
+                <CarouselDemo/>
+            </div>
             
         </div>
     )
