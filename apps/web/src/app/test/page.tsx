@@ -1,11 +1,11 @@
 import React from "react";
 
-import Header from "@/components/custom/home/header";
+import Announcement from "@/components/custom/announcement";
 
 const page = () => {
     return(
         <div>
-            <Header/>
+            <Announcement/>
         </div>
     )
 }
