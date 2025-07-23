@@ -1,11 +1,13 @@
 import React from "react";
 
-import Announcement from "@/components/custom/announcement";
+import Navbar from "@/components/custom/student/navbar"
+
+
 
 const page = () => {
     return(
         <div>
-            <Announcement/>
+            <Navbar></Navbar>
         </div>
     )
 }
