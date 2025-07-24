@@ -5,11 +5,13 @@ import {
   UpdateDateColumn,
   OneToOne,
   PrimaryColumn,
+  OneToMany,
 } from 'typeorm';
 import { Admin } from './admin.entity';
 import { Student } from './student.entity';
 import { RoomAdmin } from './room-admin.entity';
 import { Company } from '../company/company.entity';
+import { Announcement } from '../announcements/announcement.entity';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -56,4 +58,7 @@ export class User {
 
   @OneToOne(() => Company, (company) => company.user, { nullable: true })
   company: Company | null;
+
+  @OneToMany(() => Announcement, (announcement) => announcement.postedByUserID, { nullable: true })
+  announcement: Announcement | null;
 }

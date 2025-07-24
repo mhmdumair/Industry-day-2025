@@ -8,19 +8,15 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
-import { QueueAnnouncement } from './queue-announcement.entity';
-import { CompanyAnnouncement } from './company-announcement.entity';
 
-// Enum for audience type
 export enum AudienceType {
   ALL = 'ALL',
   STUDENTS = 'STUDENTS',
   COMPANIES = 'COMPANIES',
-  QUEUES = 'QUEUES',
 }
 
-@Entity('announcements')
-export class Announcements {
+@Entity('announcement')
+export class Announcement {
   @PrimaryColumn()
   announcementID: string;
 
@@ -42,20 +38,8 @@ export class Announcements {
   @Column()
   postedByUserID: string;
 
-  // Relationships
   @ManyToOne(() => User)
   @JoinColumn({ name: 'postedByUserID' })
   postedByUser: User;
 
-  @OneToMany(
-    () => QueueAnnouncement,
-    (queueAnnouncement) => queueAnnouncement.announcement,
-  )
-  queueAnnouncements: QueueAnnouncement[];
-
-  @OneToMany(
-    () => CompanyAnnouncement,
-    (companyAnnouncement) => companyAnnouncement.announcement,
-  )
-  companyAnnouncements: CompanyAnnouncement[];
 }
