@@ -31,12 +31,15 @@ const items = [
 ];
 
 const CompanySidebar = () => {
-  const { setOpenMobile, collapsed } = useSidebar();
+  const { setOpenMobile, state } = useSidebar();
   const pathname = usePathname();
 
   const handleItemClick = () => {
     setOpenMobile(false);
   };
+
+  // Check if sidebar is collapsed
+  const isCollapsed = state === "collapsed";
 
   return (
       <Sidebar
@@ -68,7 +71,7 @@ const CompanySidebar = () => {
                               }`}
                           >
                             <item.icon className="w-16" />
-                            {!collapsed && (
+                            {!isCollapsed && (
                                 <span className="text-lg">{item.title}</span>
                             )}
                           </Link>

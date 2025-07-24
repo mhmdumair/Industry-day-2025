@@ -45,16 +45,13 @@ import { PreListModule } from './pre-list/pre-list.module';
     AdminModule,
     RoomAdminModule,
     CompanyModule,
-<<<<<<< HEAD
   ],
   controllers: [
     AppController,
     //QueueController
-=======
     RoomModule,
     StallModule,
     PreListModule,
->>>>>>> api-2
   ],
   providers: [AppService, AuthService],
 })
