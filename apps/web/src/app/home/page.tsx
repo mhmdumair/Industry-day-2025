@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import HomeAnnouncement from "../../components/home/home-announcement";
 import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
 import SponsorDialog from "../../components/home/sponsor-dialog";
-import Navbar from "@/components/home/home-navbar";
+import HomeNavbar from "@/components/home/home-navbar";
 
 // --- Data Section ---
 
@@ -125,7 +125,7 @@ const silverSponsors = [
 const AnnouncementsPage = () => {
     return (
         <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-            <Navbar />
+            <HomeNavbar />
 
             {/* Responsive spacer */}
             <div className="h-6 sm:h-10"></div>

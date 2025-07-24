@@ -48,10 +48,6 @@ import { PreListModule } from './pre-list/pre-list.module';
   ],
   controllers: [
     AppController,
-    //QueueController
-    RoomModule,
-    StallModule,
-    PreListModule,
   ],
   providers: [AppService, AuthService],
 })

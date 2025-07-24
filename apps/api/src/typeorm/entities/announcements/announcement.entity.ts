@@ -4,7 +4,6 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
@@ -15,7 +14,7 @@ export enum AudienceType {
   COMPANIES = 'COMPANIES',
 }
 
-@Entity('announcement')
+@Entity('announcements')
 export class Announcement {
   @PrimaryColumn()
   announcementID: string;
@@ -38,8 +37,7 @@ export class Announcement {
   @Column()
   postedByUserID: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.announcements)
   @JoinColumn({ name: 'postedByUserID' })
   postedByUser: User;
-
 }
