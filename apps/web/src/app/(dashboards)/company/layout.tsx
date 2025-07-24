@@ -1,9 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/common/navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
-import CompanySidebar from "@/components/CompanySidebar";
+import CompanySidebar from "@/components/company/company-sidebar";
 
 
 export default async function CompanyLayout({

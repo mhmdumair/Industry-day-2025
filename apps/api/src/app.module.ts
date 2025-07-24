@@ -49,7 +49,9 @@ import { PreListModule } from './pre-list/pre-list.module';
     StallModule,
     PreListModule,
   ],
-  controllers: [AppController, QueueController],
+  controllers: [
+    AppController,
+  ],
   providers: [AppService, AuthService],
 })
 export class AppModule {}

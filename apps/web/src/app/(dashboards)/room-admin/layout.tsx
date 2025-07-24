@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import RoomAdminSidebar from "@/components/RoomAdminSidebar";
-import Navbar from "@/components/Navbar";
+import RoomadminSidebar from "@/components/roomadmin/roomadmin-sidebar";
+import Navbar from "@/components/common/navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
@@ -18,7 +18,7 @@ export default async function RoomAdminLayout({
     <main className={`flex antialiased`}>
 
         <SidebarProvider defaultOpen={defaultOpen}>
-            <RoomAdminSidebar />
+            <RoomadminSidebar />
             <div className="w-full">
             <Navbar />
             <div className="px-4">{children}</div>
