@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoomAdmin } from 'src/typeorm/entities/user/room-admin.entity';
@@ -14,38 +14,61 @@ export class RoomAdminService {
   ) {}
 
   // we need to check room admin creation after completing room api
- 
+
   async create(createRoomAdminDto: CreateRoomAdminDto): Promise<RoomAdmin> {
-    const createdUser = await this.userService.createUser(createRoomAdminDto.user);
-    const roomAdmin = this.roomAdminRepository.create({
-      ...createRoomAdminDto.roomAdmin,
-      userID: createdUser.userID,
-    });
-    return this.roomAdminRepository.save(roomAdmin);
+    try {
+      const createdUser = await this.userService.createUser(createRoomAdminDto.user);
+      const roomAdmin = this.roomAdminRepository.create({
+        ...createRoomAdminDto.roomAdmin,
+        userID: createdUser.userID,
+      });
+      return await this.roomAdminRepository.save(roomAdmin);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create room admin');
+    }
   }
 
   async findAll(): Promise<RoomAdmin[]> {
-    return this.roomAdminRepository.find();
+    try {
+      return await this.roomAdminRepository.find();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch room admins');
+    }
   }
 
   async findOne(id: string): Promise<RoomAdmin | null> {
-    return this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+    try {
+      return await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch room admin');
+    }
   }
 
   async findByUserId(userId: string): Promise<RoomAdmin | null> {
-    return this.roomAdminRepository.findOne({ where: { userID: userId } });
+    try {
+      return await this.roomAdminRepository.findOne({ where: { userID: userId } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch room admin by userID');
+    }
   }
 
   async update(id: string, updateRoomAdminDto: UpdateRoomAdminDto): Promise<RoomAdmin> {
-    const roomAdmin = await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
-    if (!roomAdmin) {
-      throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
+    try {
+      const roomAdmin = await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+      if (!roomAdmin) {
+        throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
+      }
+      const updatedRoomAdmin = this.roomAdminRepository.merge(roomAdmin, updateRoomAdminDto);
+      return await this.roomAdminRepository.save(updatedRoomAdmin);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update room admin');
     }
-    const updatedRoomAdmin = this.roomAdminRepository.merge(roomAdmin, updateRoomAdminDto);
-    return this.roomAdminRepository.save(updatedRoomAdmin);
   }
 
   remove(id: string): string {
-    return "delete room admin"
+    return "delete room admin";
   }
 }

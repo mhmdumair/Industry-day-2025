@@ -5,7 +5,7 @@ import {Card, CardContent} from "@/components/ui/card";
 
 const page = () => {
   return (
-    <div className="mt-3 w-3/4 mx-auto p-4">
+    <div className="mt-3 w-full mx-auto p-4">
     <Header></Header>
       <div>
         <Carousel className="w-full max-w-xs">

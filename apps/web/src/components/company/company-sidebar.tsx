@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Home,
   Inbox,
@@ -16,11 +14,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "../ui/sidebar";
-import Link from "next/link";
 import React from "react";
-import { usePathname } from "next/navigation";
 
 const items = [
   { title: "Profile", url: "/company/profile", icon: Home },
@@ -31,51 +26,36 @@ const items = [
 ];
 
 const CompanySidebar = () => {
-  const { setOpenMobile, collapsed } = useSidebar();
-  const pathname = usePathname();
-
-  const handleItemClick = () => {
-    setOpenMobile(false);
-  };
-
   return (
       <Sidebar
           collapsible="icon"
-          className="min-h-screen bg-slate-300 border-slate-700 data-[collapsed=true]:w-30"
+          className="min-h-screen bg-black border-slate-700"
       >
         {/* Sidebar Header */}
-        <SidebarHeader className="py-4 h-23 flex items-center justify-center bg-slate-300">
-          {/* Logo or title can go here */}
+        <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3">
         </SidebarHeader>
 
         {/* Sidebar Content */}
-        <SidebarContent className="bg-slate-300">
+        <SidebarContent className="bg-slate-100">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {items.map((item) => {
-                  const isActive = pathname === item.url;
-                  return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild className="h-16">
-                          <Link
-                              href={item.url}
-                              onClick={handleItemClick}
-                              className={`flex items-center gap-3 px-3 py-2 transition-all duration-200 ${
-                                  isActive
-                                      ? "bg-slate-400 text-white font-semibold"
-                                      : "hover:bg-slate-200"
-                              }`}
-                          >
-                            <item.icon className="w-16" />
-                            {!collapsed && (
-                                <span className="text-lg">{item.title}</span>
-                            )}
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                  );
-                })}
+                {items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                          asChild
+                          className="h-12 mb-1 hover:bg-slate-100"
+                      >
+                        <a
+                            href={item.url}
+                            className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
+                        >
+                          <item.icon className="w-5 h-5 flex-shrink-0 text-black" />
+                          <span className="text-base truncate text-black">{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

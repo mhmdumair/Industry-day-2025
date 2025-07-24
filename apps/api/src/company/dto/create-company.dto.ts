@@ -1,6 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsUrl, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UserRole } from 'src/typeorm/entities/user/user.entity';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 
 export enum CompanyStream {

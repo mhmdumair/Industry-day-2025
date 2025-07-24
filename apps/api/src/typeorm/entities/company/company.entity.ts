@@ -66,7 +66,6 @@ export class Company {
   companyWebsite: string;
 
   // Relationships
-
   @OneToOne(() => User, (user) => user.company, { nullable: true })
   @JoinColumn({ name: 'userID' })
   user: User | null;
