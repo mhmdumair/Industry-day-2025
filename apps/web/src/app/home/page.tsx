@@ -2,11 +2,9 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { Header } from "@/components/common/header";
 import HomeAnnouncement from "../../components/home/home-announcement";
 import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
 import SponsorDialog from "../../components/home/sponsor-dialog";
-import SiteHeader from "../../components/home/header";
 import Navbar from "@/components/home/home-navbar";
 
 // --- Data Section ---
@@ -24,7 +22,7 @@ const mainSponsor = {
     contact: "+94 766412014",
     location: "Colombo 03, Sri Lanka",
     website: "https://www.hemas.com",
-    logo: "/assets/hemas.png",
+    logo: "/hemas.png",
     jobs: [
         "https://via.placeholder.com/300x200?text=Job+1",
         "https://via.placeholder.com/300x200?text=Job+2",
@@ -41,7 +39,7 @@ const platinumSponsor = {
     contact: "+94 771234567",
     location: "Colombo 01, Sri Lanka",
     website: "https://www.platinumcompany.com",
-    logo: "/assets/platinum-logo.png",
+    logo: "/baurs.webp",
     category: "Platinum",
     jobs: [
         "https://via.placeholder.com/300x200?text=Software+Engineer",
@@ -126,62 +124,202 @@ const silverSponsors = [
 
 const AnnouncementsPage = () => {
     return (
-        <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4">
+        <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
             <Navbar />
-            <div className="h-10"></div>
-            <HomeAnnouncement />
+
+            {/* Responsive spacer */}
+            <div className="h-6 sm:h-10"></div>
+
+            {/* Announcements - Full width on mobile */}
+            <div className="w-full max-w-6xl px-2 sm:px-0">
+                <HomeAnnouncement />
+            </div>
 
             {/* Companies Section */}
-            <Card className="w-11/12 shadow-sm bg-gray-100 border-black m-10 justify-center items-center">
-                <div className="flex items-center justify-center w-full pt-6">
-                    <h2 className="font-semibold text-4xl [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)]">
+            <Card className="
+                w-full max-w-6xl
+                shadow-sm bg-gray-100
+                mt-6 sm:mt-10
+                mx-2 sm:mx-0
+                text-black
+            ">
+                {/* Section Header */}
+                <div className="flex items-center justify-center w-full pt-4 sm:pt-6 pb-2 sm:pb-4">
+                    <h2 className="
+                        font-semibold
+                        text-4xl sm:text-2xl lg:text-4xl
+                        text-center
+                        px-4
+                    ">
                         Companies
                     </h2>
                 </div>
 
-                {/* Main Sponsor Card with Dialog */}
-                <MainSponsorDialog
-                    sponsor={mainSponsor}
-                    triggerTitle="Main Sponsor"
-                />
+                {/* Main Sponsor - Responsive container */}
+                <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+                    <MainSponsorDialog sponsor={mainSponsor}>
+                        <div className="
+                            w-full h-32 sm:h-40 lg:h-48
+                            flex items-center justify-center
+                            p-4 sm:p-6
+                            bg-white rounded-xl shadow-sm
+                            hover:shadow-md transition-shadow duration-200
+                            border border-gray-200
+                        ">
+                            {mainSponsor.logo ? (
+                                <img
+                                    src={mainSponsor.logo}
+                                    alt={`${mainSponsor.name} logo`}
+                                    className="max-w-full max-h-full object-contain"
+                                />
+                            ) : (
+                                <span className="text-lg sm:text-xl font-semibold text-center">
+                                    {mainSponsor.name}
+                                </span>
+                            )}
+                        </div>
+                    </MainSponsorDialog>
+                </div>
 
-                {/* Other Sponsors */}
-                <Card className="w-11/12 shadow-sm bg-gray-100 border-black m-10 p-6">
-                    {/* Platinum & Gold Sponsors */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-                        <SponsorDialog
-                            sponsor={platinumSponsor}
-                            triggerComponent={
-                                <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold cursor-pointer hover:bg-slate-500 transition">
-                                    Platinum
-                                </div>
-                            }
-                        />
-                        <SponsorDialog
-                            sponsor={goldSponsor}
-                            triggerComponent={
-                                <div className="bg-slate-400 rounded-xl h-40 flex items-center justify-center text-white text-xl font-semibold cursor-pointer hover:bg-slate-500 transition">
-                                    Gold
-                                </div>
-                            }
-                        />
-                    </div>
+                {/* Other Sponsors Container */}
+                <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+                    <Card className="
+                        w-full shadow-sm bg-white
+                        p-4 sm:p-6 lg:p-8
+                        border border-gray-200
+                    ">
+                        {/* Platinum & Gold Sponsors */}
+                        <div className="mb-6 sm:mb-8 lg:mb-10">
+                            <h3 className="
+                                text-lg sm:text-xl font-semibold
+                                text-center mb-4 sm:mb-6
+                                text-gray-800
+                            ">
+                                Premium Partners
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                {/* Platinum Sponsor */}
+                                <SponsorDialog
+                                    sponsor={platinumSponsor}
+                                    triggerComponent={
+                                        <div className="
+                                            bg-gradient-to-br from-gray-100 to-gray-200
+                                            hover:from-gray-200 hover:to-gray-300
+                                            rounded-xl
+                                            h-32 sm:h-40
+                                            flex flex-col items-center justify-center
+                                            text-gray-800
+                                            text-base sm:text-xl font-semibold
+                                            cursor-pointer
+                                            transition-all duration-200
+                                            p-4
+                                            border border-gray-300
+                                            shadow-sm hover:shadow-md
+                                        ">
+                                            {platinumSponsor.logo ? (
+                                                <div className="flex flex-col items-center justify-center h-full">
+                                                    <img
+                                                        src={platinumSponsor.logo}
+                                                        alt={`${platinumSponsor.name} logo`}
+                                                        className="max-w-full max-h-16 sm:max-h-20 object-contain mb-2"
+                                                    />
+                                                    <span className="text-xs sm:text-sm font-medium text-gray-600">
+                                                        Platinum Partner
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span>Platinum Partner</span>
+                                            )}
+                                        </div>
+                                    }
+                                />
 
-                    {/* Silver Sponsors Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                        {silverSponsors.map((sponsor, i) => (
-                            <SponsorDialog
-                                key={i}
-                                sponsor={sponsor}
-                                triggerComponent={
-                                    <div className="bg-slate-400 rounded-xl h-28 flex items-center justify-center text-white text-sm font-medium cursor-pointer hover:bg-slate-500 transition">
-                                        {sponsor.name}
-                                    </div>
-                                }
-                            />
-                        ))}
-                    </div>
-                </Card>
+                                {/* Gold Sponsor */}
+                                <SponsorDialog
+                                    sponsor={goldSponsor}
+                                    triggerComponent={
+                                        <div className="
+                                            bg-gradient-to-br from-amber-100 to-amber-200
+                                            hover:from-amber-200 hover:to-amber-300
+                                            rounded-xl
+                                            h-32 sm:h-40
+                                            flex flex-col items-center justify-center
+                                            text-amber-800
+                                            text-base sm:text-xl font-semibold
+                                            cursor-pointer
+                                            transition-all duration-200
+                                            p-4
+                                            border border-amber-300
+                                            shadow-sm hover:shadow-md
+                                        ">
+                                            {goldSponsor.logo ? (
+                                                <div className="flex flex-col items-center justify-center h-full">
+                                                    <img
+                                                        src={goldSponsor.logo}
+                                                        alt={`${goldSponsor.name} logo`}
+                                                        className="max-w-full max-h-16 sm:max-h-20 object-contain mb-2"
+                                                    />
+                                                    <span className="text-xs sm:text-sm font-medium text-amber-700">
+                                                        Gold Partner
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span>Gold Partner</span>
+                                            )}
+                                        </div>
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {/* Silver Sponsors Section */}
+                        <div>
+                            <h3 className="
+                                text-lg sm:text-xl font-semibold
+                                text-center mb-4 sm:mb-6
+                                text-gray-800
+                            ">
+                                Supporting Partners
+                            </h3>
+                            <div className="
+                                grid
+                                grid-cols-2
+                                sm:grid-cols-3
+                                lg:grid-cols-4
+                                xl:grid-cols-6
+                                gap-3 sm:gap-4 lg:gap-6
+                            ">
+                                {silverSponsors.map((sponsor, i) => (
+                                    <SponsorDialog
+                                        key={i}
+                                        sponsor={sponsor}
+                                        triggerComponent={
+                                            <div className="
+                                                bg-gradient-to-br from-slate-100 to-slate-200
+                                                hover:from-slate-200 hover:to-slate-300
+                                                rounded-lg sm:rounded-xl
+                                                h-20 sm:h-24 lg:h-28
+                                                flex items-center justify-center
+                                                text-slate-700
+                                                text-xs sm:text-sm font-medium
+                                                cursor-pointer
+                                                transition-all duration-200
+                                                p-2 sm:p-3
+                                                border border-slate-300
+                                                shadow-sm hover:shadow-md
+                                                text-center
+                                            ">
+                                                <span className="line-clamp-2 break-words">
+                                                    {sponsor.name}
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                </div>
             </Card>
         </div>
     );
