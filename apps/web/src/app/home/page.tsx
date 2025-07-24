@@ -131,9 +131,11 @@ const AnnouncementsPage = () => {
             <div className="h-6 sm:h-10"></div>
 
             {/* Announcements - Full width on mobile */}
-            <div className="w-full max-w-6xl px-2 sm:px-0">
+            <div className="w-full max-w-6xl px-2 sm:px-0 h-fit">
                 <HomeAnnouncement />
             </div>
+
+            <div className="h-6 sm:h-10"></div>
 
             {/* Companies Section */}
             <Card className="

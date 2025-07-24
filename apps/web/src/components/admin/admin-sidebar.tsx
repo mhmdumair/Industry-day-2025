@@ -1,133 +1,66 @@
 import {
   Home,
   Inbox,
-  Calendar,
   Search,
-  Settings,
-  User2,
-  ChevronUp,
-  Plus,
-  Projector,
-  ChevronDown,
+  Bell,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarSeparator,
 } from "../ui/sidebar";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
+import React from "react";
 
 const items = [
-  {
-    title: "Profile",
-    url: "/admin/profile",
-    icon: Home,
-  },
-  {
-    title: "Students",
-    url: "/admin/students",
-    icon: Inbox,
-  },
-  {
-    title: "Companies",
-    url: "/admin/companies",
-    icon: Calendar,
-  },
-  {
-    title: "Announcements",
-    url: "/admin/announcements",
-    icon: Search,
-  }
+  { title: "Profile", url: "/admin/profile", icon: Home },
+  { title: "Students", url: "/admin/students", icon: Inbox },
+  { title: "Companies", url: "/admin/companies", icon: List },
+  { title: "Announcements", url: "/admin/announcements", icon: Bell },
 ];
 
-const AdminSidebar = () => {
+const CompanySidebar = () => {
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="py-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/apps/web/public">
-                <Image src="/logo.jpg" alt="logo" width={20} height={20} className="rounded-full" />
-                <span>Industry Day</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarSeparator />
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Admin Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  {item.title === "Inbox" && (
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <Sidebar
+          collapsible="icon"
+          className="min-h-screen bg-black border-slate-700"
+      >
+        {/* Sidebar Header */}
+        <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3">
+        </SidebarHeader>
 
-        {/* COLLAPSABLE */}
-
-        {/* NESTED */}
-
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User2 /> John Doe <ChevronUp className="ml-auto" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Account</DropdownMenuItem>
-                <DropdownMenuItem>Setting</DropdownMenuItem>
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+        {/* Sidebar Content */}
+        <SidebarContent className="bg-slate-100">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                          asChild
+                          className="h-12 mb-1 hover:bg-slate-100"
+                      >
+                        <a
+                            href={item.url}
+                            className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
+                        >
+                          <item.icon className="w-5 h-5 flex-shrink-0 text-black" />
+                          <span className="text-base truncate text-black">{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
   );
 };
 
-export default AdminSidebar;
+export default CompanySidebar;
