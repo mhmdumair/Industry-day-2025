@@ -30,7 +30,9 @@ export class StudentService {
 
   async findAll(): Promise<Student[]> {
     try {
-      return await this.studentRepository.find();
+      return await this.studentRepository.find({
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch students');
     }
@@ -38,7 +40,10 @@ export class StudentService {
 
   async findOne(id: string): Promise<Student | null> {
     try {
-      return await this.studentRepository.findOne({ where: { studentID: id } });
+      return await this.studentRepository.findOne({ 
+        where: { studentID: id },
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch student');
     }
@@ -46,7 +51,10 @@ export class StudentService {
 
   async findByUserId(userId: string): Promise<Student | null> {
     try {
-      return await this.studentRepository.findOne({ where: { userID: userId } });
+      return await this.studentRepository.findOne({ 
+        where: { userID: userId },
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch student by userID');
     }
@@ -57,7 +65,10 @@ export class StudentService {
       const where: any = {};
       if (group) where.group = group;
       if (level) where.level = level;
-      return await this.studentRepository.find({ where });
+      return await this.studentRepository.find({ 
+        where,
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to filter students');
     }
@@ -65,7 +76,10 @@ export class StudentService {
 
   async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
     try {
-      const student = await this.studentRepository.findOne({ where: { studentID: id } });
+      const student = await this.studentRepository.findOne({ 
+        where: { studentID: id },
+        relations: ['user'],
+      });
 
       if (!student) {
         throw new NotFoundException(`Student with ID ${id} not found`);
