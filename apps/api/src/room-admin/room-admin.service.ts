@@ -13,8 +13,6 @@ export class RoomAdminService {
     private readonly userService: UserService,
   ) {}
 
-  // we need to check room admin creation after completing room api
-
   async create(createRoomAdminDto: CreateRoomAdminDto): Promise<RoomAdmin> {
     try {
       const createdUser = await this.userService.createUser(createRoomAdminDto.user);
@@ -30,7 +28,9 @@ export class RoomAdminService {
 
   async findAll(): Promise<RoomAdmin[]> {
     try {
-      return await this.roomAdminRepository.find();
+      return await this.roomAdminRepository.find({
+        relations: ['user', 'room'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch room admins');
     }
@@ -38,7 +38,10 @@ export class RoomAdminService {
 
   async findOne(id: string): Promise<RoomAdmin | null> {
     try {
-      return await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+      return await this.roomAdminRepository.findOne({ 
+        where: { roomAdminID: id },
+        relations: ['user', 'room'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch room admin');
     }
@@ -46,7 +49,10 @@ export class RoomAdminService {
 
   async findByUserId(userId: string): Promise<RoomAdmin | null> {
     try {
-      return await this.roomAdminRepository.findOne({ where: { userID: userId } });
+      return await this.roomAdminRepository.findOne({ 
+        where: { userID: userId },
+        relations: ['user', 'room'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch room admin by userID');
     }
@@ -54,7 +60,10 @@ export class RoomAdminService {
 
   async update(id: string, updateRoomAdminDto: UpdateRoomAdminDto): Promise<RoomAdmin> {
     try {
-      const roomAdmin = await this.roomAdminRepository.findOne({ where: { roomAdminID: id } });
+      const roomAdmin = await this.roomAdminRepository.findOne({ 
+        where: { roomAdminID: id },
+        relations: ['user', 'room'],
+      });
       if (!roomAdmin) {
         throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
       }
