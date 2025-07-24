@@ -4,10 +4,6 @@ import { AudienceType } from '../../typeorm/entities/announcements/announcement.
 export class CreateAnnouncementDto {
   @IsNotEmpty()
   @IsString()
-  announcementID: string;
-
-  @IsNotEmpty()
-  @IsString()
   title: string;
 
   @IsNotEmpty()
