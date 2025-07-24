@@ -52,16 +52,10 @@ import { AnnouncementModule } from './announcement/announcement.module';
     AdminModule,
     RoomAdminModule,
     CompanyModule,
-<<<<<<< HEAD
-  ],
-  controllers: [
-    AppController,
-=======
     RoomModule,
     StallModule,
     PreListModule,
     AnnouncementModule,
->>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
   ],
   controllers: [AppController],
   providers: [AppService],
