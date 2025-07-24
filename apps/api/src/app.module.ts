@@ -56,8 +56,8 @@ import { AnnouncementModule } from './announcement/announcement.module';
     StallModule,
     PreListModule,
     AnnouncementModule,
+
   ],
-  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

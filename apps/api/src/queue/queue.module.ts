@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Module } from '@nestjs/common';
 import { QueueService } from './queue.service';
 
@@ -6,12 +5,3 @@ import { QueueService } from './queue.service';
   providers: [QueueService]
 })
 export class QueueModule {}
-=======
-import { Module } from '@nestjs/common';
-import { QueueService } from './queue.service';
-
-@Module({
-  providers: [QueueService]
-})
-export class QueueModule {}
->>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
