@@ -75,10 +75,11 @@ export class Company {
   })
   shortlist: CompanyShortlist | null;
 
-  @OneToOne(() => CompanyPrelist, (prelist) => prelist.company, {
+  // Fix: Change from OneToOne to OneToMany
+  @OneToMany(() => CompanyPrelist, (prelist) => prelist.company, {
     nullable: true,
   })
-  prelist: CompanyPrelist | null;
+  prelists: CompanyPrelist[] | null;
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];

@@ -18,13 +18,15 @@ export class PreListService {
   }
 
   async findAll(): Promise<CompanyPrelist[]> {
-    return await this.preListRepository.find();
+    return await this.preListRepository.find({
+      relations: ['company', 'student', 'company.user', 'student.user'],
+    });
   }
 
   async findOne(id: string): Promise<CompanyPrelist> {
     const preList = await this.preListRepository.findOne({
       where: { prelistID: id },
-      // relations: ['company'],
+      relations: ['company', 'student', 'company.user', 'student.user'],
     });
     if (!preList) {
       throw new NotFoundException(`PreList with ID ${id} not found`);
@@ -44,16 +46,18 @@ export class PreListService {
   }
 
   async getPreListByCompanyId(companyID: string): Promise<CompanyPrelist[]> {
-  return await this.preListRepository.find({
-    where: { companyID },
-  });
-}
+    return await this.preListRepository.find({
+      where: { companyID },
+      relations: ['company', 'student', 'company.user', 'student.user'],
+    });
+  }
 
-async getPreListByStudentId(studentID: string): Promise<CompanyPrelist[]> {
-  return await this.preListRepository.find({
-    where: { studentID }
-  });
-}
+  async getPreListByStudentId(studentID: string): Promise<CompanyPrelist[]> {
+    return await this.preListRepository.find({
+      where: { studentID },
+      relations: ['company', 'student', 'company.user', 'student.user'],
+    });
+  }
 
   async remove(id: string): Promise<void> {
     const result = await this.preListRepository.delete(id);
