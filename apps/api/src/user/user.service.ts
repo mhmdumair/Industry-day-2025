@@ -43,10 +43,6 @@ export class UserService {
       }
 
       const newUser = this.userRepository.create(userDetails);
-
-      // Generate unique 6-character ID
-      newUser.userID = await this.generateUniqueID();
-
       return await this.userRepository.save(newUser);
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -54,38 +50,5 @@ export class UserService {
       }
       throw new InternalServerErrorException('Failed to create user');
     }
-  }
-
-  private async generateUniqueID(): Promise<string> {
-    let id: string;
-    let exists: boolean;
-    let attempts = 0;
-    const maxAttempts = 10; 
-
-    do {
-      id = this.generateRandomID();
-      const existingUser = await this.userRepository.findOne({
-        where: { userID: id },
-      });
-      exists = !!existingUser;
-      attempts++;
-
-      if (attempts >= maxAttempts) {
-        throw new ConflictException(
-          'Unable to generate unique user ID after multiple attempts',
-        );
-      }
-    } while (exists);
-
-    return id;
-  }
-
-  private generateRandomID(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   }
 }

@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+// "use client";
+
+>>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
 import {
   Home,
   Inbox,
@@ -26,6 +31,16 @@ const items = [
 ];
 
 const CompanySidebar = () => {
+<<<<<<< HEAD
+=======
+  // const { setOpenMobile, collapsed } = useSidebar();
+  // const pathname = usePathname();
+
+  // const handleItemClick = () => {
+  //   setOpenMobile(false);
+  // };
+
+>>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
   return (
       <Sidebar
           collapsible="icon"
@@ -40,6 +55,7 @@ const CompanySidebar = () => {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
+<<<<<<< HEAD
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
@@ -56,6 +72,31 @@ const CompanySidebar = () => {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                 ))}
+=======
+                {items.map((item) => {
+                  // const isActive = pathname === item.url;
+                  return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild className="h-16">
+                          <Link
+                              href={item.url}
+                              // onClick={handleItemClick}
+                              // className={`flex items-center gap-3 px-3 py-2 transition-all duration-200 ${
+                              //     isActive
+                              //         ? "bg-slate-400 text-white font-semibold"
+                              //         : "hover:bg-slate-200"
+                              // }`}
+                          >
+                            <item.icon className="w-16" />
+                            {/* {!collapsed && (
+                                <span className="text-lg">{item.title}</span>
+                            )} */}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                  );
+                })}
+>>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

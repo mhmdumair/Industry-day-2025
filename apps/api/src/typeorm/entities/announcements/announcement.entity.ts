@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 
@@ -16,7 +17,7 @@ export enum AudienceType {
 
 @Entity('announcements')
 export class Announcement {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid') 
   announcementID: string;
 
   @Column()

@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Company } from './company.entity';
+import { Student } from '../user/student.entity';
 
 @Entity('company_prelists')
 export class CompanyPrelist {
@@ -19,7 +20,11 @@ export class CompanyPrelist {
   studentID: string;
 
   // Relationships
-  @ManyToOne(() => Company, (company) => company.prelist, { nullable: true })
+  @ManyToOne(() => Company, (company) => company.prelists, { nullable: true })
   @JoinColumn({ name: 'companyID' })
   company: Company | null;
+
+  @ManyToOne(() => Student, (student) => student.prelists, { nullable: true })
+  @JoinColumn({ name: 'studentID' })
+  student: Student | null;
 }

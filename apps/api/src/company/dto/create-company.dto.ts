@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsUrl, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 

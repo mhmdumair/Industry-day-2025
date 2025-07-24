@@ -10,6 +10,7 @@ import {
 import { User } from './user.entity';
 import { StudentCv } from '../student/student-cv.entity';
 import { Interview } from '../student/interview.entity';
+import { CompanyPrelist } from '../company/company-prelist.entity';
 
 export enum StudentGroup {
   ZL = 'ZL',
@@ -78,4 +79,10 @@ export class Student {
     nullable: true,
   })
   interviews: Interview[] | null;
+
+  @OneToMany(() => CompanyPrelist, (prelist) => prelist.student, {
+    nullable: true,
+  })
+  prelists: CompanyPrelist[] | null;
+  
 }

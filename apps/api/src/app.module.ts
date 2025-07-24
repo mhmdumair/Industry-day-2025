@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+
+// Entities
 import * as entities from './typeorm/entities';
-import { UserModule } from './user/user.module';
-//import { QueueController } from './queue/queue.controller';
-//import { QueueModule } from './queue/queue.module';
-import { AuthService } from './auth/auth.service';
+
+// Feature Modules
 import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { QueueModule } from './queue/queue.module';
 import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
@@ -16,13 +19,17 @@ import { CompanyModule } from './company/company.module';
 import { RoomModule } from './room/room.module';
 import { StallModule } from './stall/stall.module';
 import { PreListModule } from './pre-list/pre-list.module';
+import { AnnouncementModule } from './announcement/announcement.module';
 
 @Module({
   imports: [
+    // Load environment variables globally
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // TypeORM configuration using async factory
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -37,18 +44,26 @@ import { PreListModule } from './pre-list/pre-list.module';
       }),
       inject: [ConfigService],
     }),
+
     AuthModule,
     UserModule,
-    //QueueModule,
-    ConfigModule,
+    QueueModule,
     StudentModule,
     AdminModule,
     RoomAdminModule,
     CompanyModule,
+<<<<<<< HEAD
   ],
   controllers: [
     AppController,
+=======
+    RoomModule,
+    StallModule,
+    PreListModule,
+    AnnouncementModule,
+>>>>>>> 22239e97375431b827c1fb5b089ce2e6b69f43d6
   ],
-  providers: [AppService, AuthService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

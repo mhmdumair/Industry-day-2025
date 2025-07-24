@@ -20,3 +20,4 @@ export class CreateUserDto {
   @IsString()
   profile_picture?: string;
 }
+
