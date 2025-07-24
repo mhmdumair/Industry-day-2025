@@ -13,6 +13,7 @@ import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
 import { CompanyModule } from './company/company.module';
+import {ResumesController} from "./resumes/resumes.controller";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { CompanyModule } from './company/company.module';
   ],
   controllers: [
     AppController,
+      ResumesController,
     //QueueController
   ],
   providers: [AppService, AuthService],
