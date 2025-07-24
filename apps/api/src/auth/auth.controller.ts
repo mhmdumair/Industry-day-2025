@@ -59,7 +59,6 @@ export class AuthController {
       
 
     } catch (error) {
-      // Handle errors and redirect to error page or return error response
       console.error('Authentication failed:', error.message);
       return res.redirect(`http://localhost:3000/auth/error?message=${encodeURIComponent(error.message)}`);
     }
