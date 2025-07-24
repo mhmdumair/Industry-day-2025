@@ -44,21 +44,11 @@ export class AuthController {
        
         });
       } 
-      const role :string = user.role
-      if (role.toLowerCase() == "company"){
-        return res.redirect(`http://localhost:3000/company`);
-      }
-      else if (role.toLowerCase() == "admin"){
-        return res.redirect(`http://localhost:3000/admin`);
-      }
-      else if (role.toLowerCase() == "room_admin"){
-        return res.redirect(`http://localhost:3000/room-admin`);
-      }else{
-        return res.redirect(`http://localhost:3000/student`)
-      }
+      return res.redirect(`http://localhost:3000/home`);
       
 
     } catch (error) {
+      
       console.error('Authentication failed:', error.message);
       return res.redirect(`http://localhost:3000/auth/error?message=${encodeURIComponent(error.message)}`);
     }
