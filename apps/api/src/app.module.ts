@@ -13,6 +13,9 @@ import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
 import { CompanyModule } from './company/company.module';
+import { RoomModule } from './room/room.module';
+import { StallModule } from './stall/stall.module';
+import { PreListModule } from './pre-list/pre-list.module';
 
 @Module({
   imports: [
@@ -42,10 +45,16 @@ import { CompanyModule } from './company/company.module';
     AdminModule,
     RoomAdminModule,
     CompanyModule,
+<<<<<<< HEAD
   ],
   controllers: [
     AppController,
     //QueueController
+=======
+    RoomModule,
+    StallModule,
+    PreListModule,
+>>>>>>> api-2
   ],
   providers: [AppService, AuthService],
 })

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { Admin } from 'src/typeorm/entities/user/admin.entity';
@@ -14,41 +14,61 @@ export class AdminService {
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
-    const createdUser = await this.userService.createUser(createAdminDto.user);
+    try {
+      const createdUser = await this.userService.createUser(createAdminDto.user);
 
-    const admin = this.adminRepository.create({
-      ...createAdminDto.admin,
-      userID: createdUser.userID,
-    });
-    return this.adminRepository.save(admin);
+      const admin = this.adminRepository.create({
+        ...createAdminDto.admin,
+        userID: createdUser.userID,
+      });
+      return await this.adminRepository.save(admin);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create admin');
+    }
   }
 
-
   async findAll(): Promise<Admin[]> {
-    return this.adminRepository.find();
+    try {
+      return await this.adminRepository.find();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch admins');
+    }
   }
 
   async findOne(id: string): Promise<Admin | null> {
-    return this.adminRepository.findOne({ where: { adminID: id } });
+    try {
+      return await this.adminRepository.findOne({ where: { adminID: id } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch admin');
+    }
   }
-
 
   async findByUserId(userId: string): Promise<Admin | null> {
-    return this.adminRepository.findOne({ where: { userID: userId } });
+    try {
+      return await this.adminRepository.findOne({ where: { userID: userId } });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch admin by userID');
+    }
   }
-
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
-    const admin = await this.adminRepository.findOne({ where: { adminID: id } });
-    if (!admin) {
-      throw new NotFoundException(`Admin with ID ${id} not found`);
+    try {
+      const admin = await this.adminRepository.findOne({ where: { adminID: id } });
+      if (!admin) {
+        throw new NotFoundException(`Admin with ID ${id} not found`);
+      }
+      const updatedAdmin = this.adminRepository.merge(admin, updateAdminDto);
+      return await this.adminRepository.save(updatedAdmin);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update admin');
     }
-    const updatedAdmin = this.adminRepository.merge(admin, updateAdminDto);
-    return this.adminRepository.save(updatedAdmin);
   }
 
-
-  remove(id: string): string{
-    return "delete admin"
+  remove(id: string): string {
+   
+    return "delete admin";
   }
 }
