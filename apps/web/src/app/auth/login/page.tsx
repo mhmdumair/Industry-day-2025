@@ -1,47 +1,14 @@
-'use client'
+"use client"
+import { LoginForm } from "@/components/auth/login-form"
+import {Header} from "@/components/common/header";
 
-import React from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { LogIn } from 'lucide-react'
-
-const Page = () => {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center">
-      <Card className="w-[300px] max-w-sm shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">Login</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4"> 
-            <div>
-              <Label htmlFor="email" className='pb-2'>Email</Label>
-              <Input id="email" type="email" required placeholder='Email' />
+export default function LoginPage() {
+    return (
+        <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 font-inter">
+            <div className="flex w-full max-w-lg flex-col gap-6">
+                    <Header></Header>
+                    <LoginForm className="justify-center items-center"/>
             </div>
-            <div>
-              <Label htmlFor="password" className='pb-2'>Password</Label>
-              <Input id="password" type="password" required placeholder='Password' />
-            </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <a href="http://localhost:3001/api/auth/google/login">
-              <Button
-              variant="outline"
-              type="button"
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <LogIn className="h-5 w-5" />
-              Continue with Google
-            </Button>
-            </a>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  )
+        </div>
+    )
 }
-
-export default Page

@@ -27,7 +27,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarSeparator,
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -35,40 +35,45 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./ui/collapsible";
+} from "../ui/collapsible";
 
 const items = [
   {
-    title: "profile",
-    url: "/room-admin/profile",
+    title: "Profile",
+    url: "/student/profile",
     icon: Home,
   },
   {
-    title: "Stalls",
-    url: "/room-admin/stalls",
+    title: "Registered Interviews",
+    url: "/student/interviews",
     icon: Inbox,
   },
   {
-    title: "Announcements",
-    url: "/room-admin/announcements",
+    title: "Register for Interviews",
+    url: "/student/register",
     icon: Calendar,
+  },
+  {
+    title: "Notification",
+    url: "/student/notification",
+    icon: Search,
   }
 ];
 
-const RoomAdminSidebar = () => {
+const StudentSidebar = () => {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/">
-                <Image src="/logo.jpg" alt="logo" width={20} height={20} className="rounded-full" />
+              <Link href="/apps/web/public">
+                <Image src="/logo.jpg" alt="logo" width={20} height={20}  className="rounded-full"/>
                 <span>Industry Day</span>
               </Link>
             </SidebarMenuButton>
@@ -78,7 +83,7 @@ const RoomAdminSidebar = () => {
       <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Room Admin Dashboard</SidebarGroupLabel>
+          <SidebarGroupLabel>Student Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -97,33 +102,7 @@ const RoomAdminSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {/* <SidebarGroup>
-          <SidebarGroupLabel>Projects</SidebarGroupLabel>
-          <SidebarGroupAction>
-            <Plus /> <span className="sr-only">Add Project</span>
-          </SidebarGroupAction>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/#">
-                    <Projector />
-                    See All Projects
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/#">
-                    <Plus />
-                    Add Project
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup> */}
-
+        
 
       </SidebarContent>
       <SidebarFooter>
@@ -148,4 +127,4 @@ const RoomAdminSidebar = () => {
   );
 };
 
-export default RoomAdminSidebar;
+export default StudentSidebar;
