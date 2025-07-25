@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,7 +12,20 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
-// --- Data Section ---
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+
+// Database announcement interface
+interface Announcement {
+    announcementID: string;
+    title: string;
+    content: string;
+    created_at: string;
+    audienceType: 'ALL' | 'STUDENTS' | 'COMPANIES';
+    postedByUserID: string;
+}
+
+// --- COMMENTED OUT: Dummy Data Section ---
+/*
 const announcementsData = [
     { id: 1, company: "SIIC", time: "08.00", title: "Queue Formation Notice", description: "Pre-Listed students please be in your respective queues and ensure you have all required documents ready for the interview process." },
     { id: 2, company: "MAS", time: "13.00", title: "Break Reminder", description: "Be back by 14.00 for the next interview slot" },
@@ -23,29 +36,96 @@ const announcementsData = [
     { id: 7, company: "MAS", time: "14.30", title: "Final Round Notice", description: "Final round begins at 15.00 sharp. This will include a presentation component, so please have your materials ready." },
     { id: 8, company: "SIIC", time: "15.00", title: "Document Verification", description: "Bring your CVs and be on time. Original certificates will be verified during this session, so please have them organized and readily accessible." },
 ];
+*/
+
+// Function to extract company name from announcement data
+const extractCompanyFromAnnouncement = (announcement: Announcement): string => {
+    if (announcement.audienceType === 'COMPANIES') return 'Companies';
+    if (announcement.audienceType === 'STUDENTS') return 'Students';
+
+    // Try to extract from title
+    const titleLower = announcement.title.toLowerCase();
+    if (titleLower.includes('siic')) return 'SIIC';
+    if (titleLower.includes('mas')) return 'MAS';
+    if (titleLower.includes('octave')) return 'Octave';
+
+    return 'General';
+};
+
+// Function to format time from database timestamp
+const formatTimeFromTimestamp = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+};
 
 const getCompanyBadgeClass = (company: string) => {
     switch (company.toLowerCase()) {
         case "siic": return "bg-green-500 border border-green-900 text-white";
         case "mas": return "bg-red-500 border border-red-900 text-white";
         case "octave": return "bg-orange-500 border border-orange-900 text-white";
-        default: return "bg-gray-300 text-black";
+        case "companies": return "bg-blue-500 border border-blue-900 text-white";
+        case "students": return "bg-purple-500 border border-purple-900 text-white";
+        default: return "bg-gray-500 border border-gray-900 text-white";
     }
 };
 
 const HomeAnnouncement = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(0);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const pageSize = 4;
 
+    // Fetch announcements from database
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`${API_BASE}/api/announcement`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch announcements: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setAnnouncements(data);
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+                console.error('Error fetching announcements:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnnouncements();
+    }, []);
+
+    // Transform database data to match component format
+    const transformedAnnouncements = useMemo(() => {
+        return announcements.map(announcement => ({
+            id: announcement.announcementID,
+            company: extractCompanyFromAnnouncement(announcement),
+            time: formatTimeFromTimestamp(announcement.created_at),
+            title: announcement.title,
+            description: announcement.content,
+            audienceType: announcement.audienceType,
+        }));
+    }, [announcements]);
+
     const filtered = useMemo(() => {
-        return announcementsData.filter(
+        return transformedAnnouncements.filter(
             (a) =>
                 a.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 a.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm]);
+    }, [transformedAnnouncements, searchTerm]);
 
     const paginated = useMemo(() => {
         const start = page * pageSize;
@@ -53,6 +133,48 @@ const HomeAnnouncement = () => {
     }, [filtered, page]);
 
     const totalPages = Math.ceil(filtered.length / pageSize);
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="w-full h-fit">
+                <Card className="w-full bg-slate-100/80 h-fit">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-2xl sm:text-3xl lg:text-4xl text-center font-bold">
+                            Announcements
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex justify-center py-12">
+                        <p className="text-gray-500 text-lg">Loading announcements...</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="w-full h-fit">
+                <Card className="w-full bg-slate-100/80 h-fit">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-2xl sm:text-3xl lg:text-4xl text-center font-bold">
+                            Announcements
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+                        <p className="text-red-500 text-lg">Error: {error}</p>
+                        <Button
+                            onClick={() => window.location.reload()}
+                            variant="outline"
+                        >
+                            Retry
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-fit">
@@ -94,8 +216,8 @@ const HomeAnnouncement = () => {
                                                         {a.company}
                                                     </Badge>
                                                     <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                            {a.time}
-                          </span>
+                                                        {a.time}
+                                                    </span>
                                                 </div>
                                                 <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 mt-2 leading-tight">
                                                     {a.title}
@@ -125,8 +247,8 @@ const HomeAnnouncement = () => {
                                 Previous
                             </Button>
                             <span className="text-sm text-gray-600 font-medium">
-                Page {page + 1} of {totalPages}
-              </span>
+                                Page {page + 1} of {totalPages}
+                            </span>
                             <Button
                                 variant="outline"
                                 size="sm"
