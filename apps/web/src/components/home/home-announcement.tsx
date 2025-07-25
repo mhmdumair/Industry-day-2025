@@ -11,6 +11,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import api from "@/lib/axios"
+
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -84,28 +86,26 @@ const HomeAnnouncement = () => {
 
     // Fetch announcements from database
     useEffect(() => {
-        const fetchAnnouncements = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`${API_BASE}/api/announcement`);
+    const fetchAnnouncements = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get(`/announcement`);
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch announcements: ${response.status}`);
-                }
+            // With axios, the data is directly in response.data
+            // No need to check response.ok or call response.json()
+            setAnnouncements(response.data);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error fetching announcements:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                const data = await response.json();
-                setAnnouncements(data);
-                setError(null);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
-                console.error('Error fetching announcements:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    fetchAnnouncements();
+}, []);
 
-        fetchAnnouncements();
-    }, []);
 
     // Transform database data to match component format
     const transformedAnnouncements = useMemo(() => {
