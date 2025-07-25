@@ -9,10 +9,6 @@ export class AdminDto {
 
   @IsString()
   @IsNotEmpty()
-  userID: string;
-
-  @IsString()
-  @IsNotEmpty()
   designation: string;
 }
 
