@@ -22,6 +22,7 @@ interface Announcement {
     created_at: string;
     audienceType: 'ALL' | 'STUDENTS' | 'COMPANIES';
     postedByUserID: string;
+    author_name :string
 }
 
 // --- COMMENTED OUT: Dummy Data Section ---
@@ -115,6 +116,7 @@ const HomeAnnouncement = () => {
             title: announcement.title,
             description: announcement.content,
             audienceType: announcement.audienceType,
+            author_name :announcement.author_name
         }));
     }, [announcements]);
 
@@ -213,7 +215,7 @@ const HomeAnnouncement = () => {
                                             <CardHeader className="pb-3">
                                                 <div className="flex items-start justify-between flex-wrap gap-2">
                                                     <Badge className={`${getCompanyBadgeClass(a.company)} text-xs font-medium px-2 py-1`}>
-                                                        {a.company}
+                                                        {a.author_name}
                                                     </Badge>
                                                     <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
                                                         {a.time}

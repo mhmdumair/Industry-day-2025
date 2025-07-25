@@ -5,12 +5,14 @@ import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { Announcement} from './../typeorm/entities';
 import {AudienceType } from '..//typeorm/entities/announcements/announcement.entity'
+import  {CompanyService}  from '../company/company.service';
 
 @Injectable()
 export class AnnouncementService {
   constructor(
     @InjectRepository(Announcement) 
     private readonly announcementRepository: Repository<Announcement>,
+    private companyService: CompanyService
   ) {}
 
   // CREATE - Add new announcement
@@ -24,15 +26,37 @@ export class AnnouncementService {
   }
 
   async findAll(): Promise<Announcement[]> {
-    try {
-      return await this.announcementRepository.find({
-        relations: ['postedByUser'],
-        order: { created_at: 'DESC' }, 
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch announcements');
-    }
+  try {
+    const announcements = await this.announcementRepository.find({
+      relations: ['postedByUser'],
+      order: { created_at: 'DESC' }, 
+    });
+
+    // Process each announcement to add author_name
+    const processedAnnouncements = await Promise.all(
+      announcements.map(async (announcement) => {
+        let authorName = 'SIIC'; // Default for admin users
+
+        if (announcement.postedByUser.role === 'company') {
+          // Fetch company name using your existing method
+          const companyName = await this.companyService.getCompanyNameByUserId(announcement.postedByUserID);
+          authorName = companyName || 'SIIC'; // Fallback to SIIC if company name not found
+        }
+
+        return {
+          ...announcement,
+          author_name: authorName
+        };
+      })
+    );
+
+    return processedAnnouncements;
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    throw new InternalServerErrorException('Failed to fetch announcements');
   }
+}
+
 
   async findOne(id: string): Promise<Announcement | null> {
     try {
