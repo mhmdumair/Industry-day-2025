@@ -168,9 +168,12 @@ const HomeAnnouncement = () => {
         <div className="w-full h-fit">
             <Card className="w-full bg-slate-100/80 h-fit">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-2xl sm:text-3xl lg:text-4xl text-center font-bold">
+                    <h2 className="font-semibold
+                        text-4xl sm:text-2xl lg:text-4xl
+                        text-center
+                        px-4">
                         Announcements
-                    </CardTitle>
+                    </h2>
                 </CardHeader>
 
                 <CardContent className="space-y-6">

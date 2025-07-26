@@ -99,15 +99,16 @@ export default function page() {
     }, []);
 
     return (
-        <div className='flex flex-col justify-center items-center w-full bg-slate-100 p-2'>
+        <div className='flex flex-col justify-center items-center w-full bg-transparent p-2'>
             <Navbar />
-            <Card className="shadow-lg p-3 sm:p-4 lg:p-6 mt-6 w-full max-w-7xl bg-gray-100 border-black text-black">
+            <Card className="bg-slate-100/80 w-full flex justify-center items-center shadow-sm mt-6 sm:mt-10 mx-2 sm:mx-0 text-black p-3">
                 {/* Map Section */}
                 <div
                     ref={mapRef}
-                    className='w-full h-64 sm:h-80 lg:h-96 border border-black rounded-md shadow-lg mb-4'
+                    className="w-full sm:w-1/2 aspect-video border border-gray-400 rounded-md shadow-sm z-[0]"
                     style={{ minHeight: '250px' }}
                 />
+
 
                 {/* Table Section */}
                 <div className='space-y-2 text-black'>
@@ -119,7 +120,7 @@ export default function page() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow className='bg-slate-400'>
-                                    <TableHead className="w-[40px] sm:w-[60px] text-black text-center">Color</TableHead>
+                                    <TableHead className="w-[40px] sm:w-[60px] text-black text-center"></TableHead>
                                     <TableHead className="w-[150px] sm:w-[200px] lg:w-[250px] text-black">Department</TableHead>
                                     <TableHead className="text-black">Companies</TableHead>
                                 </TableRow>
@@ -155,25 +156,18 @@ export default function page() {
                                     </TableRow>
                                 ))}
                             </TableBody>
-                            <TableFooter>
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center text-sm sm:text-base font-medium">
-                                        Total Departments: {departmentData.length}
-                                    </TableCell>
-                                </TableRow>
-                            </TableFooter>
                         </Table>
                     </div>
 
                     {/* Mobile Card Layout */}
                     <div className="block sm:hidden space-y-3">
-                        <div className="text-center text-sm text-gray-600 mb-4 px-2">
+                        <div className="text-center text-sm text-gray-600 mb-4 p-2">
                             Participating departments and their associated companies for Industry Day 2025.
                         </div>
 
                         {departmentData.map((item) => (
-                            <Card key={item.department} className="border border-gray-300 shadow-sm bg-white">
-                                <div className="p-4 space-y-3">
+                            <Card key={item.department} className="border border-gray-300 shadow-sm gap-0.5 bg-white">
+                                <div className="pl-4">
                                     {/* Department Header */}
                                     <div className="flex items-center space-x-3">
                                         <Button
@@ -208,13 +202,6 @@ export default function page() {
                                 </div>
                             </Card>
                         ))}
-
-                        {/* Mobile Footer */}
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-center text-sm font-medium text-gray-700">
-                                Total Departments: {departmentData.length}
-                            </p>
-                        </div>
                     </div>
                 </div>
             </Card>
