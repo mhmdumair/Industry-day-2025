@@ -20,6 +20,7 @@ import { RoomModule } from './room/room.module';
 import { StallModule } from './stall/stall.module';
 import { PreListModule } from './pre-list/pre-list.module';
 import { AnnouncementModule } from './announcement/announcement.module';
+import { CvModule } from './cv/cv.module';
 
 @Module({
   imports: [
@@ -56,8 +57,9 @@ import { AnnouncementModule } from './announcement/announcement.module';
     StallModule,
     PreListModule,
     AnnouncementModule,
-
+    CvModule,
   ],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
