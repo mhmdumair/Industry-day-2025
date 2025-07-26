@@ -1,9 +1,7 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import AdminSidebar from "@/components/admin/admin-sidebar";
-import Navbar from "@/components/common/navbar";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
+import CompanyNavbar from "@/components/company/company-navbar";
+import AdminSidebar from "@/components/admin/admin-sidebar";
 
 
 export default async function AdminLayout({
@@ -18,9 +16,9 @@ export default async function AdminLayout({
     <main className={`flex antialiased`}>
         <SidebarProvider defaultOpen={defaultOpen}>
             <AdminSidebar />
-            <div className="w-full">
-            <Navbar />
-            <div className="px-4">{children}</div>
+            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+                <CompanyNavbar />
+                <div className="flex-1 px-4">{children}</div>
             </div>
         </SidebarProvider>
     </main>

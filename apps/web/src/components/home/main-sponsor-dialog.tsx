@@ -54,7 +54,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                     tabIndex={0}
                     aria-label={`View details for ${sponsor.name}`}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.key === "Enter" || e.key === " ") {
                             e.currentTarget.click();
                         }
                     }}
@@ -63,7 +63,6 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                 </div>
             </DialogTrigger>
 
-            {/* Mobile-first responsive dialog content */}
             <DialogContent
                 className="
                     w-[95vw] max-w-[95vw] h-[90vh] max-h-[90vh]
@@ -76,14 +75,10 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                 aria-describedby="sponsor-description"
             >
                 <DialogHeader className="space-y-4 pb-4 border-b border-gray-200">
-                    <DialogTitle className="
-                        text-xl sm:text-2xl lg:text-3xl
-                        font-bold text-center
-                        leading-tight
-                        px-2
-                    ">
-                        {sponsor.name} - Sponsor Information
+                    <DialogTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-center leading-tight px-2">
+                        {sponsor.name}
                     </DialogTitle>
+
                     {sponsor.logo && (
                         <div className="flex justify-center">
                             <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-md">
@@ -101,10 +96,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                 </DialogHeader>
 
                 {showFullDetails && (
-                    <div
-                        className="space-y-6 mt-6"
-                        id="sponsor-description"
-                    >
+                    <div className="space-y-6 mt-6" id="sponsor-description">
                         {sponsor.description && (
                             <section className="space-y-3">
                                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
@@ -118,7 +110,11 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                             </section>
                         )}
 
-                        {(sponsor.contactPerson || sponsor.designation || sponsor.contact || sponsor.location || sponsor.website) && (
+                        {(sponsor.contactPerson ||
+                            sponsor.designation ||
+                            sponsor.contact ||
+                            sponsor.location ||
+                            sponsor.website) && (
                             <section className="space-y-3">
                                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
                                     Contact Information
@@ -195,22 +191,36 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                                     aria-label={`${sponsor.jobs.length} job opportunities from ${sponsor.name}`}
                                 >
                                     {sponsor.jobs.map((img, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="relative group"
-                                            role="listitem"
-                                        >
-                                            <div className="aspect-[4/3] relative overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                        <Dialog key={idx}>
+                                            <DialogTrigger asChild>
+                                                <div
+                                                    className="relative group cursor-zoom-in"
+                                                    role="listitem"
+                                                    aria-label={`Click to zoom job opportunity ${idx + 1}`}
+                                                >
+                                                    <div className="aspect-[4/3] relative overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                                        <Image
+                                                            src={img}
+                                                            alt={`Job opportunity ${idx + 1} from ${sponsor.name}`}
+                                                            fill
+                                                            className="object-cover group-hover:scale-105 transition-transform duration-200"
+                                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                            loading={idx < 3 ? "eager" : "lazy"}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </DialogTrigger>
+
+                                            <DialogContent className="max-w-5xl w-[90vw] p-4">
                                                 <Image
                                                     src={img}
-                                                    alt={`Job opportunity ${idx + 1} from ${sponsor.name} - Click to view details`}
-                                                    fill
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-200"
-                                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                    loading={idx < 3 ? "eager" : "lazy"}
+                                                    alt={`Job opportunity ${idx + 1} from ${sponsor.name}`}
+                                                    width={1200}
+                                                    height={800}
+                                                    className="w-full h-auto object-contain rounded-md"
                                                 />
-                                            </div>
-                                        </div>
+                                            </DialogContent>
+                                        </Dialog>
                                     ))}
                                 </div>
                             </section>

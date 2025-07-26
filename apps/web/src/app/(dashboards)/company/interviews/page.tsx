@@ -3,14 +3,13 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 
 const page = () => {
     return (
-      <>
-        <div>Interviews page</div>
-        <Card>
+      <div className="mt-3 w-3/4 mx-auto p-4">
+        <Card className="mt-3">
           <CardHeader>
             <CardTitle>Interviews</CardTitle>
             <CardDescription>List of all interview stalls</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="">
               <Card className="m-auto">
                 <CardHeader>
                   <CardTitle>Stall 1</CardTitle>
@@ -32,7 +31,7 @@ const page = () => {
             <CardDescription>To Add more Interview Stalls Please Contact the respective Room Admin</CardDescription>
           </CardFooter>
         </Card>
-      </>
+      </div>
     );
 }
 

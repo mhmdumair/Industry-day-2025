@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Company } from 'src/company/entities/company.entity';
+import { Company } from '../typeorm/entities/company/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { UserService } from 'src/user/user.service';
@@ -66,6 +66,16 @@ export class CompanyService {
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Failed to fetch company by userID');
+    }
+  }
+
+  async getCompanyNameByUserId(userId: string): Promise<string | null> {
+    try {
+      const company = await this.findByUserId(userId);
+      return company?.companyName || null;
+    } catch (error) {
+      console.error(`Error fetching company name for userId ${userId}:`, error);
+      return null;
     }
   }
 

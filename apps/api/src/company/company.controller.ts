@@ -30,6 +30,11 @@ export class CompanyController {
     return this.companyService.findByUserId(userId);
   }
 
+  @Get('name/:userId')
+  findCompanyName(@Param('userId') userId: string) {
+    return this.companyService.getCompanyNameByUserId(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.companyService.findOne(id);

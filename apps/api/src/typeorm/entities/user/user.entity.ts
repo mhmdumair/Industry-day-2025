@@ -59,6 +59,7 @@ export class User {
   @OneToOne(() => Company, (company) => company.user, { nullable: true })
   company: Company | null;
 
+  @OneToMany(() => Announcement, (announcement) => announcement.postedByUser, { nullable: true })
   @OneToMany(() => Announcement, (announcement) => announcement.postedByUser)
   announcements: Announcement[];
 }

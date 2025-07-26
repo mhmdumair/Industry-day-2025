@@ -8,6 +8,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Button} from "@/components/ui/button";
 import {ChevronDown} from "lucide-react";
 import Navbar from "@/components/home/home-navbar";
+import {Card} from "@/components/ui/card";
 
 const companies = ["A", "B", "C"];
 
@@ -48,7 +49,7 @@ export default function CompanyFilter() {
     };
 
     return (
-        <div className="flex flex-col bg-slate-100 items-center w-full min-h-screen mx-auto p-2 sm:p-4">
+        <div className="flex flex-col bg-transparent items-center w-full min-h-screen mx-auto p-2 sm:p-4">
             <Navbar />
 
             {/* Spacer */}
@@ -184,7 +185,7 @@ export default function CompanyFilter() {
                             <button
                                 onClick={() => setSelected(null)}
                                 className="
-                                    text-teal-600 hover:text-teal-800
+                                    focus:ring-2 focus:ring-teal-500 focus:border-teal-500
                                     text-sm font-medium
                                     px-2 py-1 rounded
                                     hover:bg-teal-100
@@ -203,16 +204,38 @@ export default function CompanyFilter() {
                 mt-6 sm:mt-8
                 w-full max-w-4xl
                 flex-1
-                bg-white rounded-lg shadow-sm
+                bg-slate-100/50 rounded-lg shadow-sm
                 p-4 sm:p-6
                 border border-gray-200
             ">
-                <div className="text-center text-gray-500">
-                    <p className="text-sm sm:text-base">
-                        {selected ? `Showing results for Company ${selected}` : "Showing all companies"}
-                    </p>
-                    {/* Add your filtered content here */}
+                <div className="flex justify-center w-full p-4">
+                    <Card className="bg-slate-100 w-full max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
+
+                        {/* Company Name + Stall */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                            <h2 className="text-lg font-semibold">Company A</h2>
+                            <span className="text-sm text-gray-600">Stall 1</span>
+                        </div>
+
+                        {/* Divider Line */}
+                        <hr className="border-gray-300" />
+
+                        {/* Queue */}
+                        <div className="flex flex-col gap-2">
+                            <Button className="varient-outline' bg-green-200/80 text-green-700 w-full border hover:bg-green-200/80 hover:text-green-700 hover:border-green-950 border-green-950"
+                            >
+                                S2000
+                            </Button>
+                            {["S2001", "S2002", "S2003", "S2004", "S2005"].map((regNo, i) => (
+                                <Button className="varient-outline' bg-gray-200 text-gray-500 hover:bg-gray-200 w-full border border-slate-400"
+                                >
+                                    {regNo}
+                                </Button>
+                            ))}
+                        </div>
+                    </Card>
                 </div>
+
             </div>
         </div>
     );
