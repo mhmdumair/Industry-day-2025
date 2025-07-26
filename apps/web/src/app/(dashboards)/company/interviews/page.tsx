@@ -3,35 +3,47 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 
 const page = () => {
     return (
-      <div className="mt-3 w-3/4 mx-auto p-4">
-        <Card className="mt-3">
-          <CardHeader>
-            <CardTitle>Interviews</CardTitle>
-            <CardDescription>List of all interview stalls</CardDescription>
-          </CardHeader>
-          <CardContent className="">
-              <Card className="m-auto">
+        <div className="mt-3 mx-auto p-4">
+            <Card className="mt-3 bg-slate-100/80">
                 <CardHeader>
-                  <CardTitle>Stall 1</CardTitle>
-                  <CardDescription>Location: Physics Upper Hall</CardDescription>
+                    <CardTitle>Interviews</CardTitle>
+                    <CardDescription>List of all interview stalls</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="">
+                    <Card className="mb-2 last:mb-0">
+                        <CardHeader>
+                            <CardTitle>Stall 1</CardTitle>
+                            <CardDescription>Location: Physics Upper Hall</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        </CardContent>
+                    </Card>
+                    <Card className="m-auto mb-5">
+                        <CardHeader>
+                            <CardTitle>Stall 2</CardTitle>
+                            <CardDescription>Location: Physics Upper Hall</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        </CardContent>
+                    </Card>
                 </CardContent>
-              </Card>
-              <Card>
-                  <CardHeader>
-                      <CardTitle>Stall 2</CardTitle>
-                      <CardDescription>Location: Physics Upper Hall</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                  </CardContent>
-              </Card>
-          </CardContent>
-          <CardFooter>
-            <CardDescription>To Add more Interview Stalls Please Contact the respective Room Admin</CardDescription>
-          </CardFooter>
-        </Card>
-      </div>
+                <CardFooter className="m-0">
+                    <CardDescription>To add more interview stalls, contact the respective room admin</CardDescription>
+                </CardFooter>
+                <Card className="m-4 bg-teal-800/60 border-green-950">
+                    <CardHeader>
+                        <CardTitle>Room Admin</CardTitle>
+                        <CardDescription className="text-teal-950">Location: Physics Upper Hall</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        Name: John Doe<br />
+                        Email: johndoe@example.com<br />
+                        Contact: +1234567890
+                    </CardContent>
+                </Card>
+
+            </Card>
+        </div>
     );
 }
 
