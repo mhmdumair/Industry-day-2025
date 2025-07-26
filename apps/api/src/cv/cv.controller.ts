@@ -41,31 +41,37 @@ export class CvController {
 
     const cleanStudentID = studentID.replace(/['"]/g, '');
     
-    return this.cvService.uploadCV(file, cleanStudentID);
+    try {
+      const result = await this.cvService.uploadCV(file, cleanStudentID);
+      return result;
+    } catch (error) {
+      if (file.path && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup temp file:', cleanupError);
+        }
+      }
+      throw error;
+    }
   }
 
-  // Send CV file to client by CV ID
   @Get(':cvId')
   async getCvFile(@Param('cvId') cvId: string, @Res() res: Response) {
     try {
-      // Get CV file info using service
-      const cvInfo = await this.cvService.getCvFileInfoById(cvId);
+      const cv = await this.cvService.getCvFileInfoById(cvId);
+      const stats = fs.statSync(cv.filePath);
       
-      // Get file stats for content length
-      const stats = fs.statSync(cvInfo.filePath);
-      
-      // Set headers for PDF response
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Length': stats.size.toString(),
-        'Content-Disposition': `inline; filename="${cvInfo.fileName}"`,
+        'Content-Disposition': `inline; filename="${cv.fileName}"`,
         'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
       });
 
-      // Stream file to client
-      const fileStream = createReadStream(cvInfo.filePath);
+      const fileStream = createReadStream(cv.filePath);
       
       fileStream.on('error', (error) => {
         console.error('File stream error:', error);
@@ -75,7 +81,6 @@ export class CvController {
       });
 
       fileStream.pipe(res);
-
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
@@ -85,28 +90,22 @@ export class CvController {
     }
   }
 
-  // Send CV file to client by Student ID
   @Get('student/:studentId')
   async getCvByStudentId(@Param('studentId') studentId: string, @Res() res: Response) {
     try {
-      // Get CV file info using service
-      const cvInfo = await this.cvService.getCvFileInfoByStudentId(studentId);
+      const cv = await this.cvService.getCvFileInfoByStudentId(studentId);
+      const stats = fs.statSync(cv.filePath);
       
-      // Get file stats for content length
-      const stats = fs.statSync(cvInfo.filePath);
-      
-      // Set headers for PDF response
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Length': stats.size.toString(),
-        'Content-Disposition': `inline; filename="${cvInfo.fileName}"`,
+        'Content-Disposition': `inline; filename="${cv.fileName}"`,
         'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
       });
 
-      // Stream file to client
-      const fileStream = createReadStream(cvInfo.filePath);
+      const fileStream = createReadStream(cv.filePath);
       
       fileStream.on('error', (error) => {
         console.error('File stream error:', error);
@@ -116,7 +115,6 @@ export class CvController {
       });
 
       fileStream.pipe(res);
-
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
@@ -126,26 +124,20 @@ export class CvController {
     }
   }
 
-  // Get CV metadata by CV ID (if needed)
   @Get(':cvId/info')
   async getCvInfo(@Param('cvId') cvId: string) {
     return this.cvService.findByCvId(cvId);
   }
 
-  // Get student CV list metadata (if needed)
   @Get('student/:studentId/list')
   async getStudentCvList(@Param('studentId') studentId: string) {
     return this.cvService.getStudentCvList(studentId);
   }
 
-  // Download CV (forces download)
   @Get(':cvId/download')
   async downloadCV(@Param('cvId') cvId: string, @Res() res: Response) {
     try {
-      // Use service method for getting download data
       const cvData = await this.cvService.downloadCV(cvId);
-      
-      // Stream file from disk
       const fileStream = createReadStream(cvData.filePath);
       
       res.set({
@@ -161,9 +153,8 @@ export class CvController {
       });
 
       fileStream.pipe(res);
-
     } catch (error) {
-      throw error; // Service already handles proper error types
+      throw error;
     }
   }
 
