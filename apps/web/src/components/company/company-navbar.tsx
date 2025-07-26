@@ -6,7 +6,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 function CompanyNavbar() {
     return (
-        <header className="w-full shadow-sm bg-slate-100 border border-black rounded-md">
+        <header className="w-[95%] shadow-sm bg-slate-100 border border-black rounded-md">
             <div className="w-full mx-auto px-4 py-3 flex items-center justify-between relative">
 
                 {/* Left Section: Sidebar Toggle + Logo + Title */}

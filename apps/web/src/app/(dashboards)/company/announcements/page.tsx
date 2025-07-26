@@ -42,8 +42,8 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="mt-3 w-screen mx-auto p-4 flex flex-col items-center justify-center gap-5">
-            <Card className="bg-slate-100/80 shadow-lg mt-3 min-w-[80%]">
+        <div className="mt-3 w-full mx-auto p-4 flex flex-col items-center justify-center gap-5 bg-white">
+            <Card className="bg-slate-100/80 shadow-lg mt-3 w-full max-w-[700px]">
                 <CardHeader>
                     <CardTitle className="text-xl">Post Announcement</CardTitle>
                     <CardDescription>Fill the fields below to add a new announcement</CardDescription>

@@ -17,8 +17,7 @@ export default async function StudentLayout({
 
     <SidebarProvider defaultOpen={defaultOpen}>
       <CompanySidebar />
-
-      <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+      <div className="flex flex-col items-center min-h-screen w-screen mx-auto p-2 sm:p-4">
         <CompanyNavbar />
         <div className="flex-1 px-4">{children}</div>
       </div>
