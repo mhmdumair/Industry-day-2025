@@ -18,7 +18,6 @@ export class CvService {
 
   async uploadCV(file: Express.Multer.File, studentID: string): Promise<StudentCv> {
     try {
-      // Validate input parameters
       if (!file) {
         throw new BadRequestException('No file provided');
       }
@@ -27,7 +26,6 @@ export class CvService {
         throw new BadRequestException('Student ID is required');
       }
 
-      // Get student details including regNo
       const student = await this.studentRepository.findOne({
         where: { studentID: studentID.trim() }
       });
@@ -41,7 +39,7 @@ export class CvService {
       }
 
       // Create new filename using student regNo
-      const sanitizedRegNo = student.regNo.replace(/[^a-zA-Z0-9]/g, '_');
+      const sanitizedRegNo = student.regNo.replace(/[^a-zA-Z0-9]/g, '');
       const newFileName = `${sanitizedRegNo}.pdf`;
       const newFilePath = path.resolve('./uploads', newFileName);
 
@@ -75,7 +73,6 @@ export class CvService {
         throw new InternalServerErrorException(`Failed to save uploaded file: ${renameError.message}`);
       }
 
-      // Check if there's already a CV for this student
       const existingCV = await this.cvRepository.findOne({
         where: { studentID: studentID }
       });
@@ -83,9 +80,7 @@ export class CvService {
       let savedCV: StudentCv;
 
       if (existingCV) {
-        // Update existing CV record
         try {
-          // Delete old physical file if it exists and is different
           if (existingCV.filePath !== newFilePath && fs.existsSync(existingCV.filePath)) {
             fs.unlinkSync(existingCV.filePath);
             console.log(`Old file deleted: ${existingCV.filePath}`);
@@ -100,7 +95,6 @@ export class CvService {
           throw new InternalServerErrorException('Failed to update CV record in database');
         }
       } else {
-        // Create new CV record
         try {
           const cv = new StudentCv();
           cv.studentID = studentID;
