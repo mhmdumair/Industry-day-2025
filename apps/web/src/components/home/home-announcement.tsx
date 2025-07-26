@@ -27,20 +27,6 @@ interface Announcement {
     author_name :string
 }
 
-// --- COMMENTED OUT: Dummy Data Section ---
-/*
-const announcementsData = [
-    { id: 1, company: "SIIC", time: "08.00", title: "Queue Formation Notice", description: "Pre-Listed students please be in your respective queues and ensure you have all required documents ready for the interview process." },
-    { id: 2, company: "MAS", time: "13.00", title: "Break Reminder", description: "Be back by 14.00 for the next interview slot" },
-    { id: 3, company: "Octave", time: "13.00", title: "Session Break", description: "Be back by 14.00 for the next interview slot. Please use this time to review your portfolio and prepare for technical questions." },
-    { id: 4, company: "Octave", time: "13.30", title: "Technical Round Preparation", description: "Candidates should prepare for coding challenges and system design questions in the upcoming session." },
-    { id: 5, company: "Octave", time: "14.00", title: "Documentation Check", description: "Please ensure all your certificates and transcripts are properly organized before entering the interview room." },
-    { id: 6, company: "Octave", time: "14.15", title: "Final Call", description: "Last call for candidates in the waiting area. Please report to your designated interview rooms immediately." },
-    { id: 7, company: "MAS", time: "14.30", title: "Final Round Notice", description: "Final round begins at 15.00 sharp. This will include a presentation component, so please have your materials ready." },
-    { id: 8, company: "SIIC", time: "15.00", title: "Document Verification", description: "Bring your CVs and be on time. Original certificates will be verified during this session, so please have them organized and readily accessible." },
-];
-*/
-
 // Function to extract company name from announcement data
 const extractCompanyFromAnnouncement = (announcement: Announcement): string => {
     if (announcement.audienceType === 'COMPANIES') return 'Companies';
