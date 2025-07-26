@@ -1,9 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import StudentSidebar from "@/components/student/student-sidebar";
-import Navbar from "@/components/common/navbar";
+
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
+import CompanyNavbar from "@/components/company/company-navbar";
 
 
 export default async function StudentLayout({
@@ -19,8 +20,8 @@ export default async function StudentLayout({
   
       <SidebarProvider defaultOpen={defaultOpen}>
         <StudentSidebar />
-        <div className="w-full">
-          <Navbar />
+        <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+          <CompanyNavbar />
           <div className="px-4">{children}</div>
         </div>
       </SidebarProvider>
