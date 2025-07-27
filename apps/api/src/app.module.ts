@@ -21,6 +21,7 @@ import { StallModule } from './stall/stall.module';
 import { PreListModule } from './pre-list/pre-list.module';
 import { AnnouncementModule } from './announcement/announcement.module';
 import { CvModule } from './cv/cv.module';
+import { ShortlistModule } from './shortlist/shortlist.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { CvModule } from './cv/cv.module';
     PreListModule,
     AnnouncementModule,
     CvModule,
+    ShortlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
