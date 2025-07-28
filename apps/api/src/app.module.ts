@@ -11,7 +11,6 @@ import * as entities from './typeorm/entities';
 // Feature Modules
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { QueueModule } from './queue/queue.module';
 import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
@@ -22,6 +21,7 @@ import { PreListModule } from './pre-list/pre-list.module';
 import { AnnouncementModule } from './announcement/announcement.module';
 import { CvModule } from './cv/cv.module';
 import { ShortlistModule } from './shortlist/shortlist.module';
+import { InterviewModule } from './interview/interview.module';
 
 @Module({
   imports: [
@@ -49,7 +49,6 @@ import { ShortlistModule } from './shortlist/shortlist.module';
 
     AuthModule,
     UserModule,
-    QueueModule,
     StudentModule,
     AdminModule,
     RoomAdminModule,
@@ -60,6 +59,7 @@ import { ShortlistModule } from './shortlist/shortlist.module';
     AnnouncementModule,
     CvModule,
     ShortlistModule,
+    InterviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

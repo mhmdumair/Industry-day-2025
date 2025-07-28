@@ -18,7 +18,6 @@ export { Stall } from './facility/stall.entity';
 export { Interview } from './student/interview.entity';
 
 // Queue-related entities
-export { Queue } from './queue/queue.entity';
 
 export { Announcement } from './announcements/announcement.entity';
 

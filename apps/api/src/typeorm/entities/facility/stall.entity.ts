@@ -10,7 +10,6 @@ import {
 import { Room } from './room.entity';
 import { Company } from '../company/company.entity';
 import { Interview } from '../student/interview.entity';
-import { Queue } from '../queue/queue.entity';
 
 export enum StallStatus {
   ACTIVE = 'active',
@@ -44,6 +43,4 @@ export class Stall {
   @OneToMany(() => Interview, (interview) => interview.stall)
   interviews: Interview[];
 
-  @OneToOne(() => Queue, (queue) => queue.stall)
-  queue: Queue;
 }

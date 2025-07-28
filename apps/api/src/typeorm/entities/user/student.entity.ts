@@ -90,5 +90,7 @@ export class Student {
     nullable: true,
   })
   shortlist: CompanyShortlist[] | null;
+
+
   
 }
