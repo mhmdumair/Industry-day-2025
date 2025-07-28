@@ -11,7 +11,6 @@ import * as entities from './typeorm/entities';
 // Feature Modules
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { QueueModule } from './queue/queue.module';
 import { StudentModule } from './student/student.module';
 import { AdminModule } from './admin/admin.module';
 import { RoomAdminModule } from './room-admin/room-admin.module';
@@ -49,7 +48,6 @@ import { ShortlistModule } from './shortlist/shortlist.module';
 
     AuthModule,
     UserModule,
-    QueueModule,
     StudentModule,
     AdminModule,
     RoomAdminModule,

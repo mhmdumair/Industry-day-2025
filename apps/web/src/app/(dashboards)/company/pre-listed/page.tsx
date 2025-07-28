@@ -8,7 +8,7 @@ const Page = () => {
   const handleButtonClick = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/cv/student/STU002', {
+      const res = await fetch('http://localhost:3001/api/cv/student/008a4bec-2e35-4ce0-b0ce-e26b41f457da', {
         method: 'GET',
         headers: {
           Accept: 'application/pdf',
