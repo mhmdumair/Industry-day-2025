@@ -42,8 +42,8 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="mt-3 w-full mx-auto p-4 flex flex-col items-center justify-center gap-5 bg-white">
-            <Card className="bg-slate-100/80 shadow-lg mt-3 w-full max-w-[700px]">
+        <div className="mt-3 w-screen mx-auto p-4 flex flex-col items-center justify-center gap-5">
+            <Card className="bg-slate-100/80 shadow-lg mt-3 w-11/12 -mx-4 h-fit">
                 <CardHeader>
                     <CardTitle className="text-xl">Post Announcement</CardTitle>
                     <CardDescription>Fill the fields below to add a new announcement</CardDescription>
@@ -90,7 +90,7 @@ export default function AnnouncementsPage() {
             </Card>
 
             {announcements.length > 0 && (
-                <Card className="bg-slate-100/80 shadow-lg mt-3 min-w-[80%]">
+                <Card className="bg-slate-100/80 shadow-lg mt-3 w-11/12">
                     <CardHeader className="text-center">
                         <CardTitle className="text-xl">Announcements</CardTitle>
                         <p className="text-gray-600 mt-2">Your posted updates and announcements</p>

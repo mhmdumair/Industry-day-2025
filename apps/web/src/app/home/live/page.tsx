@@ -213,7 +213,7 @@ export default function CompanyFilter() {
 
                         {/* Company Name + Stall */}
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                            <h2 className="text-lg font-semibold">Company A</h2>
+                            <h2 className="text-lg font-semibold">MAS Holdings</h2>
                             <span className="text-sm text-gray-600">Stall 1</span>
                         </div>
 
