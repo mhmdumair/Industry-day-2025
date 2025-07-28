@@ -58,7 +58,7 @@ export class CompanyDto {
   @IsString()
   @IsOptional()
   logo?: string;
-
+4
   @IsEnum(CompanyStream)
   @IsNotEmpty()
   stream: CompanyStream;
