@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Stall } from '../facility/stall.entity';
 import { Student } from '../user/student.entity';
@@ -20,6 +21,7 @@ export enum InterviewStatus {
   CANCELLED = 'cancelled',
 }
 
+@Unique(['stallID', 'studentID'])
 @Entity('interviews')
 export class Interview {
   @PrimaryGeneratedColumn('uuid')
