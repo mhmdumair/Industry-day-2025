@@ -29,6 +29,4 @@ export class StudentCv {
   @JoinColumn({ name: 'studentID' })
   student: Student;
 
-  @OneToMany(() => Interview, (interview) => interview.cv, { nullable: true })
-  interviews: Interview[] | null;
 }

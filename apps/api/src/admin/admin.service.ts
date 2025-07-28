@@ -29,7 +29,9 @@ export class AdminService {
 
   async findAll(): Promise<Admin[]> {
     try {
-      return await this.adminRepository.find();
+      return await this.adminRepository.find({
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch admins');
     }
@@ -37,7 +39,10 @@ export class AdminService {
 
   async findOne(id: string): Promise<Admin | null> {
     try {
-      return await this.adminRepository.findOne({ where: { adminID: id } });
+      return await this.adminRepository.findOne({ 
+        where: { adminID: id },
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch admin');
     }
@@ -45,7 +50,10 @@ export class AdminService {
 
   async findByUserId(userId: string): Promise<Admin | null> {
     try {
-      return await this.adminRepository.findOne({ where: { userID: userId } });
+      return await this.adminRepository.findOne({ 
+        where: { userID: userId },
+        relations: ['user'],
+      });
     } catch (error) {
       throw new InternalServerErrorException('Failed to fetch admin by userID');
     }
@@ -53,7 +61,10 @@ export class AdminService {
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
     try {
-      const admin = await this.adminRepository.findOne({ where: { adminID: id } });
+      const admin = await this.adminRepository.findOne({ 
+        where: { adminID: id },
+        relations: ['user'],
+      });
       if (!admin) {
         throw new NotFoundException(`Admin with ID ${id} not found`);
       }
@@ -68,7 +79,6 @@ export class AdminService {
   }
 
   remove(id: string): string {
-   
     return "delete admin";
   }
 }

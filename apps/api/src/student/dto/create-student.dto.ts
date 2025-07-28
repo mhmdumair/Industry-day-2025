@@ -28,17 +28,8 @@ export enum StudentLevel {
   LEVEL_4 = 'level_4',
 }
 
+// Remove userID, first_name, last_name from StudentDto
 export class StudentDto {
-
-
-  @IsString()
-  @IsNotEmpty()
-  studentID: string;
-
-  @IsString()
-  @IsNotEmpty()
-  userID: string;
-
   @IsString()
   @IsNotEmpty()
   regNo: string;
@@ -52,8 +43,8 @@ export class StudentDto {
   linkedin?: string;
 
   @IsString()
-  @IsOptional()
-  contact?: string;
+  @IsNotEmpty() // Make contact required
+  contact: string;
 
   @IsEnum(StudentGroup)
   @IsNotEmpty()
@@ -65,12 +56,10 @@ export class StudentDto {
 }
 
 export class CreateStudentDto {
-
   @ValidateNested()
   @Type(() => CreateUserDto)
   user: CreateUserDto;
 
-  
   @ValidateNested()
   @Type(() => StudentDto)
   student: StudentDto;

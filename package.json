@@ -9,10 +9,15 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/multer": "^2.0.0",
     "@types/passport-google-oauth20": "^2.0.16",
+    "autoprefixer": "^10.4.21",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.31.0",
+    "postcss": "^8.5.6",
     "prettier": "^3.5.3",
+    "tailwindcss": "^4.1.11",
     "turbo": "^2.5.4",
     "typescript": "5.8.2"
   },
@@ -29,12 +34,14 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/typeorm": "^11.0.0",
     "@radix-ui/react-navigation-menu": "^1.2.13",
+    "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "express-session": "^1.18.1",
     "mysql2": "^3.14.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "react-pdf": "^10.0.1",
     "typeorm": "^0.3.25"
   }
 }

@@ -1,7 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsUrl, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
-import { UserRole } from 'src/typeorm/entities/user/user.entity';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
+import { CompanySponsership } from 'src/typeorm/entities/company/company.entity';
 
 export enum CompanyStream {
   ZL = 'ZL',
@@ -23,9 +30,6 @@ export enum CompanyStream {
 }
 
 export class CompanyDto {
-  @IsString()
-  @IsNotEmpty()
-  companyID: string;
 
   @IsString()
   @IsNotEmpty()
@@ -34,6 +38,10 @@ export class CompanyDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
+  @IsEnum(CompanySponsership)
+  @IsNotEmpty()
+  sponsership: CompanySponsership;
 
   @IsString()
   @IsNotEmpty()

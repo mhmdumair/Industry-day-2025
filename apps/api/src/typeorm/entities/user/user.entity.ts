@@ -4,12 +4,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 import { Admin } from './admin.entity';
 import { Student } from './student.entity';
 import { RoomAdmin } from './room-admin.entity';
 import { Company } from '../company/company.entity';
+import { Announcement } from '../announcements/announcement.entity';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -20,7 +22,7 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryColumn({ type: 'varchar', length: 6 })
+  @PrimaryGeneratedColumn('uuid') 
   userID: string;
 
   @Column({ unique: true })
@@ -29,10 +31,10 @@ export class User {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   first_name: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   last_name: string;
 
   @Column({ nullable: true })
@@ -56,4 +58,8 @@ export class User {
 
   @OneToOne(() => Company, (company) => company.user, { nullable: true })
   company: Company | null;
+
+  @OneToMany(() => Announcement, (announcement) => announcement.postedByUser, { nullable: true })
+  @OneToMany(() => Announcement, (announcement) => announcement.postedByUser)
+  announcements: Announcement[];
 }

@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+// company.service.ts
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Company } from 'src/company/entities/company.entity';
+import { Company } from '../typeorm/entities/company/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { UserService } from 'src/user/user.service';
@@ -13,40 +18,64 @@ export class CompanyService {
     private readonly userService: UserService,
   ) {}
 
-  async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
+  async create(dto: CreateCompanyDto): Promise<Company> {
     try {
-      const createdUser = await this.userService.createUser(createCompanyDto.user);
+      const createdUser = await this.userService.createUser(dto.user);
       const company = this.companyRepository.create({
-        ...createCompanyDto.company,
+        ...dto.company,
         userID: createdUser.userID,
       });
       return await this.companyRepository.save(company);
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Failed to create company');
     }
   }
 
   async findAll(): Promise<Company[]> {
     try {
-      return await this.companyRepository.find();
-    } catch (error) {
+      return await this.companyRepository.find({
+        relations: ['user'],
+      });
+    } catch {
       throw new InternalServerErrorException('Failed to fetch companies');
     }
   }
 
-  async findOne(id: string): Promise<Company | null> {
+  async findOne(id: string): Promise<Company> {
     try {
-      return await this.companyRepository.findOne({ where: { companyID: id } });
-    } catch (error) {
+      const company = await this.companyRepository.findOne({
+        where: { companyID: id },
+        relations: ['user'],
+      });
+      if (!company) throw new NotFoundException(`Company ${id} not found`);
+      return company;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Failed to fetch company');
     }
   }
 
-  async findByUserId(userId: string): Promise<Company | null> {
+  async findByUserId(userId: string): Promise<Company> {
     try {
-      return await this.companyRepository.findOne({ where: { userID: userId } });
-    } catch (error) {
+      const company = await this.companyRepository.findOne({
+        where: { userID: userId },
+        relations: ['user'],
+      });
+      if (!company) throw new NotFoundException(`Company for user ${userId} not found`);
+      return company;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Failed to fetch company by userID');
+    }
+  }
+
+  async getCompanyNameByUserId(userId: string): Promise<string | null> {
+    try {
+      const company = await this.findByUserId(userId);
+      return company?.companyName || null;
+    } catch (error) {
+      console.error(`Error fetching company name for userId ${userId}:`, error);
+      return null;
     }
   }
 
@@ -55,40 +84,35 @@ export class CompanyService {
       const where: any = {};
       if (stream) where.stream = stream;
       if (location) where.location = location;
-      return await this.companyRepository.find({ where });
-    } catch (error) {
+      return await this.companyRepository.find({ where, relations: ['user'] });
+    } catch {
       throw new InternalServerErrorException('Failed to filter companies');
     }
   }
 
-  async update(id: string, updateCompanyDto: UpdateCompanyDto): Promise<Company> {
+  async update(id: string, dto: UpdateCompanyDto): Promise<Company> {
     try {
-      const company = await this.companyRepository.findOne({ where: { companyID: id } });
-      if (!company) {
-        throw new NotFoundException(`Company with ID ${id} not found`);
-      }
-      const updatedCompany = this.companyRepository.merge(company, updateCompanyDto);
-      return await this.companyRepository.save(updatedCompany);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+      const company = await this.companyRepository.findOne({
+        where: { companyID: id },
+        relations: ['user'],
+      });
+      if (!company) throw new NotFoundException(`Company ${id} not found`);
+      const updated = this.companyRepository.merge(company, dto);
+      return await this.companyRepository.save(updated);
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Failed to update company');
     }
   }
 
-  async remove(id: string): Promise<any> {
+  async remove(id: string) {
     try {
       const company = await this.companyRepository.findOne({ where: { companyID: id } });
-      if (!company) {
-        throw new NotFoundException(`Company with ID ${id} not found`);
-      }
+      if (!company) throw new NotFoundException(`Company ${id} not found`);
       await this.companyRepository.remove(company);
-      return { message: `Company with ID ${id} removed` };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+      return { message: `Company ${id} removed` };
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException('Failed to remove company');
     }
   }
