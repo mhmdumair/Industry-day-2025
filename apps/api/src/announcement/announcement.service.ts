@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { Announcement} from './../typeorm/entities';
-import {AudienceType } from '..//typeorm/entities/announcements/announcement.entity'
+import {AudienceType } from './entities/announcement.entity'
 import  {CompanyService}  from '../company/company.service';
 
 @Injectable()

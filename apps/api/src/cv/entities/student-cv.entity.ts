@@ -7,8 +7,8 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Student } from '../user/student.entity';
-import { Interview } from './interview.entity';
+import { Student } from '../../student/entities/student.entity';
+import { Interview } from '../../interview/entities/interview.entity';
 
 @Entity('student_cvs')
 export class StudentCv {

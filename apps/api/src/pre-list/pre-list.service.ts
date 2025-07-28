@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CompanyPrelist } from '../typeorm/entities/company/company-prelist.entity';
+import { CompanyPrelist } from './entities/company-prelist.entity';
 import { CreatePreListDto } from './dto/create-pre-list.dto';
 import { UpdatePreListDto } from './dto/update-pre-list.dto';
 

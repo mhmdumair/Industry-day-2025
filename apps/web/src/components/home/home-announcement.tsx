@@ -76,9 +76,6 @@ const HomeAnnouncement = () => {
         try {
             setLoading(true);
             const response = await api.get(`/announcement`);
-
-            // With axios, the data is directly in response.data
-            // No need to check response.ok or call response.json()
             setAnnouncements(response.data);
             setError(null);
         } catch (err) {

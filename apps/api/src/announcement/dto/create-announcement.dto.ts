@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { AudienceType } from '../../typeorm/entities/announcements/announcement.entity'
+import { AudienceType } from '../entities/announcement.entity'
 
 export class CreateAnnouncementDto {
   @IsNotEmpty()

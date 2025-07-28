@@ -14,9 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, Phone, User, Building } from 'lucide-react';
+import { MapPin, Phone, User } from 'lucide-react';
 
 export default function ProfileCard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);

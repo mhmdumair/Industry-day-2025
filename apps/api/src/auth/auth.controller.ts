@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
-import { UserRole } from '../typeorm/entities/user/user.entity';
+import { UserRole } from '../user/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {

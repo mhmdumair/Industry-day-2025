@@ -1,9 +1,8 @@
-import { Geist, Geist_Mono } from "next/font/google";
+
 import RoomadminSidebar from "@/components/roomadmin/roomadmin-sidebar";
-import Navbar from "@/components/common/navbar";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
+import CompanyNavbar from "@/components/company/company-navbar";
 
 
 export default async function RoomAdminLayout({
@@ -20,7 +19,7 @@ export default async function RoomAdminLayout({
         <SidebarProvider defaultOpen={defaultOpen}>
             <RoomadminSidebar />
             <div className="w-full">
-            <Navbar />
+            <CompanyNavbar />
             <div className="px-4">{children}</div>
             </div>
         </SidebarProvider>
