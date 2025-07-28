@@ -21,7 +21,7 @@ import { MapPin, Globe, Phone, User, Building } from 'lucide-react';
 export default function ProfileCard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileData, setProfileData] = useState({
-        roomadminName: "",
+        roomadminName: "P.O Jaywickrama",
         contactNumber: "+1 (555) 123-4567",
         email: "abc@email.com",
         roomID: "room.id",
