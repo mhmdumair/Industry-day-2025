@@ -29,7 +29,7 @@ const multerOptions = {
     }
   },
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
+    fileSize: 5 * 1024 * 1024, 
     files: 10,
   },
 };

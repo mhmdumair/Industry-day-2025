@@ -26,7 +26,7 @@ export class PDFStorageService {
     }
     
     // Sanitize filename
-    finalFilename = finalFilename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    finalFilename = finalFilename.replace(/[^a-zA-Z0-9._-]/g, '');
     
     const storedPDF: StoredPDF = {
       id: storageId,
