@@ -22,7 +22,7 @@ const mainSponsor = {
     contact: "+94 766412014",
     location: "Colombo 03, Sri Lanka",
     website: "https://www.hemas.com",
-    logo: "/baurs-removebg-preview.png",
+    logo: "/logo/baurs.png",
     jobs: [
         "https://placehold.co/600x400/orange/white",
         "https://placehold.co/600x400/orange/white",
@@ -39,7 +39,7 @@ const platinumSponsor = {
     contact: "+94 771234567",
     location: "Colombo 01, Sri Lanka",
     website: "https://www.platinumcompany.com",
-    logo: "/Noritake.svg",
+    logo: "/logo/noritake.svg",
     category: "Platinum",
     jobs: [
         "https://placehold.co/600x400/orange/white",
@@ -55,7 +55,7 @@ const silverSponsors = [
         contact: "+94 761111111",
         location: "Colombo 03, Sri Lanka",
         website: "https://www.silvercompany1.com",
-        logo: "/hemas-removebg-preview.png",
+        logo: "/logo/hemas.png",
         category: "Silver",
         jobs: [
             "https://placehold.co/600x400/orange/white",
@@ -69,7 +69,7 @@ const silverSponsors = [
         contact: "+94 762222222",
         location: "Colombo 04, Sri Lanka",
         website: "https://www.silvercompany2.com",
-        logo: "/mas-r.png",
+        logo: "/logo/mas-r.png",
         category: "Silver",
     },
     {
@@ -79,7 +79,7 @@ const silverSponsors = [
         contact: "+94 763333333",
         location: "Colombo 05, Sri Lanka",
         website: "https://www.silvercompany3.com",
-        logo: "/aayu.png",
+        logo: "/logo/aayu-logo.svg",
         category: "Silver",
     },
     {
@@ -89,7 +89,7 @@ const silverSponsors = [
         contact: "+94 764444444",
         location: "Colombo 06, Sri Lanka",
         website: "https://www.silvercompany4.com",
-        logo: "/liveroom.webp",
+        logo: "/logo/liveroom.webp",
         category: "Silver",
     },
     {
@@ -102,7 +102,7 @@ const silverSponsors = [
         designation: "Research Scientist ",
         location: "Colombo 07, Sri Lanka",
         website: "https://www.fect.lk",
-        logo: "/FECT.png",
+        logo: "/logo/fect.png",
         category: "Silver",
     },
     {
@@ -115,7 +115,7 @@ const silverSponsors = [
         designation: "Research Scientist ",
         location: "Colombo 07, Sri Lanka",
         website: "https://www.fect.lk",
-        logo: "/gst.png",
+        logo: "/logo/gst.png",
         category: "Silver",
     },
 ];
@@ -184,7 +184,7 @@ export default function AnnouncementsPage() {
                         {/* Supporting Partners (Silver) */}
                         <div className="flex flex-col items-center justify-center">
                             <h3 className="text-lg sm:text-xl font-semibold text-center mb-4 sm:mb-6 text-gray-800"></h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+                            <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                                 {silverSponsors.map((sponsor, i) => (
                                     <SponsorDialog
                                         key={i}
