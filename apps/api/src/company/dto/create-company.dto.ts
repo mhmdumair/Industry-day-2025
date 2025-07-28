@@ -81,3 +81,4 @@ export class CreateCompanyDto {
   @Type(() => CompanyDto)
   company: CompanyDto;
 }
+

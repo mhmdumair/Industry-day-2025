@@ -93,3 +93,4 @@ export class Company {
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];
 }
+

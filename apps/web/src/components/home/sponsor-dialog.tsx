@@ -61,7 +61,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                         <div className="flex justify-center">
                             <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-md">
                                 <Image
-                                    src={sponsor.logo}
+                                    src={`/logo/${sponsor.logo}`} 
                                     alt={`${sponsor.name} logo`}
                                     className="rounded-md object-contain w-full h-auto max-h-48 sm:max-h-56 lg:max-h-64"
                                     width={400}
