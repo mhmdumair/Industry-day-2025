@@ -29,6 +29,12 @@ export enum CompanyStream {
   ES = 'ES',
   SOR = 'SOR',
 }
+export enum CompanySponsership {
+  MAIN = 'MAIN',
+  GOLD = 'GOLD',
+  SILVER = 'SILVER',
+  BRONZE = 'BRONZE'
+}
 
 @Entity('companies')
 export class Company {
@@ -58,6 +64,9 @@ export class Company {
 
   @Column({ type: 'enum', enum: CompanyStream })
   stream: CompanyStream;
+
+  @Column({ type: 'enum', enum: CompanySponsership })
+  sponsership: CompanySponsership;
 
   @Column()
   location: string;

@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
+import { CompanySponsership } from 'src/typeorm/entities/company/company.entity';
 
 export enum CompanyStream {
   ZL = 'ZL',
@@ -37,6 +38,10 @@ export class CompanyDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
+  @IsEnum(CompanySponsership)
+  @IsNotEmpty()
+  sponsership: CompanySponsership;
 
   @IsString()
   @IsNotEmpty()
