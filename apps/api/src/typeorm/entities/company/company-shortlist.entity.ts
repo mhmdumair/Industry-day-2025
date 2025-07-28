@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Company } from './company.entity';
+import { Student } from '../user/student.entity';
 
 @Entity('company_shortlists')
 export class CompanyShortlist {
@@ -18,8 +19,15 @@ export class CompanyShortlist {
   @Column()
   studentID: string;
 
+  @Column()
+  description : string;
+
   // Relationships
   @ManyToOne(() => Company, (company) => company.shortlist, { nullable: true })
   @JoinColumn({ name: 'companyID' })
   company: Company | null;
+
+  @ManyToOne(() => Student, (student) => student.shortlist, { nullable: true })
+  @JoinColumn({ name: 'studentID' })
+  student: Student | null;
 }

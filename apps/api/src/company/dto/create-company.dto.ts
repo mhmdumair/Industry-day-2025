@@ -29,9 +29,6 @@ export enum CompanyStream {
 }
 
 export class CompanyDto {
-  @IsString()
-  @IsNotEmpty()
-  companyID: string;
 
   @IsString()
   @IsNotEmpty()
