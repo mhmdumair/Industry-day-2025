@@ -24,6 +24,7 @@ export default function ProfileCard() {
         email: "abc@email.com",
         roomID: "room.id",
         location: "MLT",
+        logo: "https://github.com/shadcn.png",
     });
 
     const handleSave = () => {
