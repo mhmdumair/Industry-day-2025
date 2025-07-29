@@ -30,6 +30,40 @@ export class StudentService {
     }
   }
 
+  // New method to create multiple students
+  async createBulk(createStudentDtos: CreateStudentDto[]): Promise<{
+    successful: Student[];
+    failed: { index: number; dto: CreateStudentDto; error: string }[];
+    summary: { total: number; successful: number; failed: number };
+  }> {
+    const successful: Student[] = [];
+    const failed: { index: number; dto: CreateStudentDto; error: string }[] = [];
+
+    for (let i = 0; i < createStudentDtos.length; i++) {
+      try {
+        const dto = createStudentDtos[i];
+        const createdStudent = await this.create(dto);
+        successful.push(createdStudent);
+      } catch (error) {
+        failed.push({
+          index: i,
+          dto: createStudentDtos[i],
+          error: error.message || 'Failed to create student',
+        });
+      }
+    }
+
+    return {
+      successful,
+      failed,
+      summary: {
+        total: createStudentDtos.length,
+        successful: successful.length,
+        failed: failed.length,
+      },
+    };
+  }
+
   async findAll(): Promise<Student[]> {
     try {
       return await this.studentRepository.find({

@@ -1,3 +1,4 @@
+"use client"
 import {
   Home,
   Inbox
@@ -13,6 +14,8 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import React from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
@@ -20,6 +23,9 @@ const items = [
 ];
 
 const StudentSidebar = () => {
+  const searchParams = useSearchParams();
+  const studentId = searchParams.get('studentId');
+
   return (
       <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
         <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />

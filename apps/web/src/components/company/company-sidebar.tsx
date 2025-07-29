@@ -1,3 +1,4 @@
+"use client"
 import {
     Home,
     Inbox,
@@ -16,6 +17,7 @@ import {
     SidebarMenuItem,
 } from "../ui/sidebar";
 import React from "react";
+import { useSearchParams } from "next/navigation";
 
 const items = [
     { title: "Profile", url: "/company/profile", icon: Home },
@@ -26,6 +28,15 @@ const items = [
 ];
 
 const CompanySidebar = () => {
+    const searchParams = useSearchParams();
+    const companyId = searchParams.get('companyId');
+
+    // Create URLs with companyId parameter
+    const itemsWithCompanyId = items.map(item => ({
+        ...item,
+        url: companyId ? `${item.url}?companyId=${companyId}` : item.url
+    }));
+
     return (
         <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
             <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
@@ -34,7 +45,7 @@ const CompanySidebar = () => {
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
+                            {itemsWithCompanyId.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild className="h-12 mb-1 hover:bg-slate-200 border-2 border-gray-300">
                                         <a
