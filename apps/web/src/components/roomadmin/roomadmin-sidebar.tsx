@@ -19,7 +19,7 @@ import React from "react";
 
 const items = [
   { title: "Profile", url: "/room-admin/profile", icon: Home },
-  { title: "Stalls", url: "/room-admin/interviews", icon: Inbox },
+  { title: "Stalls", url: "/room-admin/stalls", icon: Inbox },
 ];
 
 const CompanySidebar = () => {

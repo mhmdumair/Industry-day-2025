@@ -8,8 +8,8 @@ export class SessionSerializer extends PassportSerializer {
   }
 
   deserializeUser(
-    payload: any,
-    done: (err: Error | null, payload: any) => void,
+      payload: any,
+      done: (err: Error | null, payload: any) => void,
   ): any {
     done(null, payload);
   }
