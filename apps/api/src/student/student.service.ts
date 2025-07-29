@@ -17,11 +17,13 @@ export class StudentService {
     try {
       const createdUser = await this.userService.createUser(createStudentDto.user);
 
+      // @ts-ignore
       const student = this.studentRepository.create({
         ...createStudentDto.student,
         userID: createdUser.userID,
       });
 
+      // @ts-ignore
       return await this.studentRepository.save(student);
     } catch (error) {
       throw new InternalServerErrorException('Failed to create student');

@@ -8,15 +8,18 @@ import { UserService } from '../user/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
+import {StudentService} from "../student/student.service";
+import {Student} from "../student/entities/student.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Student]),
     PassportModule.register({ session: true }),
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
+    StudentService,
     GoogleStrategy,
     GoogleAuthGuard,
     SessionSerializer,

@@ -2,8 +2,9 @@ import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/google-auth.guard';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
+import { StudentService } from '../student/student.service';
 import { UserRole } from '../user/entities/user.entity';
-import { CreateUserDto } from '../user/dto/createUser.dto';
+import { CreateStudentDto } from '../student/dto/create-student.dto';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 
@@ -12,6 +13,7 @@ export class AuthController {
   constructor(
       private readonly authService: AuthService,
       private readonly usersService: UserService,
+      private readonly studentService: StudentService,
   ) {}
 
   @Get('hello')
@@ -34,16 +36,27 @@ export class AuthController {
       let user = await this.usersService.fetchUserByEmail(googleUser.email);
 
       if (!user) {
-        const createUserDto = plainToInstance(CreateUserDto, {
-          email: googleUser.email,
-          first_name: googleUser.first_name,
-          last_name: googleUser.last_name,
-          profile_picture: googleUser.profile_picture,
-          role: UserRole.STUDENT,
-        });
+        const createStudentDto = plainToInstance(CreateStudentDto, {
+          user: {
+            email: googleUser.email,
+            first_name: googleUser.first_name,
+            last_name: googleUser.last_name,
+            profile_picture: googleUser.profile_picture,
+            role: UserRole.STUDENT,
+          },
+          student: {
+            regNo: null,
+            nic: null,
+            contact: null,
+            linkedin: null,
+            group: null,
+            level: null,
+          },
+      });
 
-        await validateOrReject(createUserDto);
-        user = await this.usersService.createUser(createUserDto);
+        await validateOrReject(createStudentDto);
+
+        const student = await this.studentService.create(createStudentDto);
       }
 
       return res.redirect(`http://localhost:3000/home`);
