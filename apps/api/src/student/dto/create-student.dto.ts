@@ -32,9 +32,11 @@ export class StudentDto {
   @IsString()
   linkedin?: string;
 
+  @IsOptional()
   @IsEnum(StudentGroup)
   group: StudentGroup;
 
+  @IsOptional()
   @IsEnum(StudentLevel)
   level: StudentLevel;
 }
