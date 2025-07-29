@@ -13,15 +13,16 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/home-navbar";
+import { Description } from '@radix-ui/react-dialog';
 
 const departmentData = [
-    { department: "Computer Science", companies: "Google, Microsoft", buttonColor: "#ef4444" },
-    { department: "Mathematics", companies: "Deloitte, PWC", buttonColor: "#3b82f6" },
-    { department: "Physics", companies: "Tesla, SpaceX", buttonColor: "#10b981" },
-    { department: "Chemistry", companies: "Pfizer, DuPont", buttonColor: "#f59e0b" },
-    { department: "Biology", companies: "Roche, Merck", buttonColor: "#8b5cf6" },
-    { department: "Statistics", companies: "Nielsen, Palantir", buttonColor: "#ec4899" },
-    { department: "Geology", companies: "ExxonMobil, Rio Tinto", buttonColor: "#14b8a6" },
+    { department: "Computer Science", location: "SCLT2,SCLT1", companies: "Sands Active (Pvt) Ltd", buttonColor: "#ef4444" },
+    { department: "Mathematics", location: "M1", companies: "Federation for Environment, Climate and Technology", buttonColor: "#3b82f6" },
+    { department: "Physics", location: "P-Upper", companies: "A Baur & Co (Pvt) Ltd", buttonColor: "#10b981" },
+    { department: "Chemistry", location: "C-Upper", companies: "Hemas Consumer Brands", buttonColor: "#f59e0b" },
+    { department: "Zoology", location: "Z1", companies: "MAS Holdings", buttonColor: "#8b5cf6" },
+    { department: "Botany", location: "SCLT2", companies: "Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#ec4899" },
+    { department: "Geology", location: "GEO Seminar room", companies: "LiveRoom (Pvt) Ltd, Aayu Technologies", buttonColor: "#14b8a6" },
 ];
 
 export default function page() {
@@ -49,30 +50,63 @@ export default function page() {
                 window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
 
                 // Department locations (approximate positions within the faculty)
-                const departments = [
+                const rawDepartments = [
                     {
                         lat: 7.258993569138258,
                         lng: 80.59856013481138,
                         name: "Department of Chemistry",
-                        description: "",
-                        color: departmentData.find(d => d.department === "Chemistry")?.buttonColor,
                         code: "CHEM"
                     },
                     {
                         lat: 7.259639093821609,
                         lng: 80.5985844623975,
                         name: "Department of Physics",
-                        color: "#0284c7",
-                        code: "PHYS"
+                        code: "PHY"
                     },
                     {
                         lat: 7.261154599947815,
                         lng: 80.60082147680663,
                         name: "Department of Statistics and Computer Science",
-                        color: "#7c3aed",
-                        code: "STAT"
-                    }
+                        code: "CS"
+                    },
+                    {
+                        lat: 7.259990844246528,
+                        lng: 80.5983182833371,
+                        name: "Department of Mathematics",
+                        code: "MATH"
+                    },
+                    {
+                        lat: 7.259038310667899,
+                        lng: 80.59727222188562,
+                        name: "Department of Botany",
+                        code: "BOT"
+                    },
+                    {
+                        lat: 7.259516360621329,
+                        lng: 80.59761987221921,
+                        name: "Department of Zoology",
+                        code: "Zoo"
+                    },
+                    {
+                        lat: 7.259160748238052,
+                        lng: 80.59616681199911,
+                        name: "Department of Geology",
+                        code: "GEO"
+                    },
                 ];
+
+                // Merge data from departmentData
+                const departments = rawDepartments.map(dep => {
+                    const match = departmentData.find(d =>
+                        dep.name.toLowerCase().includes(d.department.toLowerCase())
+                    );
+
+                    return {
+                        ...dep,
+                        color: match?.buttonColor || "#000000",
+                        description: match ? `Location: ${match.location}` : "Location: N/A",
+                    };
+                });
 
                 // Add department markers
                 departments.forEach(dept => {
