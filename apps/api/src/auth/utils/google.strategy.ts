@@ -2,11 +2,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy) {
+export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private configService: ConfigService) {
-    //@ts-ignore
+    // @ts-ignore
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
@@ -26,12 +27,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     }
 
     return {
-      google_id: profile.id,
-      email: email,
+      email,
       first_name: firstName,
       last_name: lastName,
       profile_picture: profilePicture,
-      accessToken,
+      role: UserRole.STUDENT,
     };
   }
 }
