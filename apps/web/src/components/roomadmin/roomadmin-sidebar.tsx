@@ -33,7 +33,7 @@ const CompanySidebar = () => {
               <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild className="h-12 mb-1 hover:bg-slate-200">
+                      <SidebarMenuButton asChild className="h-12 mb-1 hover:bg-slate-200 border-2 border-gray-300">
                         <a
                             href={item.url}
                             className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
