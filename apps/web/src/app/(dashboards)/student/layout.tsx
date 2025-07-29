@@ -22,8 +22,7 @@ export default async function StudentLayout({
         <div className="flex-1 px-4">{children}</div>
       </div>
     </SidebarProvider>
-
-  </main>
+  </main>
 );
 
 }

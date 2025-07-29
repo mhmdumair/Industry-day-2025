@@ -1,9 +1,6 @@
 import {
   Home,
-  Inbox,
-  Search,
-  Bell,
-  List,
+  Inbox
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,7 +19,7 @@ const items = [
   { title: "Interviews", url: "/student/interviews", icon: Inbox }
 ];
 
-const CompanySidebar = () => {
+const StudentSidebar = () => {
   return (
       <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
         <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
@@ -51,4 +48,4 @@ const CompanySidebar = () => {
   );
 };
 
-export default CompanySidebar;
+export default StudentSidebar;

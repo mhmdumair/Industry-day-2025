@@ -262,6 +262,6 @@ export default function ProfileCard() {
             </Dialog>
           </CardFooter>
         </Card>
-      </div>
-  );
+   </div>
+);
 }
