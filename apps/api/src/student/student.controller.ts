@@ -12,6 +12,12 @@ export class StudentController {
     return this.studentService.create(createStudentDto);
   }
 
+  // New route for bulk student creation
+  @Post('bulk')
+  createBulk(@Body() createStudentDtos: CreateStudentDto[]) {
+    return this.studentService.createBulk(createStudentDtos);
+  }
+
   @Get()
   findAll() {
     return this.studentService.findAll();
@@ -22,7 +28,6 @@ export class StudentController {
     @Query('group') group?: string,
     @Query('level') level?: string,
   ) {
-    
     return this.studentService.filterByGroupAndLevel(group, level);
   }
 
@@ -36,11 +41,9 @@ export class StudentController {
     return this.studentService.findOne(id);
   }
 
- 
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
-    return this.studentService.update(id,updateStudentDto);
+    return this.studentService.update(id, updateStudentDto);
   }
 
   @Delete(':id')
