@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-  getHello(){
-
-    return {msg:"Hello World!"};
+  getHello() {
+    return { msg: 'Hello World!' };
   }
 
   googleLogin(): string {

@@ -72,25 +72,22 @@ const HomeAnnouncement = () => {
 
     // Fetch announcements from database
     useEffect(() => {
-    const fetchAnnouncements = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get(`/announcement`);
+        const fetchAnnouncements = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get(`/announcement`);
+                setAnnouncements(response.data);
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+                console.error('Error fetching announcements:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            // With axios, the data is directly in response.data
-            // No need to check response.ok or call response.json()
-            setAnnouncements(response.data);
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-            console.error('Error fetching announcements:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    fetchAnnouncements();
-}, []);
+        fetchAnnouncements();
+    }, []);
 
 
     // Transform database data to match component format
@@ -127,11 +124,11 @@ const HomeAnnouncement = () => {
         return (
             <div className="w-full h-fit">
                 <Card className="w-full bg-slate-100/80 h-fit">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-2xl sm:text-3xl lg:text-4xl text-center font-bold">
-                            Announcements
-                        </CardTitle>
-                    </CardHeader>
+                    <h1 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">Announcements</h1>
+
+
+
+
                     <CardContent className="flex justify-center py-12">
                         <p className="text-gray-500 text-lg">Loading announcements...</p>
                     </CardContent>
@@ -146,7 +143,7 @@ const HomeAnnouncement = () => {
             <div className="w-full h-fit">
                 <Card className="w-full bg-slate-100/80 h-fit">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-2xl sm:text-3xl lg:text-4xl text-center font-bold">
+                        <CardTitle className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">
                             Announcements
                         </CardTitle>
                     </CardHeader>
@@ -168,10 +165,10 @@ const HomeAnnouncement = () => {
         <div className="w-full h-fit">
             <Card className="w-full bg-slate-100/80 h-fit">
                 <CardHeader className="pb-2">
-                    <h2 className="font-semibold
-                        text-4xl sm:text-2xl lg:text-4xl
-                        text-center
-                        px-4">
+                    <h2 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">
+
+
+
                         Announcements
                     </h2>
                 </CardHeader>

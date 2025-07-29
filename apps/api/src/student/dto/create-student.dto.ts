@@ -1,24 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsEnum, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 
 export enum StudentGroup {
-  ZL = 'ZL',
-  BT = 'BT',
-  CH = 'CH',
-  MT = 'MT',
-  BMS = 'BMS',
-  ST = 'ST',
-  GL = 'GL',
-  CS = 'CS',
-  DS = 'DS',
-  ML = 'ML',
-  BL = 'BL',
-  MB = 'MB',
-  CM = 'CM',
-  AS = 'AS',
-  ES = 'ES',
-  SOR = 'SOR',
+  ZL = 'ZL', BT = 'BT', CH = 'CH', MT = 'MT', BMS = 'BMS', ST = 'ST',
+  GL = 'GL', CS = 'CS', DS = 'DS', ML = 'ML', BL = 'BL', MB = 'MB',
+  CM = 'CM', AS = 'AS', ES = 'ES', SOR = 'SOR',
 }
 
 export enum StudentLevel {
@@ -28,30 +15,29 @@ export enum StudentLevel {
   LEVEL_4 = 'level_4',
 }
 
-// Remove userID, first_name, last_name from StudentDto
 export class StudentDto {
-  @IsString()
-  @IsNotEmpty()
-  regNo: string;
-
-  @IsString()
-  @IsNotEmpty()
-  nic: string;
-
-  @IsString()
   @IsOptional()
+  @IsString()
+  regNo?: string | null;
+
+  @IsOptional()
+  @IsString()
+  nic?: string | null;
+
+  @IsOptional()
+  @IsString()
+  contact?: string | null;
+
+  @IsOptional()
+  @IsString()
   linkedin?: string;
 
-  @IsString()
-  @IsNotEmpty() // Make contact required
-  contact: string;
-
+  @IsOptional()
   @IsEnum(StudentGroup)
-  @IsNotEmpty()
   group: StudentGroup;
 
+  @IsOptional()
   @IsEnum(StudentLevel)
-  @IsNotEmpty()
   level: StudentLevel;
 }
 

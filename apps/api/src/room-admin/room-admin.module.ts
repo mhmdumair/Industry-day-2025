@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common';
 import { RoomAdminService } from './room-admin.service';
 import { RoomAdminController } from './room-admin.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RoomAdmin } from '../typeorm/entities/user/room-admin.entity';
+import { RoomAdmin } from './entities/room-admin.entity';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports : [TypeOrmModule.forFeature([RoomAdmin]),UserModule],
   controllers: [RoomAdminController],
   providers: [RoomAdminService],
+  exports : [RoomAdminService]
 })
 export class RoomAdminModule {}

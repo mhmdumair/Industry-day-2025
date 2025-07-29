@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { InterviewStatus, InterviewType } from '../../typeorm/entities/student/interview.entity';
+import { InterviewStatus, InterviewType } from '../entities/interview.entity';
 
 export class CreateInterviewDto {
   @IsString()

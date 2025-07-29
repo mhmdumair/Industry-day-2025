@@ -7,11 +7,11 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
 } from 'typeorm';
-import { Admin } from './admin.entity';
-import { Student } from './student.entity';
-import { RoomAdmin } from './room-admin.entity';
-import { Company } from '../company/company.entity';
-import { Announcement } from '../announcements/announcement.entity';
+import { Admin } from '../../admin/entities/admin.entity';
+import { Student } from '../../student/entities/student.entity';
+import { RoomAdmin } from '../../room-admin/entities/room-admin.entity';
+import { Company } from '../../company/entities/company.entity';
+import { Announcement } from '../../announcement/entities/announcement.entity';
 
 export enum UserRole {
   STUDENT = 'student',

@@ -1,9 +1,13 @@
-import React from 'react'
+"use client";
 
-const page = () => {
+import CreateStudentCard from "../../../../components/admin/CreateStudentCard";
+import StudentListCard from "../../../../components/admin/StudentListCard";
+
+export default function StudentDashboard() {
   return (
-    <div>Students list page with pagination</div>
-  )
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+        <StudentListCard />
+        <CreateStudentCard />
+      </div>
+  );
 }
-
-export default page

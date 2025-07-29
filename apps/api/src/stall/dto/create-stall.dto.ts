@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
-import { StallStatus } from '../../typeorm/entities/facility/stall.entity';
+import { StallStatus } from '../entities/stall.entity';
 
 export class CreateStallDto {
   @IsUUID()

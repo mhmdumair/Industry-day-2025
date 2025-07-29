@@ -1,25 +1,25 @@
 // User-related entities
-export { User } from './user/user.entity';
-export { Admin } from './user/admin.entity';
-export { RoomAdmin } from './user/room-admin.entity';
+export { User } from '../../user/entities/user.entity';
+export { Admin } from '../../admin/entities/admin.entity';
+export { RoomAdmin } from '../../room-admin/entities/room-admin.entity';
 
 // Student-related entities
-export { Student } from './user/student.entity';
-export { StudentCv } from './student/student-cv.entity';
+export { Student } from '../../student/entities/student.entity';
+export { StudentCv } from '../../cv/entities/student-cv.entity';
 
 // Company-related entities
-export { Company } from './company/company.entity';
-export { CompanyShortlist } from './company/company-shortlist.entity';
-export { CompanyPrelist } from './company/company-prelist.entity';
+export { Company } from '../../company/entities/company.entity';
+export { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
+export { CompanyPrelist } from '../../pre-list/entities/company-prelist.entity';
 
 // Facility-related entities
-export { Room } from './facility/room.entity';
-export { Stall } from './facility/stall.entity';
-export { Interview } from './student/interview.entity';
+export { Room } from '../../room/entities/room.entity';
+export { Stall } from '../../stall/entities/stall.entity';
+export { Interview } from '../../interview/entities/interview.entity';
 
 // Queue-related entities
 
-export { Announcement } from './announcements/announcement.entity';
+export { Announcement } from '../../announcement/entities/announcement.entity';
 
 // Event-related entities
 

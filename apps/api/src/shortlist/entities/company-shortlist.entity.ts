@@ -5,8 +5,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Company } from './company.entity';
-import { Student } from '../user/student.entity';
+import { Company } from '../../company/entities/company.entity';
+import { Student } from '../../student/entities/student.entity';
 
 @Entity('company_shortlists')
 export class CompanyShortlist {

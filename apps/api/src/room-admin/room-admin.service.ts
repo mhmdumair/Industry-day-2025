@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RoomAdmin } from 'src/typeorm/entities/user/room-admin.entity';
+import { RoomAdmin } from 'src/room-admin/entities/room-admin.entity';
 import { CreateRoomAdminDto } from './dto/create-room-admin.dto';
 import { UpdateRoomAdminDto } from './dto/update-room-admin.dto';
 import { UserService } from 'src/user/user.service';
