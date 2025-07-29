@@ -10,11 +10,22 @@ import { User } from '../user/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import {StudentService} from "../student/student.service";
 import {Student} from "../student/entities/student.entity";
+import { StudentModule } from 'src/student/student.module';
+import { CompanyModule } from 'src/company/company.module';
+import { AdminModule } from 'src/admin/admin.module';
+import { RoomAdminModule } from 'src/room-admin/room-admin.module';
+import { AdminService } from 'src/admin/admin.service';
+import { RoomAdminService } from 'src/room-admin/room-admin.service';
+import { CompanyService } from 'src/company/company.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Student]),
     PassportModule.register({ session: true }),
+    StudentModule,
+    AdminModule,
+    CompanyModule,
+    RoomAdminModule
   ],
   controllers: [AuthController],
   providers: [

@@ -1,3 +1,4 @@
+"use client"
 import {
   Home,
   Inbox,
@@ -16,6 +17,8 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import React from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const items = [
   { title: "Profile", url: "/admin/profile", icon: Home },
@@ -24,7 +27,10 @@ const items = [
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
 ];
 
-const CompanySidebar = () => {
+const AdminSidebar = () => {
+  const searchParams = useSearchParams();
+  const adminId = searchParams.get('adminId');
+
   return (
       <Sidebar
           collapsible="icon"
@@ -45,13 +51,13 @@ const CompanySidebar = () => {
                           asChild
                           className="h-12 mb-1 hover:bg-slate-100"
                       >
-                        <a
-                            href={item.url}
+                        <Link
+                            href={`${item.url}${adminId ? `?adminId=${adminId}` : ''}`}
                             className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
                         >
                           <item.icon className="w-5 h-5 flex-shrink-0 text-black" />
                           <span className="text-base truncate text-black">{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                 ))}
@@ -63,4 +69,4 @@ const CompanySidebar = () => {
   );
 };
 
-export default CompanySidebar;
+export default AdminSidebar;

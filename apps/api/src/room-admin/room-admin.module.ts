@@ -9,5 +9,6 @@ import { UserModule } from 'src/user/user.module';
   imports : [TypeOrmModule.forFeature([RoomAdmin]),UserModule],
   controllers: [RoomAdminController],
   providers: [RoomAdminService],
+  exports : [RoomAdminService]
 })
 export class RoomAdminModule {}

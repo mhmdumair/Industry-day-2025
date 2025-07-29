@@ -1,12 +1,12 @@
-import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, NotFoundException } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/google-auth.guard';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { StudentService } from '../student/student.service';
-import { UserRole } from '../user/entities/user.entity';
-import { CreateStudentDto } from '../student/dto/create-student.dto';
-import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
+import { CompanyService } from 'src/company/company.service';
+import { AdminService } from 'src/admin/admin.service';
+import { RoomAdminService } from 'src/room-admin/room-admin.service';
+
 
 @Controller('auth')
 export class AuthController {
@@ -14,6 +14,9 @@ export class AuthController {
       private readonly authService: AuthService,
       private readonly usersService: UserService,
       private readonly studentService: StudentService,
+      private readonly companyService:CompanyService,
+      private readonly adminService : AdminService,
+      private readonly roomAdminService :RoomAdminService,
   ) {}
 
   @Get('hello')
@@ -36,30 +39,27 @@ export class AuthController {
       let user = await this.usersService.fetchUserByEmail(googleUser.email);
 
       if (!user) {
-        const createStudentDto = plainToInstance(CreateStudentDto, {
-          user: {
-            email: googleUser.email,
-            first_name: googleUser.first_name,
-            last_name: googleUser.last_name,
-            profile_picture: googleUser.profile_picture,
-            role: UserRole.STUDENT,
-          },
-          student: {
-            regNo: null,
-            nic: null,
-            contact: null,
-            linkedin: null,
-            group: null,
-            level: null,
-          },
-      });
-
-        await validateOrReject(createStudentDto);
-
-        const student = await this.studentService.create(createStudentDto);
+        throw new NotFoundException("User not found")
+        
       }
-
-      return res.redirect(`http://localhost:3000/home`);
+      
+      if(user.role.toLowerCase()==="student"){
+        return res.redirect(
+          `http://localhost:3000/home?id=${user.userID}`)
+      }
+      else if(user.role.toLowerCase()==="company"){
+        return res.redirect(
+          `http://localhost:3000/home?id=${user.userID}`)
+      }
+      else if(user.role.toLowerCase()==="admin"){
+        return res.redirect(
+          `http://localhost:3000/home?id=${user.userID}`)
+      }
+      else{
+        return res.redirect(
+          `http://localhost:3000/home?id=${user.userID}`)
+      }
+      
     } catch (error) {
       console.error('Authentication failed:', error.message);
       return res.redirect(
