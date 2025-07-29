@@ -4,7 +4,6 @@ import {
   Search,
   Bell,
   List,
-  Calendar,
 } from "lucide-react";
 import {
   Sidebar,
@@ -20,32 +19,20 @@ import React from "react";
 
 const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
-  { title: "Registered Interviews", url: "/student/interviews", icon: Inbox },
-  { title: "Register for Interviews", url: "/student/register", icon: Calendar },
-  { title: "Notification", url: "/student/notification", icon: Search },
+  { title: "Interviews", url: "/student/interviews", icon: Inbox }
 ];
 
 const CompanySidebar = () => {
   return (
-      <Sidebar
-          collapsible="icon"
-          className="min-h-screen bg-black border-slate-700"
-      >
-        {/* Sidebar Header */}
-        <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3">
-        </SidebarHeader>
-
-        {/* Sidebar Content */}
+      <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+        <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
         <SidebarContent className="bg-slate-100">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                          asChild
-                          className="h-12 mb-1 hover:bg-slate-100"
-                      >
+                      <SidebarMenuButton asChild className="h-12 mb-1 hover:bg-slate-200">
                         <a
                             href={item.url}
                             className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
@@ -64,4 +51,4 @@ const CompanySidebar = () => {
   );
 };
 
-export default CompanySidebar;
+export default CompanySidebar;
