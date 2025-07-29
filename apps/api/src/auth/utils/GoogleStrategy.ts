@@ -1,4 +1,3 @@
-//api/src/auth/utils/GoogleStrategy.ts
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
