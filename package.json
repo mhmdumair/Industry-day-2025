@@ -41,6 +41,7 @@
     "mysql2": "^3.14.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
     "react-pdf": "^10.0.1",
     "typeorm": "^0.3.25"
   }

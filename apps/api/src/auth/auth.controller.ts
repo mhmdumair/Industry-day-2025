@@ -1,3 +1,4 @@
+//api/src/auth/auth.controller.ts
 import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
 import { AuthService } from './auth.service';
