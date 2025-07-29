@@ -55,9 +55,9 @@ export default function ResumePage() {
     };
 
     return (
-        <div className="mt-3 w-full mx-auto px-2 sm:px-4 flex flex-col items-center justify-center gap-5 bg-amber-200">
-            <Card className="bg-slate-100/80 shadow-lg w-full h-[90vh] p-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
-                {/* Left Section: PDF Viewer */}
+        <div className="mt-3 mx-12 w-[91.666667vw] px-2 sm:px-4 flex flex-col items-center justify-center gap-5">
+            <Card className="bg-slate-100/80 shadow-lg w-11/12 h-screen p-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
+            {/* Left Section: PDF Viewer */}
                 <div className="w-full lg:w-4/6 flex flex-col">
                     {/* Navigation */}
                     <Card className="flex flex-row justify-between items-center p-3 border-b border-gray-300 bg-gray-100 mb-3">
