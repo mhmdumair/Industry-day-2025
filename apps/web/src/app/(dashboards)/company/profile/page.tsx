@@ -1,29 +1,30 @@
 "use client";
-
 import React, { useState } from 'react';
-import {
-    Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    Dialog, DialogContent, DialogDescription, DialogFooter,
-    DialogHeader, DialogTitle, DialogTrigger
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-    MapPin, Phone, User, Building, SquareMousePointer
-} from 'lucide-react';
+import { MapPin, Globe, Phone, User, Building } from 'lucide-react';
+import Navbar from "@/components/home/home-navbar";
 
 export default function ProfileCard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileData, setProfileData] = useState({
         companyName: "Aayu Technologies",
-        description:
-            "Aayu Technologies is a US based company which conducts its technical operations from Sri Lanka since 2020. We mostly develop and host Software as a Service (SaaS) products and provide software that integrates Business to Business (B2B) electronic commerce and messaging systems, using technologies such as EDI and AS2, on cloud services such as Amazon (AWS), Google (GCP) and Azure platforms. We use Angular, TypeScript, NodeJS, Java, Firebase, and Serverless technologies such as Lambda functions, S3, DynamoDB and Firestore. We offer internships in software engineering, software quality assurance and UI/UX engineering.",
+        description: "\"Aayu Technologies is a US based company which conducts its technical operations from Sri Lanka since 2020. We mostly develop and host Software as a Service (SaaS) products and provide software that integrates Business to Business (B2B) electronic commerce and messaging systems, using technologies such as EDI and AS2, on cloud services such as Amazon (AWS), Google (GCP) and Azure platforms. We use Angular, TypeScript, NodeJS, Java, Firebase, and Serverless technologies such as Lambda functions, S3, DynamoDB and Firestore.\n" +
+            "We offer internships in software engineering, software quality assurance and UI/UX engineering.\"",
         contactPersonName: "Udith Gunaratna",
         contactPersonDesignation: "CTO",
         contactNumber: "0779460639",
@@ -34,6 +35,7 @@ export default function ProfileCard() {
     });
 
     const handleSave = () => {
+        // Handle save logic here - send to API
         console.log("Profile updated:", profileData);
         setIsDialogOpen(false);
     };
@@ -46,7 +48,7 @@ export default function ProfileCard() {
     };
 
     return (
-        <div className="mt-3 w-full max-w-3xl mx-auto p-4">
+        <div className="mt-3 w-80% mx-auto p-4">
             <Card className="bg-gray-50 shadow-lg mt-3">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
@@ -54,7 +56,7 @@ export default function ProfileCard() {
                     </Avatar>
                     <CardTitle className="text-2xl font-bold text-gray-800">{profileData.contactPersonName}</CardTitle>
                     <CardDescription className="text-gray-600 mt-2">{profileData.companyName}</CardDescription>
-                    <div className="flex items-center gap-2 justify-center mt-2">
+                    <div className="flex items-center gap-2 m-auto">
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                             {profileData.stream}
                         </Badge>
@@ -62,9 +64,9 @@ export default function ProfileCard() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {profileData.description}
-                    </p>
+                    <div className="prose max-w-none">
+                        <p className="text-gray-700 leading-relaxed">{profileData.description}</p>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                         <div className="space-y-3">
@@ -73,25 +75,29 @@ export default function ProfileCard() {
                                 <span className="font-medium text-gray-700">Contact Person:</span>
                                 <span className="text-gray-600">{profileData.contactPersonName}</span>
                             </div>
+
                             <div className="flex items-center gap-2 text-sm">
                                 <Building className="h-4 w-4 text-gray-500" />
                                 <span className="font-medium text-gray-700">Designation:</span>
                                 <span className="text-gray-600">{profileData.contactPersonDesignation}</span>
                             </div>
+
                             <div className="flex items-center gap-2 text-sm">
                                 <Phone className="h-4 w-4 text-gray-500" />
                                 <span className="font-medium text-gray-700">Contact:</span>
                                 <span className="text-gray-600">{profileData.contactNumber}</span>
                             </div>
                         </div>
+
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm">
                                 <MapPin className="h-4 w-4 text-gray-500" />
                                 <span className="font-medium text-gray-700">Location:</span>
                                 <span className="text-gray-600">{profileData.location}</span>
                             </div>
+
                             <div className="flex items-center gap-2 text-sm">
-                                <SquareMousePointer className="h-4 w-4 text-gray-500" />
+                                <Globe className="h-4 w-4 text-gray-500" />
                                 <span className="font-medium text-gray-700">Website:</span>
                                 <a
                                     href={profileData.companyWebsite}
@@ -109,7 +115,7 @@ export default function ProfileCard() {
                 <CardFooter className="justify-center pt-6">
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button type="button">Edit Profile</Button>
+                            <Button type="submit">Edit Profile</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                             <DialogHeader>
@@ -120,30 +126,123 @@ export default function ProfileCard() {
                             </DialogHeader>
 
                             <div className="grid gap-6 py-4">
-                                {[
-                                    ['companyName', 'Company Name', 'text'],
-                                    ['stream', 'Company Stream', 'text'],
-                                    ['contactPersonName', 'Contact Person', 'text'],
-                                    ['contactPersonDesignation', 'Designation', 'text'],
-                                    ['contactNumber', 'Contact Number', 'tel'],
-                                    ['location', 'Location', 'text'],
-                                    ['companyWebsite', 'Website', 'url'],
-                                    ['logo', 'Logo URL (optional)', 'url']
-                                ].map(([field, label, type]) => (
-                                    <div key={field} className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor={field} className="text-right font-medium">
-                                            {label}
-                                        </Label>
-                                        <Input
-                                            id={field}
-                                            value={profileData[field]}
-                                            onChange={(e) => handleInputChange(field, e.target.value)}
-                                            className="col-span-3"
-                                            placeholder={`Enter ${label.toLowerCase()}`}
-                                            type={type}
-                                        />
-                                    </div>
-                                ))}
+                                {/* Company Name */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="company-name" className="text-right font-medium">
+                                        Company Name
+                                    </Label>
+                                    <Input
+                                        id="company-name"
+                                        value={profileData.companyName}
+                                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter company name"
+                                    />
+                                </div>
+
+                                {/* Company Stream */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="company-stream" className="text-right font-medium">
+                                        Company Name
+                                    </Label>
+                                    <Input
+                                        id="company-stream"
+                                        value={profileData.stream}
+                                        onChange={(e) => handleInputChange('companyStream', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter company stream"
+                                    />
+                                </div>
+
+                                {/* Contact Person Name */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="contact-person" className="text-right font-medium">
+                                        Contact Person
+                                    </Label>
+                                    <Input
+                                        id="contact-person"
+                                        value={profileData.contactPersonName}
+                                        onChange={(e) => handleInputChange('contactPersonName', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter contact person name"
+                                    />
+                                </div>
+
+                                {/* Contact Person Designation */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="designation" className="text-right font-medium">
+                                        Designation
+                                    </Label>
+                                    <Input
+                                        id="designation"
+                                        value={profileData.contactPersonDesignation}
+                                        onChange={(e) => handleInputChange('contactPersonDesignation', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter designation"
+                                    />
+                                </div>
+
+                                {/* Contact Number */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="contact-number" className="text-right font-medium">
+                                        Contact Number
+                                    </Label>
+                                    <Input
+                                        id="contact-number"
+                                        value={profileData.contactNumber}
+                                        onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter contact number"
+                                        type="tel"
+                                    />
+                                </div>
+
+                                {/* Location */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="location" className="text-right font-medium">
+                                        Location
+                                    </Label>
+                                    <Input
+                                        id="location"
+                                        value={profileData.location}
+                                        onChange={(e) => handleInputChange('location', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter company location"
+                                    />
+                                </div>
+
+                                {/* Company Website */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="website" className="text-right font-medium">
+                                        Website
+                                    </Label>
+                                    <Input
+                                        id="website"
+                                        value={profileData.companyWebsite}
+                                        onChange={(e) => handleInputChange('companyWebsite', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="https://www.company.com"
+                                        type="url"
+                                    />
+                                </div>
+
+                                {/* Logo URL */}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="logo" className="text-right font-medium">
+                                        Logo URL
+                                        <span className="text-xs text-gray-500 block">Optional</span>
+                                    </Label>
+                                    <Input
+                                        id="logo"
+                                        value={profileData.logo}
+                                        onChange={(e) => handleInputChange('logo', e.target.value)}
+                                        className="col-span-3"
+                                        placeholder="Enter logo URL"
+                                        type="url"
+                                    />
+                                </div>
+
+                                {/* Description */}
                                 <div className="grid grid-cols-4 items-start gap-4">
                                     <Label htmlFor="description" className="text-right font-medium mt-2">
                                         Description
