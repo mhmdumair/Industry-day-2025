@@ -18,7 +18,7 @@ export class AdminController {
   }
   
   @Get('by-user/:userId')
-  findAdminByUser(@Param('id') id: string) {
+  findAdminByUser(@Param('userd') id: string) {
     return this.adminService.findOne(id);
   }
 
