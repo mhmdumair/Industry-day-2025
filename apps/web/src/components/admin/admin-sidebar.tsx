@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Home,
   Inbox,
@@ -32,40 +32,31 @@ const AdminSidebar = () => {
   const adminId = searchParams.get('adminId');
 
   return (
-      <Sidebar
-          collapsible="icon"
-          className="min-h-screen bg-black border-slate-700"
-      >
-        {/* Sidebar Header */}
-        <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3">
-        </SidebarHeader>
+    <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+      <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
 
-        {/* Sidebar Content */}
-        <SidebarContent className="bg-slate-100">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                          asChild
-                          className="h-12 mb-1 hover:bg-slate-100"
-                      >
-                        <Link
-                            href={`${item.url}${adminId ? `?adminId=${adminId}` : ''}`}
-                            className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
-                        >
-                          <item.icon className="w-5 h-5 flex-shrink-0 text-black" />
-                          <span className="text-base truncate text-black">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
+      <SidebarContent className="bg-slate-100">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild className="h-12 mb-1 hover:bg-slate-100">
+                    <Link
+                      href={`${item.url}${adminId ? `?adminId=${adminId}` : ''}`}
+                      className="flex items-center gap-3 px-3 py-2 transition-all duration-200"
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0 text-black" />
+                      <span className="text-base truncate text-black">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 };
 
