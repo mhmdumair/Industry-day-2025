@@ -125,10 +125,6 @@ const HomeAnnouncement = () => {
             <div className="w-full h-fit">
                 <Card className="w-full bg-slate-100/80 h-fit">
                     <h1 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">Announcements</h1>
-
-
-
-
                     <CardContent className="flex justify-center py-12">
                         <p className="text-gray-500 text-lg">Loading announcements...</p>
                     </CardContent>
@@ -166,9 +162,6 @@ const HomeAnnouncement = () => {
             <Card className="w-full bg-slate-100/80 h-fit">
                 <CardHeader className="pb-2">
                     <h2 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">
-
-
-
                         Announcements
                     </h2>
                 </CardHeader>

@@ -1,7 +1,8 @@
 "use client";
 import React from 'react'
 import {Button} from "@/components/ui/button";
-import {Card, CardHeader} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
 
 export default function CompanyFilter() {
     return (
@@ -9,7 +10,17 @@ export default function CompanyFilter() {
             {/* Content Area */}
                 <div className="flex justify-center w-11/12 p-4">
                     <Card className="bg-slate-100 w-11/12 max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
+
                         <CardHeader className="text-center text-xl font-semibold text-black">Pre-Listed Students</CardHeader>
+                        <CardContent>
+                            <CardDescription> Search for the full name</CardDescription>
+                            {/* Search */}
+                            <div className="flex justify-center w-full">
+                                <Input
+                                    placeholder="Search students..."
+                                    className="w-full max-w-md mb-5"
+                                />
+                            </div>
                         {/* Divider Line */}
                         <hr className="border-gray-300" />
 
@@ -27,6 +38,7 @@ export default function CompanyFilter() {
                                 </Button>
                             ))}
                         </div>
+                        </CardContent>
                     </Card>
                 </div>
         </div>
