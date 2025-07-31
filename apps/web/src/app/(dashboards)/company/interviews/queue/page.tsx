@@ -69,11 +69,12 @@ export default function ResumePage() {
                     {/* PDF iframe */}
                     <Card className="flex-1">
                         <iframe
-                            src={`/${pdfFiles[currentPdfIndex]}`}
+                            src={`https://drive.google.com/file/d/1uoqSo3Nh49jFotNz766vmrAXu20BQcxU/preview`}
                             className="w-full h-full"
                             title={`PDF Viewer - ${pdfFiles[currentPdfIndex]}`}
                             key={pdfFiles[currentPdfIndex]}
-                        />
+                            />
+
                     </Card>
                 </div>
 
