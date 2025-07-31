@@ -1,4 +1,45 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateCompanyDto } from './create-company.dto';
+import { IsString, IsOptional, IsEnum, IsUrl } from 'class-validator';
+import { CompanySponsership } from 'src/company/entities/company.entity';
+import { CompanyStream } from '../entities/company.entity'; // or wherever your enums are
 
-export class UpdateCompanyDto extends PartialType(CreateCompanyDto) {}
+export class UpdateCompanyDto {
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(CompanySponsership)
+  sponsership?: CompanySponsership;
+
+  @IsOptional()
+  @IsString()
+  contactPersonName?: string;
+
+  @IsOptional()
+  @IsString()
+  contactPersonDesignation?: string;
+
+  @IsOptional()
+  @IsString()
+  contactNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  logo?: string;
+
+  @IsOptional()
+  @IsEnum(CompanyStream)
+  stream?: CompanyStream;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsUrl()
+  companyWebsite?: string;
+}

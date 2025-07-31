@@ -15,7 +15,7 @@ export default function AnnouncementsPage() {
     const [audience, setAudience] = useState("");
     const [announcements, setAnnouncements] = useState([]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e:any) => {
         e.preventDefault();
         if (!title || !description || !audience) return;
 
