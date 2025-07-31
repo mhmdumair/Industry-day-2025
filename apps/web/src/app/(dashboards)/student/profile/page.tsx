@@ -217,7 +217,7 @@ export default function StudentProfileCard() {
       <Card className="bg-gray-50 shadow-lg mt-3">
         <CardHeader className="text-center items-center justify-center pb-4">
           <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData.user.profile_picture ?? undefined} alt="Student picture" />
+            <AvatarImage src={profileData.user.profile_picture ?? "baurs.png"} alt="Student picture" />
           </Avatar>
           <CardTitle className="text-2xl font-bold text-gray-800">
             {profileData.user.first_name} {profileData.user.last_name}

@@ -14,13 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Phone, User, Building } from "lucide-react";
+import { MapPin, Globe, Phone, User, Building } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
 
-
-// Types: define interfaces according to your student data structure
+// Types
 export interface User {
   userID: string;
   email: string;
@@ -32,167 +32,192 @@ export interface User {
   updated_at: string;
 }
 
-export interface StudentProfile {
-  studentID: string;
+export interface CompanyProfile {
+  companyID: string;
   userID: string;
-  regNo: string;
-  nic: string;
-  linkedin: string | null;
-  contact: string;
-  group: string;
-  level: string;
-  created_at: string;
-  updated_at: string;
+  companyName: string;
+  description: string;
+  contactPersonName: string;
+  contactPersonDesignation: string;
+  contactNumber: string;
+  logo: string;
+  stream: string;
+  sponsership: string;
+  location: string;
+  companyWebsite: string;
   user: User;
 }
 
+export enum CompanyStream {
+  ZL = 'ZL',
+  BT = 'BT',
+  CH = 'CH',
+  MT = 'MT',
+  BMS = 'BMS',
+  ST = 'ST',
+  GL = 'GL',
+  CS = 'CS',
+  DS = 'DS',
+  ML = 'ML',
+  BL = 'BL',
+  MB = 'MB',
+  CM = 'CM',
+  AS = 'AS',
+  ES = 'ES',
+  SOR = 'SOR',
+}
 
-export default function StudentProfileCard() {
-  const searchParams = useSearchParams();
-  const studentId = searchParams.get("studentId"); // Adjust your query param name as needed
 
-  const [profileData, setProfileData] = useState<StudentProfile | null>(null);
-  const [editData, setEditData] = useState<StudentProfile | null>(null);
+export default function ProfileCard() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [profileData, setProfileData] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get("companyId");
 
-  // Fetch student data on mount or when studentId changes
+  // For editing—use a copy so user cancels don't affect display
+  const [editData, setEditData] = useState<CompanyProfile | null>(null);
+
   useEffect(() => {
-    if (!studentId) {
-      setError("No studentId provided in URL.");
+    if (!companyId) {
       setLoading(false);
+      setError("No companyId provided in URL.");
       return;
     }
     setLoading(true);
-    api.get<StudentProfile>(`/student/${studentId}`)
+    api
+      .get<CompanyProfile>(`/company/${companyId}`)
       .then((res) => {
         setProfileData(res.data);
-        setEditData(res.data);
+        setEditData(res.data); // Set editing data as well for dialog
         setLoading(false);
       })
-      .catch(() => {
-        setError("Failed to fetch student profile.");
+      .catch((err) => {
+        setError("Failed to fetch company profile.");
         setLoading(false);
       });
-  }, [studentId]);
+  }, [companyId]);
 
-  // Update editData; supports nested user fields like 'user.first_name'
-  const handleInputChange = (field: string, value: string) => {
-    if (field.startsWith("user.")) {
-      const userField = field.split(".")[1];
-      setEditData(prev => prev ? { ...prev, user: { ...prev.user, [userField]: value } } : prev);
-    } else {
-      setEditData(prev => prev ? { ...prev, [field]: value } : prev);
-    }
+  // Update editData—not profileData!
+  const handleInputChange = <K extends keyof CompanyProfile>(
+    field: K,
+    value: CompanyProfile[K]
+  ) => {
+    setEditData((prev) =>
+      prev ? { ...prev, [field]: value } : prev
+    );
   };
 
-  // Open edit dialog and copy latest profileData to editData
+  // When opening dialog, copy latest data
   const handleEditOpen = () => {
     setEditData(profileData);
     setIsDialogOpen(true);
   };
 
-  // Save updated student data to API (PATCH)
-  const handleSave = async () => {
-    if (!editData || !studentId) return;
+ const handleSave = async () => {
+  if (!editData) return;
+  try {
+    setLoading(true);
 
-    try {
-      setLoading(true);
+    const updatePayload = {
+        companyName: editData.companyName,
+        description: editData.description,
+        contactPersonName: editData.contactPersonName,
+        contactPersonDesignation: editData.contactPersonDesignation,
+        contactNumber: editData.contactNumber,
+        logo: editData.logo,
+        stream: editData.stream,
+        location: editData.location,
+        companyWebsite: editData.companyWebsite,
+      }
 
-      // Prepare the data payload, omit immutable IDs
-      const updatePayload = {
-        regNo: editData.regNo,
-        nic: editData.nic,
-        linkedin: editData.linkedin,
-        contact: editData.contact,
-        group: editData.group,
-        level: editData.level,
-        user: {
-          email: editData.user.email,
-          role: editData.user.role,
-          first_name: editData.user.first_name,
-          last_name: editData.user.last_name,
-          profile_picture: editData.user.profile_picture,
-        },
-      };
+    console.log(updatePayload);
+    await api.patch(`/company/${companyId}`, updatePayload);
 
-      await api.patch(`/student/${studentId}`, updatePayload);
+    setProfileData((prev) =>
+      prev ? { ...prev, ...updatePayload } : prev
+    );
 
-      setProfileData(editData);
-      setIsDialogOpen(false);
-      setLoading(false);
-    } catch (e) {
-      setLoading(false);
-      alert("Failed to save. Please try again.");
-      console.error("Save error:", e);
-    }
-  };
+    setIsDialogOpen(false);
+    setLoading(false);
+  } catch (e) {
+    setLoading(false);
+    alert("Failed to save. Please try again.");
+    console.error("Save error:", e);
+  }
+};
+
+
+
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
-  if (!profileData) return <div>No student data found.</div>;
+  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (!profileData) return <div>No company data found.</div>;
 
   return (
     <div className="mt-3 w-80% mx-auto p-4">
       <Card className="bg-gray-50 shadow-lg mt-3">
         <CardHeader className="text-center items-center justify-center pb-4">
           <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData.user.profile_picture ?? undefined} alt="Student picture" />
+            <AvatarImage src={profileData?.user?.profile_picture || "/logo/baurs.png"} alt="Company Logo" />
           </Avatar>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            {profileData.user.first_name} {profileData.user.last_name}
+            {profileData.contactPersonName}
           </CardTitle>
+          <CardDescription className="text-gray-600 mt-2">
+            {profileData.companyName}
+          </CardDescription>
           <div className="flex items-center gap-2 m-auto">
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              {profileData.group}
+              {profileData.stream}
             </Badge>
           </div>
-          <CardDescription className="text-gray-600 mt-2">Student Profile</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div className="prose max-w-none">
+            <p className="text-gray-700 leading-relaxed">{profileData.description}</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Registration No:</span>
-                <span className="text-gray-600">{profileData.regNo}</span>
+                <span className="font-medium text-gray-700">Contact Person:</span>
+                <span className="text-gray-600">{profileData.contactPersonName}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Building className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">NIC:</span>
-                <span className="text-gray-600">{profileData.nic}</span>
+                <span className="font-medium text-gray-700">Designation:</span>
+                <span className="text-gray-600">{profileData.contactPersonDesignation}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="h-4 w-4 text-gray-500" />
                 <span className="font-medium text-gray-700">Contact:</span>
-                <span className="text-gray-600">{profileData.contact}</span>
+                <span className="text-gray-600">{profileData.contactNumber}</span>
               </div>
             </div>
-
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Email:</span>
-                <span className="text-gray-600">{profileData.user.email}</span>
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <span className="font-medium text-gray-700">Location:</span>
+                <span className="text-gray-600">{profileData.location}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Linkedin:</span>
+                <span className="font-medium text-gray-700">Website:</span>
                 <a
-                  href={profileData.linkedin ?? ""}
+                  href={profileData.companyWebsite}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
-                  {profileData.linkedin ?? "—"}
+                  {profileData.companyWebsite}
                 </a>
               </div>
             </div>
           </div>
         </CardContent>
-
         <CardFooter className="justify-center pt-6">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -200,116 +225,150 @@ export default function StudentProfileCard() {
                 Edit Profile
               </Button>
             </DialogTrigger>
-
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Student Profile</DialogTitle>
+                <DialogTitle>Edit Company Profile</DialogTitle>
                 <DialogDescription>
-                  Update your information. All fields are required unless marked optional.
+                  Update your company information. All fields are required unless marked optional.
                 </DialogDescription>
               </DialogHeader>
-
               {editData && (
                 <div className="grid gap-6 py-4">
-                  {/* First Name */}
+                  {/* Company Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="first-name" className="text-right font-medium">First Name</Label>
+                    <Label htmlFor="company-name" className="text-right font-medium">
+                      Company Name
+                    </Label>
                     <Input
-                      id="first-name"
-                      value={editData.user.first_name}
-                      onChange={(e) => handleInputChange("user.first_name", e.target.value)}
+                      id="company-name"
+                      value={editData.companyName}
+                      onChange={(e) => handleInputChange("companyName", e.target.value)}
                       className="col-span-3"
-                      placeholder="Enter first name"
+                      placeholder="Enter company name"
                     />
                   </div>
 
-                  {/* Last Name */}
+                  {/* Company Stream */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="last-name" className="text-right font-medium">Last Name</Label>
+                    <Label htmlFor="company-stream" className="text-right font-medium">
+                        Stream
+                    </Label>
+                    <select
+                        id="company-stream"
+                        value={editData?.stream || ""}
+                        onChange={(e) => handleInputChange("stream", e.target.value as CompanyStream)}
+                        className="col-span-3 rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="" disabled>
+                        Select stream
+                        </option>
+                        {Object.entries(CompanyStream).map(([key, val]) => (
+                        <option key={key} value={val}>
+                            {val}
+                        </option>
+                        ))}
+                    </select>
+                    </div>
+
+
+                  {/* Contact Person Name */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contact-person" className="text-right font-medium">
+                      Contact Person
+                    </Label>
                     <Input
-                      id="last-name"
-                      value={editData.user.last_name}
-                      onChange={(e) => handleInputChange("user.last_name", e.target.value)}
+                      id="contact-person"
+                      value={editData.contactPersonName}
+                      onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
                       className="col-span-3"
-                      placeholder="Enter last name"
+                      placeholder="Enter contact person name"
                     />
                   </div>
 
-                  {/* Email */}
+                  {/* Contact Person Designation */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right font-medium">Email</Label>
+                    <Label htmlFor="designation" className="text-right font-medium">
+                      Designation
+                    </Label>
                     <Input
-                      id="email"
-                      value={editData.user.email}
-                      onChange={(e) => handleInputChange("user.email", e.target.value)}
+                      id="designation"
+                      value={editData.contactPersonDesignation}
+                      onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
                       className="col-span-3"
-                      placeholder="Enter email"
+                      placeholder="Enter designation"
                     />
                   </div>
 
                   {/* Contact Number */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contact-number" className="text-right font-medium">Contact Number</Label>
+                    <Label htmlFor="contact-number" className="text-right font-medium">
+                      Contact Number
+                    </Label>
                     <Input
                       id="contact-number"
-                      value={editData.contact}
-                      onChange={(e) => handleInputChange("contact", e.target.value)}
+                      value={editData.contactNumber}
+                      onChange={(e) => handleInputChange("contactNumber", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter contact number"
                       type="tel"
                     />
                   </div>
 
-                  {/* NIC */}
+                  {/* Location */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nic" className="text-right font-medium">NIC</Label>
-                    <Input
-                      id="nic"
-                      value={editData.nic}
-                      onChange={(e) => handleInputChange("nic", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter NIC"
-                    />
-                  </div>
-
-                  {/* Registration Number */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="reg-number" className="text-right font-medium">Registration No</Label>
-                    <Input
-                      id="reg-number"
-                      value={editData.regNo}
-                      onChange={(e) => handleInputChange("regNo", e.target.value)}
-                      className="col-span-3"
-                      placeholder="S20000"
-                    />
-                  </div>
-
-                  {/* Linkedin */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="linkedin" className="text-right font-medium">Linkedin</Label>
-                    <Input
-                      id="linkedin"
-                      value={editData.linkedin ?? ""}
-                      onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                      className="col-span-3"
-                      placeholder="https://www.linkedin.com"
-                      type="url"
-                    />
-                  </div>
-
-                  {/* Profile Picture URL */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="profile-picture" className="text-right font-medium">
-                      Profile Picture
-                      <span className="text-xs text-gray-500 block">Optional</span>
+                    <Label htmlFor="location" className="text-right font-medium">
+                      Location
                     </Label>
                     <Input
-                      id="profile-picture"
-                      value={editData.user.profile_picture ?? ""}
-                      onChange={(e) => handleInputChange("user.profile_picture", e.target.value)}
+                      id="location"
+                      value={editData.location}
+                      onChange={(e) => handleInputChange("location", e.target.value)}
                       className="col-span-3"
-                      placeholder="Enter Profile Picture URL"
+                      placeholder="Enter company location"
+                    />
+                  </div>
+
+                  {/* Company Website */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="website" className="text-right font-medium">
+                      Website
+                    </Label>
+                    <Input
+                      id="website"
+                      value={editData.companyWebsite}
+                      onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
+                      className="col-span-3"
+                      placeholder="https://www.company.com"
                       type="url"
+                    />
+                  </div>
+
+                  {/* Logo URL */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="logo" className="text-right font-medium">
+                      Logo URL <span className="text-xs text-gray-500 block">Optional</span>
+                    </Label>
+                    <Input
+                      id="logo"
+                      value={editData.logo}
+                      onChange={(e) => handleInputChange("logo", e.target.value)}
+                      className="col-span-3"
+                      placeholder="Enter logo URL"
+                      type="url"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="description" className="text-right font-medium mt-2">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={editData.description}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      className="col-span-3 min-h-[120px]"
+                      placeholder="Enter company description"
                     />
                   </div>
                 </div>
