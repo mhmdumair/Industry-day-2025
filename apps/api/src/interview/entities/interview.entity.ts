@@ -49,8 +49,9 @@ export class Interview {
   @Column({ type: 'int', nullable: false, default: 999 })
   company_preference: number;
 
-  @CreateDateColumn({ type: 'timestamp with time zone' })  
+  @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
+
 
   @ManyToOne(() => Stall, (stall) => stall.interviews, { nullable: false })
   @JoinColumn({ name: 'stallID' })
