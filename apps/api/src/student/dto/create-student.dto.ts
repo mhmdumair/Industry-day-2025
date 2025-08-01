@@ -6,15 +6,15 @@ import { StudentGroup, StudentLevel } from '../entities/student.entity';
 export class StudentDto {
   @IsOptional()
   @IsString()
-  regNo?: string | null;
+  regNo?: string ;
 
   @IsOptional()
   @IsString()
-  nic?: string | null;
+  nic?: string ;
 
   @IsOptional()
   @IsString()
-  contact?: string | null;
+  contact?: string;
 
   @IsOptional()
   @IsString()

@@ -1,16 +1,19 @@
 // src/cv/cv.service.ts
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { 
+  Injectable, 
+  NotFoundException, 
+  BadRequestException, 
+  InternalServerErrorException 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StudentCv } from '../typeorm/entities';
-import { Student } from '../typeorm/entities';
-import * as fs from 'fs';
-import * as path from 'path';
+import { StudentCv } from './entities/student-cv.entity';
+import { Student } from '../student/entities/student.entity';
+import { CreateCvDto } from './dto/create-cv.dto';
+import { UpdateCvDto } from './dto/update-cv.dto';
 
 @Injectable()
 export class CvService {
-  private readonly uploadsDir = path.join(process.cwd(), 'uploads');
-
   constructor(
     @InjectRepository(StudentCv)
     private cvRepository: Repository<StudentCv>,
@@ -18,226 +21,120 @@ export class CvService {
     private studentRepository: Repository<Student>,
   ) {}
 
-  async uploadCV(file: Express.Multer.File, studentID: string): Promise<StudentCv> {
+  async create(createCvDto: CreateCvDto): Promise<StudentCv> {
     try {
-      if (!file) {
-        throw new BadRequestException('No file provided');
-      }
-
-      if (!studentID || studentID.trim() === '') {
-        throw new BadRequestException('Student ID is required');
-      }
-
+      // Validate student exists
       const student = await this.studentRepository.findOne({
-        where: { studentID: studentID.trim() }
+        where: { studentID: createCvDto.studentID }
       });
 
       if (!student) {
-        throw new NotFoundException(`Student with ID ${studentID} does not exist`);
+        throw new NotFoundException(`Student with ID ${createCvDto.studentID} does not exist`);
       }
 
-      if (!student.regNo || student.regNo.trim() === '') {
-        throw new BadRequestException(`Student ${studentID} does not have a valid registration number`);
-      }
-
-      if (!fs.existsSync(this.uploadsDir)) {
-        fs.mkdirSync(this.uploadsDir, { recursive: true });
-      }
-
-      const sanitizedRegNo = student.regNo.replace(/[^a-zA-Z0-9]/g, '');
-      const newFileName = `${sanitizedRegNo}.pdf`;
-      const newFilePath = path.join(this.uploadsDir, newFileName);
-
-      if (!fs.existsSync(file.path)) {
-        throw new BadRequestException('Uploaded file not found on server');
-      }
-
-      const existingCV = await this.cvRepository.findOne({
-        where: { studentID: studentID }
-      });
-
-      if (existingCV && existingCV.filePath && fs.existsSync(existingCV.filePath)) {
-        fs.unlinkSync(existingCV.filePath);
-      }
-
-      fs.renameSync(file.path, newFilePath);
-
-      if (!fs.existsSync(newFilePath)) {
-        throw new InternalServerErrorException('Failed to save file to final location');
-      }
-
-      let savedCV: StudentCv;
-
-      if (existingCV) {
-        existingCV.fileName = newFileName;
-        existingCV.filePath = newFilePath;
-        savedCV = await this.cvRepository.save(existingCV);
-      } else {
-        const cv = new StudentCv();
-        cv.studentID = studentID;
-        cv.fileName = newFileName;
-        cv.filePath = newFilePath;
-        savedCV = await this.cvRepository.save(cv);
-      }
-
-      return savedCV;
+      const cv = this.cvRepository.create(createCvDto);
+      return await this.cvRepository.save(cv);
     } catch (error) {
-      if (file && file.path && fs.existsSync(file.path)) {
-        try {
-          fs.unlinkSync(file.path);
-        } catch (cleanupError) {
-          console.error('Failed to cleanup temporary file:', cleanupError);
-        }
-      }
-
-      if (error instanceof BadRequestException || 
-          error instanceof NotFoundException || 
-          error instanceof InternalServerErrorException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
       }
-
-      console.error('Unexpected error in uploadCV:', error);
-      throw new InternalServerErrorException('An unexpected error occurred during file upload');
+      throw new InternalServerErrorException('Failed to create CV');
     }
   }
 
-  async getCvFileInfoById(cvId: string): Promise<StudentCv> {
-    if (!cvId || cvId.trim() === '') {
-      throw new BadRequestException('CV ID is required');
+  async findAll(): Promise<StudentCv[]> {
+    try {
+      return await this.cvRepository.find({
+        relations: ['student']
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch CVs');
     }
-
-    const cv = await this.cvRepository.findOne({
-      where: { cvID: cvId.trim() },
-      relations: ['student', 'interviews']
-    });
-
-    if (!cv) {
-      throw new NotFoundException(`CV with ID ${cvId} not found`);
-    }
-
-    if (!fs.existsSync(cv.filePath)) {
-      throw new NotFoundException(`PDF file not found at: ${cv.filePath}`);
-    }
-
-    return cv;
   }
 
-  async getCvFileInfoByStudentId(studentId: string): Promise<StudentCv> {
-    if (!studentId || studentId.trim() === '') {
-      throw new BadRequestException('Student ID is required');
+  async findOne(cvId: string): Promise<StudentCv> {
+    try {
+      if (!cvId || cvId.trim() === '') {
+        throw new BadRequestException('CV ID is required');
+      }
+
+      const cv = await this.cvRepository.findOne({
+        where: { cvID: cvId.trim() },
+        relations: ['student']
+      });
+
+      if (!cv) {
+        throw new NotFoundException(`CV with ID ${cvId} not found`);
+      }
+
+      return cv;
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch CV');
     }
-
-    const cv = await this.cvRepository.findOne({
-      where: { studentID: studentId.trim() },
-      relations: ['student'],
-      order: { cvID: 'DESC' }
-    });
-
-    if (!cv) {
-      throw new NotFoundException(`No CV found for student ${studentId}`);
-    }
-
-    if (!fs.existsSync(cv.filePath)) {
-      throw new NotFoundException(`PDF file not found at: ${cv.filePath}`);
-    }
-
-    return cv;
   }
 
-  async findByCvId(cvId: string): Promise<StudentCv> {
-    if (!cvId || cvId.trim() === '') {
-      throw new BadRequestException('CV ID is required');
+  async findByStudentId(studentId: string): Promise<StudentCv | null> {
+    try {
+      if (!studentId || studentId.trim() === '') {
+        throw new BadRequestException('Student ID is required');
+      }
+
+      return await this.cvRepository.findOne({
+        where: { studentID: studentId.trim() },
+        relations: ['student']
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch CV by student ID');
     }
-
-    const cv = await this.cvRepository.findOne({
-      where: { cvID: cvId.trim() },
-      relations: ['student', 'interviews']
-    });
-
-    if (!cv) {
-      throw new NotFoundException(`CV with ID ${cvId} not found`);
-    }
-
-    return cv;
   }
 
   async getStudentCvList(studentId: string): Promise<StudentCv[]> {
-    if (!studentId || studentId.trim() === '') {
-      throw new BadRequestException('Student ID is required');
-    }
+    try {
+      if (!studentId || studentId.trim() === '') {
+        throw new BadRequestException('Student ID is required');
+      }
 
-    return await this.cvRepository.find({
-      where: { studentID: studentId.trim() },
-      relations: ['student'],
-      order: { cvID: 'DESC' }
-    });
+      return await this.cvRepository.find({
+        where: { studentID: studentId.trim() },
+        relations: ['student']
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch student CV list');
+    }
   }
 
-  async update(cvId: string, fileName?: string): Promise<StudentCv> {
-    if (!cvId || cvId.trim() === '') {
-      throw new BadRequestException('CV ID is required');
-    }
-
-    const cv = await this.findByCvId(cvId);
-    
-    if (fileName && fileName.trim() !== '') {
-      const sanitizedFileName = fileName.trim();
+  async update(cvId: string, updateCvDto: UpdateCvDto): Promise<StudentCv> {
+    try {
+      const cv = await this.findOne(cvId);
       
-      if (!sanitizedFileName.endsWith('.pdf')) {
-        throw new BadRequestException('Filename must have .pdf extension');
+      const updatedCv = this.cvRepository.merge(cv, updateCvDto);
+      return await this.cvRepository.save(updatedCv);
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
       }
-
-      const oldPath = cv.filePath;
-      const newPath = path.join(this.uploadsDir, sanitizedFileName);
-      
-      if (fs.existsSync(newPath) && oldPath !== newPath) {
-        throw new BadRequestException(`File ${sanitizedFileName} already exists`);
-      }
-
-      if (fs.existsSync(oldPath)) {
-        fs.renameSync(oldPath, newPath);
-        cv.filePath = newPath;
-        cv.fileName = sanitizedFileName;
-      } else {
-        throw new NotFoundException('Original CV file not found on disk');
-      }
+      throw new InternalServerErrorException('Failed to update CV');
     }
-
-    return await this.cvRepository.save(cv);
   }
 
   async remove(cvId: string): Promise<void> {
-    if (!cvId || cvId.trim() === '') {
-      throw new BadRequestException('CV ID is required');
-    }
-
-    const cv = await this.findByCvId(cvId);
-    
-    if (cv.filePath && fs.existsSync(cv.filePath)) {
-      try {
-        fs.unlinkSync(cv.filePath);
-      } catch (error) {
-        console.error('Failed to delete physical file:', error);
+    try {
+      const cv = await this.findOne(cvId);
+      await this.cvRepository.remove(cv);
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
       }
+      throw new InternalServerErrorException('Failed to delete CV');
     }
-    
-    await this.cvRepository.remove(cv);
-  }
-
-  async downloadCV(cvId: string): Promise<{ filePath: string; fileName: string }> {
-    if (!cvId || cvId.trim() === '') {
-      throw new BadRequestException('CV ID is required');
-    }
-
-    const cv = await this.findByCvId(cvId);
-    
-    if (!fs.existsSync(cv.filePath)) {
-      throw new NotFoundException(`PDF file not found at: ${cv.filePath}`);
-    }
-
-    return {
-      filePath: cv.filePath,
-      fileName: cv.fileName
-    };
   }
 }
