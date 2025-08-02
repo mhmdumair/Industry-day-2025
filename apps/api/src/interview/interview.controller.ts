@@ -52,7 +52,13 @@ export class InterviewController {
   getWalkinSorted(@Param('stallID') stallID: string) {
     return this.interviewService.getWalkinSorted(stallID);
   }
-  
+
+  // New route: Get count of walk-in interviews by stall ID
+  @Get('stall/:stallID/walkin/count')
+  getWalkinCountByStall(@Param('stallID') stallID: string) {
+    return this.interviewService.getWalkinCountByStall(stallID);
+  }
+
   @Get('company/:companyID/prelisted')
   getPrelistedByCompany(
     @Param('companyID') companyID: string,
@@ -65,6 +71,12 @@ export class InterviewController {
     @Param('companyID') companyID: string,
   ) {
     return this.interviewService.getWalkinByCompany(companyID);
+  }
+
+  // New route: Get count of walk-in interviews by company ID
+  @Get('company/:companyID/walkin/count')
+  getWalkinCountByCompany(@Param('companyID') companyID: string) {
+    return this.interviewService.getWalkinCountByCompany(companyID);
   }
 
   @Get(':id')
@@ -81,7 +93,4 @@ export class InterviewController {
   remove(@Param('id') id: string) {
     return this.interviewService.remove(id);
   }
-
 }
-
-

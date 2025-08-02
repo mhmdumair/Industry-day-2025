@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Interview } from '../typeorm/entities';
+import { Interview, InterviewType } from './entities/interview.entity';
 import { Stall } from '../typeorm/entities';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
@@ -184,37 +184,65 @@ export class InterviewService {
     }
   }
 
-
-async getPrelistedByCompany(companyID: string) {
-  try {
-    return await this.interviewRepository
-      .createQueryBuilder('interview')
-      .innerJoin('interview.stall', 'stall')
-      .leftJoinAndSelect('interview.student', 'student')
-      .where('stall.companyID = :companyID', { companyID })
-      .andWhere('interview.type = :type', { type: 'pre-listed' })
-      .orderBy('interview.student_preference', 'ASC')
-      .addOrderBy('interview.company_preference', 'ASC')
-      .addOrderBy('interview.created_at', 'ASC')
-      .getMany();
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to retrieve prelisted interviews by company');
+  async getPrelistedByCompany(companyID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: 'pre-listed' })
+        .orderBy('interview.student_preference', 'ASC')
+        .addOrderBy('interview.company_preference', 'ASC')
+        .addOrderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve prelisted interviews by company');
+    }
   }
-}
 
-async getWalkinByCompany(companyID: string) {
-  try {
-    return await this.interviewRepository
-      .createQueryBuilder('interview')
-      .innerJoin('interview.stall', 'stall')
-      .leftJoinAndSelect('interview.student', 'student')
-      .where('stall.companyID = :companyID', { companyID })
-      .andWhere('interview.type = :type', { type: 'walk-in' })
-      .orderBy('interview.created_at', 'ASC')
-      .getMany();
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to retrieve walk-in interviews by company');
+  async getWalkinByCompany(companyID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: 'walk-in' })
+        .orderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve walk-in interviews by company');
+    }
   }
-}
 
+  // New method: Get count of walk-in interviews by stall ID
+  async getWalkinCountByStall(stallID: string): Promise<{ count: number }> {
+    try {
+      const count = await this.interviewRepository.count({
+        where: { 
+          stallID,
+          type: InterviewType.WALK_IN
+        },
+      });
+      return { count };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get walk-in count by stall');
+    }
+  }
+
+  // New method: Get count of walk-in interviews by company ID
+  async getWalkinCountByCompany(companyID: string): Promise<{ count: number }> {
+    try {
+      const count = await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .getCount();
+      return { count };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get walk-in count by company');
+    }
+  }
 }
