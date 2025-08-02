@@ -30,6 +30,7 @@ export enum StudentGroup {
   AS = 'AS',
   ES = 'ES',
   SOR = 'SOR',
+  GN = 'GN'
 }
 
 export enum StudentLevel {
