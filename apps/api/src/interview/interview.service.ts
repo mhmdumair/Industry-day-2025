@@ -257,4 +257,38 @@ export class InterviewService {
       throw new InternalServerErrorException('Failed to get scheduled walk-in count by company');
     }
   }
+  async getPrelistedSortedByStudent(studentID: string) {
+  try {
+    return await this.interviewRepository
+      .createQueryBuilder('interview')
+      .leftJoinAndSelect('interview.student', 'student')
+      .leftJoinAndSelect('interview.stall', 'stall')
+      .where('interview.studentID = :studentID', { studentID })
+      .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
+      .orderBy('interview.student_preference', 'ASC')
+      .addOrderBy('interview.company_preference', 'ASC')
+      .addOrderBy('interview.created_at', 'ASC')
+      .getMany();
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to retrieve prelisted interviews sorted by preferences for student');
+  }
 }
+
+async getWalkinSortedByStudent(studentID: string) {
+  try {
+    return await this.interviewRepository
+      .createQueryBuilder('interview')
+      .leftJoinAndSelect('interview.student', 'student')
+      .leftJoinAndSelect('interview.stall', 'stall')
+      .where('interview.studentID = :studentID', { studentID })
+      .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+      .orderBy('interview.created_at', 'ASC')
+      .getMany();
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to retrieve walkin interviews sorted by creation date for student');
+  }
+}
+
+
+}
+

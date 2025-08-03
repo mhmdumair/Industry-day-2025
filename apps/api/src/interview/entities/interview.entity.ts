@@ -15,6 +15,7 @@ export enum InterviewType {
   WALK_IN = 'walk-in',
 }
 
+
 export enum InterviewStatus {
   SCHEDULED = 'scheduled',
   COMPLETED = 'completed',

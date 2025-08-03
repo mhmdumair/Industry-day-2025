@@ -82,6 +82,20 @@ export class InterviewController {
     return this.interviewService.getNextWalkinInterview(companyID, stallID, interviewCount);
   }
 
+  @Get('student/:studentID/prelisted/sorted')
+  getPrelistedSortedByStudent(
+    @Param('studentID') studentID: string,
+  ) {
+    return this.interviewService.getPrelistedSortedByStudent(studentID);
+  }
+
+  @Get('student/:studentID/walkin/sorted')
+  getWalkinSortedByStudent(
+    @Param('studentID') studentID: string,
+  ) {
+    return this.interviewService.getWalkinSortedByStudent(studentID);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.interviewService.findOne(id);
