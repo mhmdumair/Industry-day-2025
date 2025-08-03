@@ -147,10 +147,8 @@ export default function CompanyFilter() {
         try {
             await api.delete(`/interview/${interviewID}`);
             setExistingPreListedStudents(prev => prev.filter(i => i.interviewID !== interviewID));
-            alert('Pre-listed student removed successfully!');
         } catch (err: any) {
             console.error('Error removing pre-listed student:', err);
-            alert('Failed to remove pre-listed student');
         }
     };
 
@@ -159,6 +157,10 @@ export default function CompanyFilter() {
 
         try {
             setLoading(true);
+
+            // Get the current highest company_preference to continue numbering
+            const startingPreference = existingPreListedStudents.length + 1;
+
             const bulkInterviewData = preListedStudents.map((student, index) => ({
                 studentID: student.studentID,
                 companyID: companyId,
@@ -166,7 +168,7 @@ export default function CompanyFilter() {
                 type: "pre-listed",
                 status: "scheduled",
                 student_preference: 999,
-                company_preference: index + 1,
+                company_preference: startingPreference + index, // Continue from existing count
                 remark: null,
             }));
 
@@ -178,7 +180,6 @@ export default function CompanyFilter() {
             setPreListedStudents([]);
             // Refresh the existing pre-listed students list
             await fetchExistingPreListedStudents();
-            alert(`Successfully created ${bulkInterviewData.length} pre-listed interviews!`);
         } catch (err: any) {
             let errorMessage = 'Failed to create interviews';
             if (err.response) {
@@ -189,7 +190,6 @@ export default function CompanyFilter() {
                 errorMessage = err.message || 'Unknown error occurred';
             }
             console.error('Error creating bulk interviews:', err);
-            alert(`Error: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -231,7 +231,7 @@ export default function CompanyFilter() {
         <div className="mt-3 w-screen mx-auto p-4 flex flex-col items-center justify-center gap-5">
             <div className="flex justify-center w-11/12 p-4">
                 <Card className="bg-slate-100/80 w-11/12 max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
-                    <CardHeader className="text-center text-xl font-semibold text-black">Pre-Listed Students</CardHeader>
+                    <CardHeader className="text-center text-xl font-semibold text-black">Pre-List Students</CardHeader>
                     <CardContent>
                         {/* Search Form */}
                         <form onSubmit={(e) => e.preventDefault()} className="flex flex-col md:flex-row w-full gap-2 pb-2">
@@ -310,10 +310,7 @@ export default function CompanyFilter() {
                                                 {student.user.first_name} {student.user.last_name}
                                             </div>
                                             <div className="text-xs text-gray-600">
-                                                {student.regNo} • {student.group} • {student.level.replace('_', ' ')}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {student.user.email}
+                                                {student.regNo} • {student.group} • {student.level.split('_')[1].concat('000L')}
                                             </div>
                                         </div>
                                         <Button
@@ -328,7 +325,6 @@ export default function CompanyFilter() {
                             </Card>
                         ) : (
                             <Card className="flex flex-col gap-2 p-4 mt-3 mb-3 bg-slate-100/80">
-                                <h3 className="font-semibold mb-2 text-center text-gray-600">No Students Pre-Listed for Confirmation</h3>
                                 <p className="text-sm text-gray-500 text-center">Search and add students to create your pre-list</p>
                             </Card>
                         )}
@@ -357,10 +353,9 @@ export default function CompanyFilter() {
 
             {/* Existing Pre-Listed Students Card */}
             <div className="flex justify-center w-11/12 p-4">
-                <Card className="bg-green-100/80 w-11/12 max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
+                <Card className="bg-slate-100/80 w-11/12 max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
                     <CardHeader className="text-center text-xl font-semibold text-black flex flex-row items-center justify-center gap-2">
-                        <Users size={20} />
-                        Confirmed Pre-Listed Students
+                        Pre-Listed Students
                     </CardHeader>
                     <CardContent>
                         {loadingExisting ? (
@@ -371,22 +366,27 @@ export default function CompanyFilter() {
                         ) : existingPreListedStudents.length > 0 ? (
                             <div className="space-y-3">
                                 <h3 className="font-semibold mb-3">
-                                    Total Confirmed Students: {existingPreListedStudents.length}
+                                    Total Pre-listed Students: {existingPreListedStudents.length}
                                 </h3>
                                 {existingPreListedStudents.map((interview) => (
-                                    <div key={interview.interviewID} className="flex justify-between items-center bg-white p-3 rounded-lg border border-green-300">
-                                        <div className="flex-1">
-                                            <div className="font-medium text-sm">
-                                                {interview.student.user.first_name} {interview.student.user.last_name}
+                                    <div key={interview.interviewID} className="flex justify-between items-center bg-white p-3 rounded-lg border">
+                                        <div className="flex items-start gap-4">
+                                            {/* Left: Preference (Centered) */}
+                                            <div className="w-8 text-sm font-medium mt-1 text-center">
+                                                {interview.company_preference}.
                                             </div>
-                                            <div className="text-xs text-gray-600">
-                                                {interview.student.regNo} • {interview.student.group} • {interview.student.level.replace('_', ' ')}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {interview.student.user.email}
-                                            </div>
-                                            <div className="text-xs text-green-600 font-medium mt-1">
-                                                Status: {interview.status} • Preference: {interview.company_preference}
+
+                                            {/* Right: Info */}
+                                            <div className="flex-1">
+                                                <div className="font-medium text-sm">
+                                                    {interview.student.user.first_name} {interview.student.user.last_name}
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    {interview.student.regNo} • {interview.student.group} • {interview.student.level.split('_')[1].concat('000L')}
+                                                </div>
+                                                <div className="text-xs text-green-600 font-medium mt-1">
+                                                    Status: {interview.status}
+                                                </div>
                                             </div>
                                         </div>
                                         <Button
@@ -394,7 +394,7 @@ export default function CompanyFilter() {
                                             size="sm"
                                             onClick={() => removeExistingPreListedStudent(interview.interviewID)}
                                         >
-                                            <Trash2 size={14} />
+                                            <X size={14} />
                                         </Button>
                                     </div>
                                 ))}
