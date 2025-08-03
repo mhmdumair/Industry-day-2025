@@ -17,11 +17,11 @@ import { Description } from '@radix-ui/react-dialog';
 
 const departmentData = [
     { department: "Chemistry", location: "Auditorium, New Auditorium", companies: "A Baur & Co (Pvt) Ltd, Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#dc2626" }, // red
-    { department: "Science Education Unit", location: "", companies: "Hemas Consumer Brands", buttonColor: "#e5d246ff" }, // yellow
-    { department: "Physics", location: "Lobby, Seminar Room", companies: "Federation for Environment, Climate and Technology, MAS Holdings", buttonColor: "#003097ff" }, // blue
+    { department: "Science Education Unit", location: "On Site", companies: "Hemas Consumer Brands", buttonColor: "#e5d246ff" }, // yellow
+    { department: "Physics", location: "Lobby, Seminar Room", companies: "Federation for Environment Climate and Technology, MAS Holdings", buttonColor: "#003097ff" }, // blue
     { department: "Mathematics", location: "M5", companies: "Aayu Technologies", buttonColor: "#a855f7" }, // purple
     { department: "Molecular Biology", location: "Upper Theater", companies: "Sands Active Pvt Ltd", buttonColor: "#f97316" }, // orange
-    { department: "Qbits", location: "", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
+    { department: "Qbits", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
 ];
 
 export default function page() {
@@ -143,14 +143,13 @@ export default function page() {
                     <div className="hidden sm:block">
                         <Table>
                             <TableCaption className="text-xs sm:text-sm lg:text-base">
-                                Participating departments and their associated companies for Industry Day 2025.
+                                Participating companies and their associated locations for Industry Day 2025.
                             </TableCaption>
                             <TableHeader>
                                 <TableRow className='bg-slate-400'>
                                     <TableHead className="w-[40px] sm:w-[60px] text-black text-center"></TableHead>
                                     <TableHead className="w-[150px] sm:w-[200px] lg:w-[250px] text-black">Department</TableHead>
-                                    <TableHead className="text-black">Location</TableHead>
-                                    <TableHead className="text-black">Company</TableHead>
+                                    <TableHead className="text-black">Location & Company</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -178,11 +177,24 @@ export default function page() {
                                         <TableCell className="font-medium text-sm sm:text-base">
                                             {item.department}
                                         </TableCell>
-                                        <TableCell className="text-sm sm:text-base">
-                                            {item.location}
-                                        </TableCell>
-                                        <TableCell className="text-sm sm:text-base">
-                                            {item.companies}
+                                        <TableCell className="text-sm sm:text-base" colSpan={2}>
+                                            <div className="space-y-1">
+                                                {(() => {
+                                                    const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
+                                                    const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                    const count = Math.max(locations.length, companies.length);
+
+                                                    return Array.from({ length: count }).map((_, i) => {
+                                                        const loc = locations[i] || "N/A";
+                                                        const comp = companies[i] || "N/A";
+                                                        return (
+                                                            <div key={i}>
+                                                                <span className="font-medium">{loc}:</span> {comp}
+                                                            </div>
+                                                        );
+                                                    });
+                                                })()}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -193,7 +205,7 @@ export default function page() {
                     {/* Mobile Card Layout */}
                     <div className="block sm:hidden space-y-3">
                         <div className="text-center text-sm text-gray-600 mb-4 p-2">
-                            Participating departments and their associated companies for Industry Day 2025.
+                            Participating companies and their associated locations for Industry Day 2025.
                         </div>
 
                         {departmentData.map((item) => (
@@ -223,20 +235,26 @@ export default function page() {
                                         </h3>
                                     </div>
 
-                                    {/* Locations */}
+                                    {/* Combined Location: Company */}
                                     <div className="pl-8">
-                                        <p className="text-sm text-gray-700 font-medium mb-1">Locations:</p>
-                                        <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                            {item.location}
-                                        </p>
-                                    </div>
+                                        <p className="text-sm text-gray-700 font-medium mb-1">Location & Company:</p>
+                                        <div className="text-sm text-gray-600 leading-relaxed break-words space-y-1">
+                                            {(() => {
+                                                const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
+                                                const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                const count = Math.max(locations.length, companies.length);
 
-                                    {/* Comapnies */}
-                                    <div className="pl-8">
-                                        <p className="text-sm text-gray-700 font-medium mb-1">Companies:</p>
-                                        <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                            {item.companies}
-                                        </p>
+                                                return Array.from({ length: count }).map((_, i) => {
+                                                    const loc = locations[i] || "N/A";
+                                                    const comp = companies[i] || "N/A";
+                                                    return (
+                                                        <p key={i}>
+                                                            {loc}: {comp}
+                                                        </p>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
                             </Card>
