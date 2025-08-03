@@ -31,7 +31,7 @@ export default function CompanyFilter() {
                             {/* Found */}
                             <Card className="bg-teal-100/80 border border-teal-600 text-black">
                                 <CardHeader>
-                                    <CardTitle>User found</CardTitle>
+                                    <CardTitle>Student found!</CardTitle>
                                     <CardDescription>Click + to pre-list student</CardDescription>
                                     <div className="flex w-full justify-between gap-2 mt-2">
                                         <Button
