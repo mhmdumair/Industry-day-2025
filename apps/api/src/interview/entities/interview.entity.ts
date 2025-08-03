@@ -21,7 +21,7 @@ export enum InterviewStatus {
   CANCELLED = 'cancelled',
 }
 
-@Unique(['stallID', 'studentID'])
+@Unique(['companyID', 'studentID'])
 @Entity('interviews')
 export class Interview {
   @PrimaryGeneratedColumn('uuid')

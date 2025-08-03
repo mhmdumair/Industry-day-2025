@@ -180,15 +180,15 @@ export class InterviewService {
   async getPrelistedByCompany(companyID: string) {
     try {
       return await this.interviewRepository
-        .createQueryBuilder('interview')
-        .innerJoin('interview.stall', 'stall')
-        .leftJoinAndSelect('interview.student', 'student')
-        .where('stall.companyID = :companyID', { companyID })
-        .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
-        .orderBy('interview.student_preference', 'ASC')
-        .addOrderBy('interview.company_preference', 'ASC')
-        .addOrderBy('interview.created_at', 'ASC')
-        .getMany();
+          .createQueryBuilder('interview')
+          .leftJoinAndSelect('interview.student', 'student')
+          .leftJoinAndSelect('student.user', 'user') // Include user details
+          .leftJoinAndSelect('interview.stall', 'stall')
+          .where('interview.companyID = :companyID', { companyID })
+          .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
+          .orderBy('interview.company_preference', 'ASC')
+          .addOrderBy('interview.created_at', 'ASC')
+          .getMany();
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve prelisted interviews by company');
     }
