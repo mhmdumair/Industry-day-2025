@@ -12,7 +12,6 @@ export class InterviewController {
     return this.interviewService.create(createInterviewDto);
   }
 
-  // Bulk create interviews
   @Post('bulk')
   bulkCreate(@Body() createInterviewDtos: CreateInterviewDto[]) {
     return this.interviewService.bulkCreate(createInterviewDtos);
@@ -38,32 +37,19 @@ export class InterviewController {
     return this.interviewService.findByCompanyId(companyID);
   }
 
-  @Get('room/:roomID')
-  findByRoom(@Param('roomID') roomID: string) {
-    return this.interviewService.findByRoomId(roomID);
-  }
-
-  @Get('stall/:stallID/prelisted')
-  getPrelistedSorted(@Param('stallID') stallID: string) {
-    return this.interviewService.getPrelistedSorted(stallID);
-  }
-
-  @Get('stall/:stallID/walkin')
-  getWalkinSorted(@Param('stallID') stallID: string) {
-    return this.interviewService.getWalkinSorted(stallID);
-  }
-
-  // New route: Get count of walk-in interviews by stall ID
-  @Get('stall/:stallID/walkin/count')
-  getWalkinCountByStall(@Param('stallID') stallID: string) {
-    return this.interviewService.getWalkinCountByStall(stallID);
-  }
-
   @Get('company/:companyID/prelisted')
   getPrelistedByCompany(
     @Param('companyID') companyID: string,
   ) {
     return this.interviewService.getPrelistedByCompany(companyID);
+  }
+
+  // New route: Get pre-listed scheduled interviews by company
+  @Get('company/:companyID/prelisted/scheduled')
+  getPrelistedScheduledByCompany(
+    @Param('companyID') companyID: string,
+  ) {
+    return this.interviewService.getPrelistedScheduledByCompany(companyID);
   }
 
   @Get('company/:companyID/walkin')
@@ -73,19 +59,28 @@ export class InterviewController {
     return this.interviewService.getWalkinByCompany(companyID);
   }
 
-  // New route: Get count of walk-in interviews by company ID
+  // New route: Get walk-in scheduled interviews by company
+  @Get('company/:companyID/walkin/scheduled')
+  getWalkinScheduledByCompany(
+    @Param('companyID') companyID: string,
+  ) {
+    return this.interviewService.getWalkinScheduledByCompany(companyID);
+  }
+
   @Get('company/:companyID/walkin/count')
   getWalkinCountByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getWalkinCountByCompany(companyID);
   }
 
   @Get('company/:companyID/stall/:stallID/next-walkin')
-    getNextWalkinInterview(
-      @Param('companyID') companyID: string,
-      @Param('stallID') stallID: string,
-    ) {
-      return this.interviewService.getNextWalkinInterview(companyID, stallID);
-    }
+  getNextWalkinInterview(
+    @Param('companyID') companyID: string,
+    @Param('stallID') stallID: string,
+    @Query('count') count?: number,
+  ) {
+    const interviewCount = count ? parseInt(count.toString(), 10) : 1;
+    return this.interviewService.getNextWalkinInterview(companyID, stallID, interviewCount);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

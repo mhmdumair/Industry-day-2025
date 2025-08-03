@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Interview, InterviewType } from './entities/interview.entity';
+import { In, Repository } from 'typeorm';
+import { Interview, InterviewType, InterviewStatus } from './entities/interview.entity';
 import { Stall } from '../typeorm/entities';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
@@ -80,39 +80,41 @@ export class InterviewService {
     }
   }
 
-  
-async getNextWalkinInterview(companyID: string, stallID: string) {
+  async getNextWalkinInterview(companyID: string, stallID: string, interviewCount: number = 1) {
   try {
-    const nextInterview = await this.interviewRepository
+    const nextInterviews = await this.interviewRepository
       .createQueryBuilder('interview')
       .innerJoin('interview.stall', 'stall')
       .leftJoinAndSelect('interview.student', 'student')
       .where('stall.companyID = :companyID', { companyID })
       .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
-      .andWhere('interview.status = :status', { status: 'scheduled' })
+      .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
       .orderBy('interview.created_at', 'ASC')
-      .getOne();
+      .limit(interviewCount)
+      .getMany();
 
-    if (!nextInterview) {
+    if (!nextInterviews || nextInterviews.length === 0) {
       throw new NotFoundException('No scheduled walk-in interviews found for this company');
     }
 
+    const interviewIDs = nextInterviews.map(interview => interview.interviewID);
+    
     await this.interviewRepository.update(
-      { interviewID: nextInterview.interviewID },
+      { interviewID: In (interviewIDs) },
       { stallID }
     );
 
-    return await this.interviewRepository.findOne({
-      where: { interviewID: nextInterview.interviewID },
+    return await this.interviewRepository.find({
+      where: { interviewID: In(interviewIDs) },
       relations: ['student', 'stall'],
+      order: { created_at: 'ASC' }
     });
 
   } catch (error) {
     if (error instanceof NotFoundException) throw error;
-    throw new InternalServerErrorException('Failed to get next walk-in interview');
+    throw new InternalServerErrorException('Failed to get next walk-in interview(s)');
   }
 }
-
 
   async update(id: string, updateInterviewDto: UpdateInterviewDto) {
     try {
@@ -175,49 +177,6 @@ async getNextWalkinInterview(companyID: string, stallID: string) {
     }
   }
 
-  async findByRoomId(roomID: string) {
-    try {
-      return await this.interviewRepository
-        .createQueryBuilder('interview')
-        .innerJoin('interview.stall', 'stall')
-        .leftJoinAndSelect('interview.student', 'student')
-        .where('stall.roomID = :roomID', { roomID })
-        .getMany();
-    } catch {
-      throw new InternalServerErrorException('Failed to retrieve interviews by roomID');
-    }
-  }
-
-  async getPrelistedSorted(stallID: string) {
-    try {
-      return await this.interviewRepository
-        .createQueryBuilder('interview')
-        .leftJoinAndSelect('interview.student', 'student')
-        .where('interview.stallID = :stallID', { stallID })
-        .andWhere('interview.type = :type', { type: 'pre-listed' })
-        .orderBy('interview.student_preference', 'ASC')
-        .addOrderBy('interview.company_preference', 'ASC')
-        .addOrderBy('interview.created_at', 'ASC')
-        .getMany();
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to retrieve prelisted interviews');
-    }
-  }
-
-  async getWalkinSorted(stallID: string) {
-    try {
-      return await this.interviewRepository
-        .createQueryBuilder('interview')
-        .leftJoinAndSelect('interview.student', 'student')
-        .where('interview.stallID = :stallID', { stallID })
-        .andWhere('interview.type = :type', { type: 'walk-in' })
-        .orderBy('interview.created_at', 'ASC')
-        .getMany();
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to retrieve walkin interviews');
-    }
-  }
-
   async getPrelistedByCompany(companyID: string) {
     try {
       return await this.interviewRepository
@@ -225,7 +184,7 @@ async getNextWalkinInterview(companyID: string, stallID: string) {
         .innerJoin('interview.stall', 'stall')
         .leftJoinAndSelect('interview.student', 'student')
         .where('stall.companyID = :companyID', { companyID })
-        .andWhere('interview.type = :type', { type: 'pre-listed' })
+        .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
         .orderBy('interview.student_preference', 'ASC')
         .addOrderBy('interview.company_preference', 'ASC')
         .addOrderBy('interview.created_at', 'ASC')
@@ -242,7 +201,7 @@ async getNextWalkinInterview(companyID: string, stallID: string) {
         .innerJoin('interview.stall', 'stall')
         .leftJoinAndSelect('interview.student', 'student')
         .where('stall.companyID = :companyID', { companyID })
-        .andWhere('interview.type = :type', { type: 'walk-in' })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
         .orderBy('interview.created_at', 'ASC')
         .getMany();
     } catch (error) {
@@ -250,22 +209,40 @@ async getNextWalkinInterview(companyID: string, stallID: string) {
     }
   }
 
-  // New method: Get count of walk-in interviews by stall ID
-  async getWalkinCountByStall(stallID: string): Promise<{ count: number }> {
+  async getPrelistedScheduledByCompany(companyID: string) {
     try {
-      const count = await this.interviewRepository.count({
-        where: { 
-          stallID,
-          type: InterviewType.WALK_IN
-        },
-      });
-      return { count };
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
+        .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
+        .orderBy('interview.student_preference', 'ASC')
+        .addOrderBy('interview.company_preference', 'ASC')
+        .addOrderBy('interview.created_at', 'ASC')
+        .getMany();
     } catch (error) {
-      throw new InternalServerErrorException('Failed to get walk-in count by stall');
+      throw new InternalServerErrorException('Failed to retrieve pre-listed scheduled interviews by company');
     }
   }
 
-  // New method: Get count of walk-in interviews by company ID
+  async getWalkinScheduledByCompany(companyID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
+        .orderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve walk-in scheduled interviews by company');
+    }
+  }
+
   async getWalkinCountByCompany(companyID: string): Promise<{ count: number }> {
     try {
       const count = await this.interviewRepository
@@ -273,10 +250,11 @@ async getNextWalkinInterview(companyID: string, stallID: string) {
         .innerJoin('interview.stall', 'stall')
         .where('stall.companyID = :companyID', { companyID })
         .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
         .getCount();
       return { count };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to get walk-in count by company');
+      throw new InternalServerErrorException('Failed to get scheduled walk-in count by company');
     }
   }
 }
