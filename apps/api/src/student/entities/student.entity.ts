@@ -50,7 +50,7 @@ export class Student {
   @Column({ unique: true })
   regNo: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true ,nullable:true})
   nic: string;
 
   @Column({ nullable: true })

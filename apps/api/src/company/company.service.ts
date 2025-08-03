@@ -1,4 +1,3 @@
-// company.service.ts
 import {
   Injectable,
   InternalServerErrorException,
@@ -24,13 +23,11 @@ export class CompanyService {
     await queryRunner.startTransaction();
 
     try {
-      // Create user within the transaction
       const createdUser = await this.userService.createUserTransactional(
         dto.user,
         queryRunner.manager
       );
 
-      // Create company within the same transaction
       const company = queryRunner.manager.create(Company, {
         ...dto.company,
         userID: createdUser.userID,

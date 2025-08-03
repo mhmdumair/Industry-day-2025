@@ -80,6 +80,40 @@ export class InterviewService {
     }
   }
 
+  
+async getNextWalkinInterview(companyID: string, stallID: string) {
+  try {
+    const nextInterview = await this.interviewRepository
+      .createQueryBuilder('interview')
+      .innerJoin('interview.stall', 'stall')
+      .leftJoinAndSelect('interview.student', 'student')
+      .where('stall.companyID = :companyID', { companyID })
+      .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+      .andWhere('interview.status = :status', { status: 'scheduled' })
+      .orderBy('interview.created_at', 'ASC')
+      .getOne();
+
+    if (!nextInterview) {
+      throw new NotFoundException('No scheduled walk-in interviews found for this company');
+    }
+
+    await this.interviewRepository.update(
+      { interviewID: nextInterview.interviewID },
+      { stallID }
+    );
+
+    return await this.interviewRepository.findOne({
+      where: { interviewID: nextInterview.interviewID },
+      relations: ['student', 'stall'],
+    });
+
+  } catch (error) {
+    if (error instanceof NotFoundException) throw error;
+    throw new InternalServerErrorException('Failed to get next walk-in interview');
+  }
+}
+
+
   async update(id: string, updateInterviewDto: UpdateInterviewDto) {
     try {
       const updateResult = await this.interviewRepository.update({ interviewID: id }, updateInterviewDto);

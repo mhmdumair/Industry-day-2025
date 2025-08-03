@@ -79,6 +79,14 @@ export class InterviewController {
     return this.interviewService.getWalkinCountByCompany(companyID);
   }
 
+  @Get('company/:companyID/stall/:stallID/next-walkin')
+    getNextWalkinInterview(
+      @Param('companyID') companyID: string,
+      @Param('stallID') stallID: string,
+    ) {
+      return this.interviewService.getNextWalkinInterview(companyID, stallID);
+    }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.interviewService.findOne(id);

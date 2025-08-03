@@ -3,12 +3,16 @@ import { InterviewType, InterviewStatus } from '../entities/interview.entity';
 
 export class CreateInterviewDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   stallID: string;
 
   @IsString()
   @IsNotEmpty()
   studentID: string;
+
+  @IsString()
+  @IsNotEmpty()
+  companyID :string
 
   @IsEnum(InterviewType)
   type: InterviewType;
