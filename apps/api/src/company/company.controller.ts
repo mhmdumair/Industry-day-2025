@@ -12,6 +12,12 @@ export class CompanyController {
     return this.companyService.create(createCompanyDto);
   }
 
+  // Bulk create companies
+  @Post('bulk')
+  bulkCreate(@Body() createCompanyDtos: CreateCompanyDto[]) {
+    return this.companyService.bulkCreate(createCompanyDtos);
+  }
+
   @Get()
   findAll() {
     return this.companyService.findAll();
@@ -50,4 +56,3 @@ export class CompanyController {
     return this.companyService.remove(id);
   }
 }
-
