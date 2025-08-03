@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
-  CreateDateColumn, // <-- import this
+  CreateDateColumn,
 } from 'typeorm';
 import { Stall } from '../../stall/entities/stall.entity';
 import { Student } from '../../student/entities/student.entity';

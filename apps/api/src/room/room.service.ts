@@ -24,6 +24,7 @@ export class RoomService {
       throw new InternalServerErrorException('Failed to create room');
     }
   }
+  
 
   async findAll() {
     try {
@@ -67,4 +68,34 @@ export class RoomService {
       throw new InternalServerErrorException('Failed to remove room');
     }
   }
+
+  async bulkCreate(createRoomDtos: CreateRoomDto[]) {
+  const successful: Room[] = [];
+  const failed: { dto: CreateRoomDto; error: string }[] = [];
+
+  for (let i = 0; i < createRoomDtos.length; i++) {
+    try {
+      const dto = createRoomDtos[i];
+      const room = this.roomRepository.create(dto);
+      const saved = await this.roomRepository.save(room);
+      successful.push(saved);
+    } catch (error) {
+      failed.push({
+        dto: createRoomDtos[i],
+        error: error.message || 'Failed to create room',
+      });
+    }
+  }
+
+  return {
+    successful,
+    failed,
+    summary: {
+      total: createRoomDtos.length,
+      successful: successful.length,
+      failed: failed.length,
+    },
+  };
 }
+}
+
