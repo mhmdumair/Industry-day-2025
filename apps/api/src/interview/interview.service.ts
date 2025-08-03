@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Interview } from '../typeorm/entities';
-import { Stall } from '../typeorm/entities';
 import { Repository } from 'typeorm';
+import { Interview, InterviewType } from './entities/interview.entity';
+import { Stall } from '../typeorm/entities';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 
@@ -10,9 +10,10 @@ import { UpdateInterviewDto } from './dto/update-interview.dto';
 export class InterviewService {
   constructor(
     @InjectRepository(Interview)
-    private interviewRepository: Repository<Interview>,
+    private readonly interviewRepository: Repository<Interview>,
+
     @InjectRepository(Stall)
-    private stallRepository: Repository<Stall>,
+    private readonly stallRepository: Repository<Stall>,
   ) {}
 
   async create(createInterviewDto: CreateInterviewDto) {
@@ -22,6 +23,35 @@ export class InterviewService {
     } catch (error) {
       throw new InternalServerErrorException('Failed to create interview');
     }
+  }
+
+  async bulkCreate(createInterviewDtos: CreateInterviewDto[]) {
+    const successful: Interview[] = [];
+    const failed: { dto: CreateInterviewDto; error: string }[] = [];
+
+    for (let i = 0; i < createInterviewDtos.length; i++) {
+      try {
+        const dto = createInterviewDtos[i];
+        const interview = this.interviewRepository.create(dto);
+        const saved = await this.interviewRepository.save(interview);
+        successful.push(saved);
+      } catch (error) {
+        failed.push({
+          dto: createInterviewDtos[i],
+          error: error.message || 'Failed to create interview',
+        });
+      }
+    }
+
+    return {
+      successful,
+      failed,
+      summary: {
+        total: createInterviewDtos.length,
+        successful: successful.length,
+        failed: failed.length,
+      },
+    };
   }
 
   async findAll() {
@@ -102,7 +132,7 @@ export class InterviewService {
     try {
       return await this.interviewRepository
         .createQueryBuilder('interview')
-        .innerJoinAndSelect('interview.stall', 'stall')
+        .innerJoin('interview.stall', 'stall')
         .leftJoinAndSelect('interview.student', 'student')
         .where('stall.companyID = :companyID', { companyID })
         .getMany();
@@ -110,16 +140,109 @@ export class InterviewService {
       throw new InternalServerErrorException('Failed to retrieve interviews by companyID');
     }
   }
+
   async findByRoomId(roomID: string) {
     try {
       return await this.interviewRepository
         .createQueryBuilder('interview')
-        .innerJoinAndSelect('interview.stall', 'stall')
+        .innerJoin('interview.stall', 'stall')
         .leftJoinAndSelect('interview.student', 'student')
         .where('stall.roomID = :roomID', { roomID })
         .getMany();
     } catch {
-      throw new InternalServerErrorException('Failed to retrieve interviews by companyID');
+      throw new InternalServerErrorException('Failed to retrieve interviews by roomID');
+    }
+  }
+
+  async getPrelistedSorted(stallID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('interview.stallID = :stallID', { stallID })
+        .andWhere('interview.type = :type', { type: 'pre-listed' })
+        .orderBy('interview.student_preference', 'ASC')
+        .addOrderBy('interview.company_preference', 'ASC')
+        .addOrderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve prelisted interviews');
+    }
+  }
+
+  async getWalkinSorted(stallID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('interview.stallID = :stallID', { stallID })
+        .andWhere('interview.type = :type', { type: 'walk-in' })
+        .orderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve walkin interviews');
+    }
+  }
+
+  async getPrelistedByCompany(companyID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: 'pre-listed' })
+        .orderBy('interview.student_preference', 'ASC')
+        .addOrderBy('interview.company_preference', 'ASC')
+        .addOrderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve prelisted interviews by company');
+    }
+  }
+
+  async getWalkinByCompany(companyID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: 'walk-in' })
+        .orderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve walk-in interviews by company');
+    }
+  }
+
+  // New method: Get count of walk-in interviews by stall ID
+  async getWalkinCountByStall(stallID: string): Promise<{ count: number }> {
+    try {
+      const count = await this.interviewRepository.count({
+        where: { 
+          stallID,
+          type: InterviewType.WALK_IN
+        },
+      });
+      return { count };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get walk-in count by stall');
+    }
+  }
+
+  // New method: Get count of walk-in interviews by company ID
+  async getWalkinCountByCompany(companyID: string): Promise<{ count: number }> {
+    try {
+      const count = await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .getCount();
+      return { count };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to get walk-in count by company');
     }
   }
 }

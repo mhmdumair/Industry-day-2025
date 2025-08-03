@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  CreateDateColumn, // <-- import this
 } from 'typeorm';
 import { Stall } from '../../stall/entities/stall.entity';
 import { Student } from '../../student/entities/student.entity';
@@ -42,7 +43,15 @@ export class Interview {
   @Column('text', { nullable: true })
   remark?: string;
 
-  // Relationships
+  @Column({ type: 'int', nullable: false, default: 999 })    
+  student_preference: number;
+
+  @Column({ type: 'int', nullable: false, default: 999 })
+  company_preference: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
 
   @ManyToOne(() => Stall, (stall) => stall.interviews, { nullable: false })
   @JoinColumn({ name: 'stallID' })

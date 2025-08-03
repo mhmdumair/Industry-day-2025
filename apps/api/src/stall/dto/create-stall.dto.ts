@@ -2,6 +2,7 @@ import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { StallStatus } from '../entities/stall.entity';
 
 export class CreateStallDto {
+
   @IsUUID()
   @IsNotEmpty()
   roomID: string;
@@ -12,4 +13,8 @@ export class CreateStallDto {
 
   @IsEnum(StallStatus)
   status: StallStatus;
+
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 }

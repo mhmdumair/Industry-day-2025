@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { InterviewStatus, InterviewType } from '../entities/interview.entity';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { InterviewType, InterviewStatus } from '../entities/interview.entity';
 
 export class CreateInterviewDto {
   @IsString()
@@ -19,4 +19,14 @@ export class CreateInterviewDto {
   @IsOptional()
   @IsString()
   remark?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  student_preference?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  company_preference: number;
 }

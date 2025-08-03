@@ -12,27 +12,16 @@ export class InterviewController {
     return this.interviewService.create(createInterviewDto);
   }
 
+  // Bulk create interviews
+  @Post('bulk')
+  bulkCreate(@Body() createInterviewDtos: CreateInterviewDto[]) {
+    return this.interviewService.bulkCreate(createInterviewDtos);
+  }
+
   @Get()
   findAll() {
     return this.interviewService.findAll();
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.interviewService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInterviewDto: UpdateInterviewDto) {
-    return this.interviewService.update(id, updateInterviewDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.interviewService.remove(id);
-  }
-
-  // --- Filter routes ---
 
   @Get('student/:studentID')
   findByStudent(@Param('studentID') studentID: string) {
@@ -54,4 +43,54 @@ export class InterviewController {
     return this.interviewService.findByRoomId(roomID);
   }
 
+  @Get('stall/:stallID/prelisted')
+  getPrelistedSorted(@Param('stallID') stallID: string) {
+    return this.interviewService.getPrelistedSorted(stallID);
+  }
+
+  @Get('stall/:stallID/walkin')
+  getWalkinSorted(@Param('stallID') stallID: string) {
+    return this.interviewService.getWalkinSorted(stallID);
+  }
+
+  // New route: Get count of walk-in interviews by stall ID
+  @Get('stall/:stallID/walkin/count')
+  getWalkinCountByStall(@Param('stallID') stallID: string) {
+    return this.interviewService.getWalkinCountByStall(stallID);
+  }
+
+  @Get('company/:companyID/prelisted')
+  getPrelistedByCompany(
+    @Param('companyID') companyID: string,
+  ) {
+    return this.interviewService.getPrelistedByCompany(companyID);
+  }
+
+  @Get('company/:companyID/walkin')
+  getWalkinByCompany(
+    @Param('companyID') companyID: string,
+  ) {
+    return this.interviewService.getWalkinByCompany(companyID);
+  }
+
+  // New route: Get count of walk-in interviews by company ID
+  @Get('company/:companyID/walkin/count')
+  getWalkinCountByCompany(@Param('companyID') companyID: string) {
+    return this.interviewService.getWalkinCountByCompany(companyID);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.interviewService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateInterviewDto: UpdateInterviewDto) {
+    return this.interviewService.update(id, updateInterviewDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.interviewService.remove(id);
+  }
 }

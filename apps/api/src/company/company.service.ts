@@ -19,15 +19,34 @@ export class CompanyService {
   ) {}
 
   async create(dto: CreateCompanyDto): Promise<Company> {
+    const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const createdUser = await this.userService.createUser(dto.user);
-      const company = this.companyRepository.create({
+      // Create user within the transaction
+      const createdUser = await this.userService.createUserTransactional(
+        dto.user,
+        queryRunner.manager
+      );
+
+      // Create company within the same transaction
+      const company = queryRunner.manager.create(Company, {
         ...dto.company,
         userID: createdUser.userID,
       });
-      return await this.companyRepository.save(company);
-    } catch {
-      throw new InternalServerErrorException('Failed to create company');
+
+      const savedCompany = await queryRunner.manager.save(Company, company);
+      
+      await queryRunner.commitTransaction();
+      return savedCompany;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        `Failed to create company: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 

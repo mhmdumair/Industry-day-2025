@@ -14,16 +14,34 @@ export class AdminService {
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
-    try {
-      const createdUser = await this.userService.createUser(createAdminDto.user);
+    const queryRunner = this.adminRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      const admin = this.adminRepository.create({
+    try {
+      // Create user within the transaction
+      const createdUser = await this.userService.createUserTransactional(
+        createAdminDto.user,
+        queryRunner.manager
+      );
+
+      // Create admin within the same transaction
+      const admin = queryRunner.manager.create(Admin, {
         ...createAdminDto.admin,
         userID: createdUser.userID,
       });
-      return await this.adminRepository.save(admin);
+
+      const savedAdmin = await queryRunner.manager.save(Admin, admin);
+      
+      await queryRunner.commitTransaction();
+      return savedAdmin;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to create admin');
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        `Failed to create admin: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -78,7 +96,21 @@ export class AdminService {
     }
   }
 
-  remove(id: string): string {
-    return "delete admin";
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const admin = await this.adminRepository.findOne({ 
+        where: { adminID: id } 
+      });
+      if (!admin) {
+        throw new NotFoundException(`Admin with ID ${id} not found`);
+      }
+      await this.adminRepository.remove(admin);
+      return { message: `Admin ${id} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove admin');
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 
@@ -49,6 +49,33 @@ export class UserService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  async createUserTransactional(
+    createUserDto: CreateUserDto,
+    manager: EntityManager,
+  ): Promise<User> {
+    try {
+      const userRepo = manager.getRepository(User);
+            const existingUser = await userRepo.findOne({ 
+        where: { email: createUserDto.email } 
+      });
+
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+
+      const user = userRepo.create({
+        ...createUserDto,
+      });
+      
+      return await userRepo.save(user);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create user (transactional)');
     }
   }
 }
