@@ -102,7 +102,7 @@ export default function page() {
                 });
 
                 // Add department markers
-                departments.forEach(dept => {
+                 departments.forEach(dept => {
                     const marker = window.L.marker([dept.lat, dept.lng], {
                         icon: window.L.divIcon({
                             html: `<div style="background-color: ${dept.color}; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; font-size: 8px;">${dept.code}</div>`,
@@ -150,6 +150,7 @@ export default function page() {
                                     <TableHead className="w-[40px] sm:w-[60px] text-black text-center"></TableHead>
                                     <TableHead className="w-[150px] sm:w-[200px] lg:w-[250px] text-black">Department</TableHead>
                                     <TableHead className="text-black">Location</TableHead>
+                                    <TableHead className="text-black">Company</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -179,6 +180,9 @@ export default function page() {
                                         </TableCell>
                                         <TableCell className="text-sm sm:text-base">
                                             {item.location}
+                                        </TableCell>
+                                        <TableCell className="text-sm sm:text-base">
+                                            {item.companies}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -219,11 +223,19 @@ export default function page() {
                                         </h3>
                                     </div>
 
-                                    {/* Companies */}
+                                    {/* Locations */}
                                     <div className="pl-8">
                                         <p className="text-sm text-gray-700 font-medium mb-1">Locations:</p>
                                         <p className="text-sm text-gray-600 leading-relaxed break-words">
                                             {item.location}
+                                        </p>
+                                    </div>
+
+                                    {/* Comapnies */}
+                                    <div className="pl-8">
+                                        <p className="text-sm text-gray-700 font-medium mb-1">Companies:</p>
+                                        <p className="text-sm text-gray-600 leading-relaxed break-words">
+                                            {item.companies}
                                         </p>
                                     </div>
                                 </div>
