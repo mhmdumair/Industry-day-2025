@@ -41,7 +41,7 @@ export default function ProfileCard() {
     };
 
     return (
-        <div className="mt-3 w-11/12">
+        <div className="mt-3 mx-auto p-4">
             <Card className="shadow-lg mt-3 w-full mx-auto text-white">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">

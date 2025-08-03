@@ -160,7 +160,7 @@ export default function ProfileCard() {
       <Card className="bg-gray-50 shadow-lg mt-3">
         <CardHeader className="text-center items-center justify-center pb-4">
           <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData?.user?.profile_picture || "/logo/baurs.png"} alt="Company Logo" />
+            <AvatarImage src={profileData?.user?.profile_picture || "/logo/c.png"} alt="Company Logo" />
           </Avatar>
           <CardTitle className="text-2xl font-bold text-gray-800">
             {profileData.contactPersonName}

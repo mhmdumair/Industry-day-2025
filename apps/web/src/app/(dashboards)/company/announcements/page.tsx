@@ -9,17 +9,29 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 
-export default function AnnouncementsPage() {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [audience, setAudience] = useState("");
-    const [announcements, setAnnouncements] = useState([]);
+interface Announcement {
+    id: string;
+    title: string;
+    description: string;
+    audience: string;
+}
 
-    const handleSubmit = (e:any) => {
+export default function AnnouncementsPage() {
+    const [title, setTitle] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [audience, setAudience] = useState<string>("");
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!title || !description || !audience) return;
 
-        const newAnnouncement = { id: Date.now(), title, description, audience };
+        const newAnnouncement: Announcement = { 
+            id: Date.now().toString(), 
+            title, 
+            description, 
+            audience 
+        };
         setAnnouncements([newAnnouncement, ...announcements]);
 
         setTitle("");
@@ -27,11 +39,11 @@ export default function AnnouncementsPage() {
         setAudience("");
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = (id: string) => {
         setAnnouncements(announcements.filter(a => a.id !== id));
     };
 
-    const handleEdit = (id) => {
+    const handleEdit = (id: string) => {
         const toEdit = announcements.find(a => a.id === id);
         if (toEdit) {
             setTitle(toEdit.title);
@@ -82,7 +94,7 @@ export default function AnnouncementsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button variant="outline" className="w-full">
+                        <Button type="submit" variant="outline" className="w-full">
                             Post Announcement
                         </Button>
                     </form>
@@ -104,6 +116,7 @@ export default function AnnouncementsPage() {
                                     className="absolute top-2 right-2"
                                     aria-label="Delete announcement"
                                     variant="destructive"
+                                    size="sm"
                                 >
                                     <X className="w-4 h-4" />
                                 </Button>

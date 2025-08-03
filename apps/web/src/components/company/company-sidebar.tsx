@@ -23,7 +23,7 @@ import Link from "next/link";
 const items = [
   { title: "Profile", url: "/company/profile", icon: Home },
   { title: "Interviews", url: "/company/interviews", icon: Inbox },
-  { title: "Pre-listed", url: "/company/pre-listed", icon: List },
+  { title: "Pre-list Students", url: "/company/pre-listed", icon: List },
   { title: "Announcements", url: "/company/announcements", icon: Bell },
   { title: "Selected Students", url: "/company/selected", icon: Search },
 ];
