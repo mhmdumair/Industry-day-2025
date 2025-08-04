@@ -2,6 +2,7 @@
 import {
   Home,
   Inbox,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
@@ -20,6 +21,7 @@ import Link from "next/link";
 const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
   { title: "Interviews", url: "/student/interviews", icon: Inbox },
+  { title: "Pre-listed", url: "/student/pre-listed", icon: List },
 ];
 
 const StudentSidebar = () => {
