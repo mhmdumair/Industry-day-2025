@@ -110,4 +110,10 @@ export class InterviewController {
   remove(@Param('id') id: string) {
     return this.interviewService.remove(id);
   }
+
+  // New route: Remove pre-listed interview with preference adjustment
+  @Delete('prelisted/:id')
+  removePrelistedInterview(@Param('id') id: string) {
+    return this.interviewService.removePrelistedInterview(id);
+  }
 }
