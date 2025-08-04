@@ -15,12 +15,16 @@ export enum StallStatus {
   ACTIVE = 'active',
   FINISHED = 'finished',
   PAUSED = 'paused',
+  WALKIN = 'walk-in'
 }
 
 @Entity('stalls')
 export class Stall {
   @PrimaryGeneratedColumn('uuid')
   stallID: string;
+
+  @Column()
+  title : string
 
   @Column()
   roomID: string;
@@ -31,7 +35,6 @@ export class Stall {
   @Column({ type: 'enum', enum: StallStatus })
   status: StallStatus;
 
-  // Relationships
   @ManyToOne(() => Room, (room) => room.stalls, { nullable: false })
   @JoinColumn({ name: 'roomID' })
   room: Room;

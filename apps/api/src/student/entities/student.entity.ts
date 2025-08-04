@@ -10,7 +10,6 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { StudentCv } from '../../cv/entities/student-cv.entity';
 import { Interview } from '../../interview/entities/interview.entity';
-import { CompanyPrelist } from '../../pre-list/entities/company-prelist.entity';
 import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
 
 export enum StudentGroup {
@@ -51,7 +50,7 @@ export class Student {
   @Column({ unique: true })
   regNo: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true ,nullable:true})
   nic: string;
 
   @Column({ nullable: true })
@@ -82,16 +81,10 @@ export class Student {
   })
   interviews: Interview[] | null;
 
-  @OneToMany(() => CompanyPrelist, (prelist) => prelist.student, {
-    nullable: true,
-  })
-  prelists: CompanyPrelist[] | null;
 
   @OneToMany(() => CompanyShortlist, (shortlist) => shortlist.student, {
     nullable: true,
   })
   shortlist: CompanyShortlist[] | null;
 
-
-  
 }

@@ -1,4 +1,3 @@
-// company.service.ts
 import {
   Injectable,
   InternalServerErrorException,
@@ -19,17 +18,82 @@ export class CompanyService {
   ) {}
 
   async create(dto: CreateCompanyDto): Promise<Company> {
+    const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const createdUser = await this.userService.createUser(dto.user);
-      const company = this.companyRepository.create({
+      const createdUser = await this.userService.createUserTransactional(
+        dto.user,
+        queryRunner.manager
+      );
+
+      const company = queryRunner.manager.create(Company, {
         ...dto.company,
         userID: createdUser.userID,
       });
-      return await this.companyRepository.save(company);
-    } catch {
-      throw new InternalServerErrorException('Failed to create company');
+
+      const savedCompany = await queryRunner.manager.save(Company, company);
+      
+      await queryRunner.commitTransaction();
+      return savedCompany;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        `Failed to create company: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
+
+async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
+  const successful: Company[] = [];
+  const failed: { dto: CreateCompanyDto; error: string }[] = [];
+
+  for (let i = 0; i < createCompanyDtos.length; i++) {
+    const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const dto = createCompanyDtos[i];
+      
+      const createdUser = await this.userService.createUserTransactional(
+        dto.user,
+        queryRunner.manager
+      );
+      const company = queryRunner.manager.create(Company, {
+        ...dto.company,
+        userID: createdUser.userID,
+      });
+
+      const savedCompany = await queryRunner.manager.save(Company, company);
+      
+      await queryRunner.commitTransaction();
+      successful.push(savedCompany);
+      
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      failed.push({
+        dto: createCompanyDtos[i],
+        error: error.message || 'Failed to create company',
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  return {
+    successful,
+    failed,
+    summary: {
+      total: createCompanyDtos.length,
+      successful: successful.length,
+      failed: failed.length,
+    },
+  };
+}
 
   async findAll(): Promise<Company[]> {
     try {

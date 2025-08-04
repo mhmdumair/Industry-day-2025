@@ -9,7 +9,6 @@ import {
 import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
 import { Stall } from '../../stall/entities/stall.entity';
 import { User } from '../../user/entities/user.entity';
-import { CompanyPrelist } from '../../pre-list/entities/company-prelist.entity';
 
 export enum CompanyStream {
   ZL = 'ZL',
@@ -74,7 +73,6 @@ export class Company {
   @Column()
   companyWebsite: string;
 
-  // Relationships
   @OneToOne(() => User, (user) => user.company, { nullable: true })
   @JoinColumn({ name: 'userID' })
   user: User | null;
@@ -84,13 +82,11 @@ export class Company {
   })
   shortlist: CompanyShortlist | null;
 
-  // Fix: Change from OneToOne to OneToMany
-  @OneToMany(() => CompanyPrelist, (prelist) => prelist.company, {
-    nullable: true,
-  })
-  prelists: CompanyPrelist[] | null;
+
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];
 }
+
+
 

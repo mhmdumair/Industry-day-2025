@@ -67,6 +67,10 @@ export enum CompanyStream {
   SOR = 'SOR',
 }
 
+// Helper function to ensure string values are never null
+const safeString = (value: string | null | undefined): string => {
+  return value || '';
+};
 
 export default function ProfileCard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,8 +93,21 @@ export default function ProfileCard() {
     api
       .get<CompanyProfile>(`/company/${companyId}`)
       .then((res) => {
-        setProfileData(res.data);
-        setEditData(res.data); // Set editing data as well for dialog
+        // Ensure all string fields are not null
+        const sanitizedData = {
+          ...res.data,
+          companyName: safeString(res.data.companyName),
+          description: safeString(res.data.description),
+          contactPersonName: safeString(res.data.contactPersonName),
+          contactPersonDesignation: safeString(res.data.contactPersonDesignation),
+          contactNumber: safeString(res.data.contactNumber),
+          logo: safeString(res.data.logo),
+          stream: safeString(res.data.stream),
+          location: safeString(res.data.location),
+          companyWebsite: safeString(res.data.companyWebsite),
+        };
+        setProfileData(sanitizedData);
+        setEditData(sanitizedData); // Set editing data as well for dialog
         setLoading(false);
       })
       .catch((err) => {
@@ -109,18 +126,32 @@ export default function ProfileCard() {
     );
   };
 
-  // When opening dialog, copy latest data
+  // When opening dialog, copy latest data and ensure no null values
   const handleEditOpen = () => {
-    setEditData(profileData);
+    if (profileData) {
+      const sanitizedEditData = {
+        ...profileData,
+        companyName: safeString(profileData.companyName),
+        description: safeString(profileData.description),
+        contactPersonName: safeString(profileData.contactPersonName),
+        contactPersonDesignation: safeString(profileData.contactPersonDesignation),
+        contactNumber: safeString(profileData.contactNumber),
+        logo: safeString(profileData.logo),
+        stream: safeString(profileData.stream),
+        location: safeString(profileData.location),
+        companyWebsite: safeString(profileData.companyWebsite),
+      };
+      setEditData(sanitizedEditData);
+    }
     setIsDialogOpen(true);
   };
 
- const handleSave = async () => {
-  if (!editData) return;
-  try {
-    setLoading(true);
+  const handleSave = async () => {
+    if (!editData) return;
+    try {
+      setLoading(true);
 
-    const updatePayload = {
+      const updatePayload = {
         companyName: editData.companyName,
         description: editData.description,
         contactPersonName: editData.contactPersonName,
@@ -132,24 +163,21 @@ export default function ProfileCard() {
         companyWebsite: editData.companyWebsite,
       }
 
-    console.log(updatePayload);
-    await api.patch(`/company/${companyId}`, updatePayload);
+      console.log(updatePayload);
+      await api.patch(`/company/${companyId}`, updatePayload);
 
-    setProfileData((prev) =>
-      prev ? { ...prev, ...updatePayload } : prev
-    );
+      setProfileData((prev) =>
+        prev ? { ...prev, ...updatePayload } : prev
+      );
 
-    setIsDialogOpen(false);
-    setLoading(false);
-  } catch (e) {
-    setLoading(false);
-    alert("Failed to save. Please try again.");
-    console.error("Save error:", e);
-  }
-};
-
-
-
+      setIsDialogOpen(false);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      alert("Failed to save. Please try again.");
+      console.error("Save error:", e);
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div style={{ color: "red" }}>{error}</div>;
@@ -160,7 +188,7 @@ export default function ProfileCard() {
       <Card className="bg-gray-50 shadow-lg mt-3">
         <CardHeader className="text-center items-center justify-center pb-4">
           <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData?.user?.profile_picture || "/logo/baurs.png"} alt="Company Logo" />
+            <AvatarImage src={profileData?.user?.profile_picture || "/logo/c.png"} alt="Company Logo" />
           </Avatar>
           <CardTitle className="text-2xl font-bold text-gray-800">
             {profileData.contactPersonName}
@@ -241,7 +269,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="company-name"
-                      value={editData.companyName}
+                      value={safeString(editData.companyName)}
                       onChange={(e) => handleInputChange("companyName", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter company name"
@@ -255,7 +283,7 @@ export default function ProfileCard() {
                     </Label>
                     <select
                         id="company-stream"
-                        value={editData?.stream || ""}
+                        value={safeString(editData.stream)}
                         onChange={(e) => handleInputChange("stream", e.target.value as CompanyStream)}
                         className="col-span-3 rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -270,7 +298,6 @@ export default function ProfileCard() {
                     </select>
                     </div>
 
-
                   {/* Contact Person Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="contact-person" className="text-right font-medium">
@@ -278,7 +305,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="contact-person"
-                      value={editData.contactPersonName}
+                      value={safeString(editData.contactPersonName)}
                       onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter contact person name"
@@ -292,7 +319,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="designation"
-                      value={editData.contactPersonDesignation}
+                      value={safeString(editData.contactPersonDesignation)}
                       onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter designation"
@@ -306,7 +333,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="contact-number"
-                      value={editData.contactNumber}
+                      value={safeString(editData.contactNumber)}
                       onChange={(e) => handleInputChange("contactNumber", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter contact number"
@@ -321,7 +348,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="location"
-                      value={editData.location}
+                      value={safeString(editData.location)}
                       onChange={(e) => handleInputChange("location", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter company location"
@@ -335,7 +362,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="website"
-                      value={editData.companyWebsite}
+                      value={safeString(editData.companyWebsite)}
                       onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
                       className="col-span-3"
                       placeholder="https://www.company.com"
@@ -350,7 +377,7 @@ export default function ProfileCard() {
                     </Label>
                     <Input
                       id="logo"
-                      value={editData.logo}
+                      value={safeString(editData.logo)}
                       onChange={(e) => handleInputChange("logo", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter logo URL"
@@ -365,7 +392,7 @@ export default function ProfileCard() {
                     </Label>
                     <Textarea
                       id="description"
-                      value={editData.description}
+                      value={safeString(editData.description)}
                       onChange={(e) => handleInputChange("description", e.target.value)}
                       className="col-span-3 min-h-[120px]"
                       placeholder="Enter company description"

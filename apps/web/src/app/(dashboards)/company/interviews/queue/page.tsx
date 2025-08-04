@@ -11,7 +11,7 @@ const QueueCard = ({
                        queueStudents = ["S2001", "S2002", "S2003", "S2004", "S2005"]
                    }) => {
     return (
-        <Card className="bg-slate-100 w-full rounded-lg shadow-md p-4 sm:p-6 text-black space-y-4">
+        <Card className="bg-slate-100 w-full rounded-lg shadow-md p-6 text-black space-y-4">
             {/* Company Name + Stall */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                 <h2 className="text-lg font-semibold">{companyName}</h2>
@@ -55,31 +55,32 @@ export default function ResumePage() {
     };
 
     return (
-        <div className="mt-3 mx-12 w-[91.666667vw] px-2 sm:px-4 flex flex-col items-center justify-center gap-5">
-            <Card className="bg-slate-100/80 shadow-lg w-11/12 h-screen p-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
-            {/* Left Section: PDF Viewer */}
+        <div className="mt-3 w-screen mx-auto flex flex-col items-center justify-center gap-5">
+            <Card className="bg-slate-100/80 shadow-lg mt-3 w-11/12 -mx-4 flex-row flex h-[90vh] p-4">
+                {/* Left Section: PDF Viewer */}
                 <div className="w-full lg:w-4/6 flex flex-col">
                     {/* Navigation */}
-                    <Card className="flex flex-row justify-between items-center p-3 border-b border-gray-300 bg-gray-100 mb-3">
+                    <Card className="flex flex-row justify-between items-center p-4 border-b border-gray-300 bg-gray-100 mb-3">
                         <Button onClick={handlePrev} variant="outline">← Previous</Button>
-                        <span className="text-sm sm:text-base font-medium">PDF {currentPdfIndex + 1} of {pdfFiles.length}</span>
+                        <span className="text-lg font-medium">PDF {currentPdfIndex + 1} of {pdfFiles.length}</span>
                         <Button onClick={handleNext} variant="outline">Next →</Button>
                     </Card>
 
                     {/* PDF iframe */}
-                    <Card className="flex-1 overflow-hidden">
+                    <Card className="flex-1">
                         <iframe
-                            src={`/${pdfFiles[currentPdfIndex]}`}
-                            className="w-full h-full rounded-lg"
+                            src={`https://drive.google.com/file/d/1uoqSo3Nh49jFotNz766vmrAXu20BQcxU/preview`}
+                            className="w-full h-full"
                             title={`PDF Viewer - ${pdfFiles[currentPdfIndex]}`}
                             key={pdfFiles[currentPdfIndex]}
-                        />
+                            />
+
                     </Card>
                 </div>
 
                 {/* Right Section: Resume Metadata with Queue Card */}
-                <div className="w-full lg:w-2/6 h-full overflow-y-auto">
-                    <div className="flex justify-center w-full h-full">
+                <Card className="w-full lg:w-2/6 h-full p-6 overflow-y-auto bg-transparent flex flex-col">
+                    <div className="flex justify-center w-full p-4">
                         <QueueCard
                             companyName="MAS Holdings"
                             stallNumber="Stall 1"
@@ -87,7 +88,7 @@ export default function ResumePage() {
                             queueStudents={["S2011", "S2012", "S2013", "S2014"]}
                         />
                     </div>
-                </div>
+                </Card>
             </Card>
         </div>
     );
