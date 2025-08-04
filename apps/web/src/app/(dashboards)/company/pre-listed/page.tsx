@@ -50,6 +50,7 @@ export default function CompanyFilter() {
     const [existingPreListedStudents, setExistingPreListedStudents] = useState<Interview[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingExisting, setLoadingExisting] = useState(false);
+    const [removingStudents, setRemovingStudents] = useState<Set<string>>(new Set());
     const [error, setError] = useState<string | null>(null);
     const [companyId, setCompanyId] = useState<string | null>(null);
 
@@ -72,6 +73,11 @@ export default function CompanyFilter() {
             fetchExistingPreListedStudents();
         }
     }, [companyId]);
+
+    // Debug: Log preListedStudents whenever it changes
+    useEffect(() => {
+        console.log('preListedStudents updated:', preListedStudents);
+    }, [preListedStudents]);
 
     const fetchStudentsData = async () => {
         try {
@@ -132,23 +138,48 @@ export default function CompanyFilter() {
         existingPreListedStudents.some(i => i.studentID === id);
 
     const addToPreList = (student: Student) => {
+        console.log('Adding student to pre-list:', student.user.first_name, student.user.last_name);
+        console.log('Current preListedStudents before adding:', preListedStudents.length);
+        
         if (!isAlreadyPreListed(student.studentID)) {
-            setPreListedStudents(prev => [...prev, student]);
+            setPreListedStudents(prev => {
+                const newList = [...prev, student];
+                console.log('New preListedStudents length will be:', newList.length);
+                return newList;
+            });
             setSearchTerm('');
+        } else {
+            console.log('Student already in pre-list');
         }
-        console.log(preListedStudents)
     };
 
     const removeFromPreList = (studentID: string) => {
-        setPreListedStudents(prev => prev.filter(s => s.studentID !== studentID));
+        console.log('Removing student from pre-list:', studentID);
+        setPreListedStudents(prev => {
+            const newList = prev.filter(s => s.studentID !== studentID);
+            console.log('PreListedStudents length after removal:', newList.length);
+            return newList;
+        });
     };
 
     const removeExistingPreListedStudent = async (interviewID: string) => {
         try {
-            await api.delete(`/interview/${interviewID}`);
-            setExistingPreListedStudents(prev => prev.filter(i => i.interviewID !== interviewID));
+            setRemovingStudents(prev => new Set(prev).add(interviewID));
+            
+            // Use the new endpoint that handles preference adjustment
+            await api.delete(`/interview/prelisted/${interviewID}`);
+            
+            // Refresh the existing pre-listed students list to get updated preferences
+            await fetchExistingPreListedStudents();
         } catch (err: any) {
             console.error('Error removing pre-listed student:', err);
+            // You might want to show a toast notification here
+        } finally {
+            setRemovingStudents(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(interviewID);
+                return newSet;
+            });
         }
     };
 
@@ -233,6 +264,11 @@ export default function CompanyFilter() {
                 <Card className="bg-slate-100/80 w-11/12 max-w-2xl rounded-lg shadow-md p-6 text-black space-y-4">
                     <CardHeader className="text-center text-xl font-semibold text-black">Pre-List Students</CardHeader>
                     <CardContent>
+                        {/* Debug Info */}
+                        <div className="mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                            Debug: Pre-listed count: {preListedStudents.length} | Existing count: {existingPreListedStudents.length}
+                        </div>
+
                         {/* Search Form */}
                         <form onSubmit={(e) => e.preventDefault()} className="flex flex-col md:flex-row w-full gap-2 pb-2">
                             <Input
@@ -300,17 +336,28 @@ export default function CompanyFilter() {
                         )}
 
                         {/* Pre-Listed Students (Pending Confirmation) */}
-                        {preListedStudents.length > 0 ? (
-                            <Card className="flex flex-col gap-3 p-4 mt-3 mb-3 bg-slate-100/80">
-                                <h3 className="font-semibold mb-2">Pre-Listed Students - Pending ({preListedStudents.length})</h3>
-                                {preListedStudents.map((student) => (
+                        <Card className="flex flex-col gap-3 p-4 mt-3 mb-3 bg-slate-100/80">
+                            <h3 className="font-semibold mb-2">Pre-Listed Students - Pending ({preListedStudents.length})</h3>
+                            {preListedStudents.length > 0 ? (
+                                preListedStudents.map((student, index) => (
                                     <div key={student.studentID} className="flex justify-between items-center bg-white p-3 rounded-lg border">
-                                        <div className="flex-1">
-                                            <div className="font-medium text-sm">
-                                                {student.user.first_name} {student.user.last_name}
+                                        <div className="flex items-start gap-4">
+                                            {/* Left: Future Preference Number */}
+                                            <div className="w-8 text-sm font-medium mt-1 text-center text-blue-600">
+                                                {existingPreListedStudents.length + index + 1}.
                                             </div>
-                                            <div className="text-xs text-gray-600">
-                                                {student.regNo} • {student.group} • {student.level.split('_')[1].concat('000L')}
+                                            
+                                            {/* Right: Info */}
+                                            <div className="flex-1">
+                                                <div className="font-medium text-sm">
+                                                    {student.user.first_name} {student.user.last_name}
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    {student.regNo} • {student.group} • {student.level.split('_')[1]?.concat('000L') || student.level}
+                                                </div>
+                                                <div className="text-xs text-blue-600 font-medium mt-1">
+                                                    Pending confirmation
+                                                </div>
                                             </div>
                                         </div>
                                         <Button
@@ -321,13 +368,13 @@ export default function CompanyFilter() {
                                             <X size={14} />
                                         </Button>
                                     </div>
-                                ))}
-                            </Card>
-                        ) : (
-                            <Card className="flex flex-col gap-2 p-4 mt-3 mb-3 bg-slate-100/80">
-                                <p className="text-sm text-gray-500 text-center">Search and add students to create your pre-list</p>
-                            </Card>
-                        )}
+                                ))
+                            ) : (
+                                <p className="text-sm text-gray-500 text-center py-4">
+                                    Search and add students to create your pre-list
+                                </p>
+                            )}
+                        </Card>
 
                         {/* Confirmation Button */}
                         <Card className="flex items-center justify-center bg-slate-100/80 border">
@@ -382,7 +429,7 @@ export default function CompanyFilter() {
                                                     {interview.student.user.first_name} {interview.student.user.last_name}
                                                 </div>
                                                 <div className="text-xs text-gray-600">
-                                                    {interview.student.regNo} • {interview.student.group} • {interview.student.level.split('_')[1].concat('000L')}
+                                                    {interview.student.regNo} • {interview.student.group} • {interview.student.level.split('_')[1]?.concat('000L') || interview.student.level}
                                                 </div>
                                                 <div className="text-xs text-green-600 font-medium mt-1">
                                                     Status: {interview.status}
@@ -393,8 +440,13 @@ export default function CompanyFilter() {
                                             className="bg-red-200 text-red-700 border border-red-400 hover:bg-red-300"
                                             size="sm"
                                             onClick={() => removeExistingPreListedStudent(interview.interviewID)}
+                                            disabled={removingStudents.has(interview.interviewID)}
                                         >
-                                            <X size={14} />
+                                            {removingStudents.has(interview.interviewID) ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <X size={14} />
+                                            )}
                                         </Button>
                                     </div>
                                 ))}

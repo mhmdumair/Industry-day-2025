@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, MoreThan } from 'typeorm';
 import { Interview, InterviewType, InterviewStatus } from './entities/interview.entity';
 import { Stall } from '../typeorm/entities';
 import { CreateInterviewDto } from './dto/create-interview.dto';
@@ -81,40 +81,40 @@ export class InterviewService {
   }
 
   async getNextWalkinInterview(companyID: string, stallID: string, interviewCount: number = 1) {
-  try {
-    const nextInterviews = await this.interviewRepository
-      .createQueryBuilder('interview')
-      .innerJoin('interview.stall', 'stall')
-      .leftJoinAndSelect('interview.student', 'student')
-      .where('stall.companyID = :companyID', { companyID })
-      .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
-      .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
-      .orderBy('interview.created_at', 'ASC')
-      .limit(interviewCount)
-      .getMany();
+    try {
+      const nextInterviews = await this.interviewRepository
+        .createQueryBuilder('interview')
+        .innerJoin('interview.stall', 'stall')
+        .leftJoinAndSelect('interview.student', 'student')
+        .where('stall.companyID = :companyID', { companyID })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .andWhere('interview.status = :status', { status: InterviewStatus.SCHEDULED })
+        .orderBy('interview.created_at', 'ASC')
+        .limit(interviewCount)
+        .getMany();
 
-    if (!nextInterviews || nextInterviews.length === 0) {
-      throw new NotFoundException('No scheduled walk-in interviews found for this company');
+      if (!nextInterviews || nextInterviews.length === 0) {
+        throw new NotFoundException('No scheduled walk-in interviews found for this company');
+      }
+
+      const interviewIDs = nextInterviews.map(interview => interview.interviewID);
+      
+      await this.interviewRepository.update(
+        { interviewID: In(interviewIDs) },
+        { stallID }
+      );
+
+      return await this.interviewRepository.find({
+        where: { interviewID: In(interviewIDs) },
+        relations: ['student', 'stall'],
+        order: { created_at: 'ASC' }
+      });
+
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to get next walk-in interview(s)');
     }
-
-    const interviewIDs = nextInterviews.map(interview => interview.interviewID);
-    
-    await this.interviewRepository.update(
-      { interviewID: In (interviewIDs) },
-      { stallID }
-    );
-
-    return await this.interviewRepository.find({
-      where: { interviewID: In(interviewIDs) },
-      relations: ['student', 'stall'],
-      order: { created_at: 'ASC' }
-    });
-
-  } catch (error) {
-    if (error instanceof NotFoundException) throw error;
-    throw new InternalServerErrorException('Failed to get next walk-in interview(s)');
   }
-}
 
   async update(id: string, updateInterviewDto: UpdateInterviewDto) {
     try {
@@ -139,6 +139,53 @@ export class InterviewService {
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Failed to remove interview');
+    }
+  }
+
+  // New method: Remove pre-listed interview with preference adjustment
+  async removePrelistedInterview(id: string) {
+    try {
+      // Start a transaction to ensure data consistency
+      return await this.interviewRepository.manager.transaction(async manager => {
+        // First, get the interview to be deleted
+        const interviewToDelete = await manager.findOne(Interview, {
+          where: { interviewID: id },
+        });
+
+        if (!interviewToDelete) {
+          throw new NotFoundException(`Interview with ID ${id} not found`);
+        }
+
+        // Only process if it's a pre-listed interview
+        if (interviewToDelete.type !== InterviewType.PRE_LISTED) {
+          // For non-pre-listed interviews, just delete normally
+          const deleteResult = await manager.delete(Interview, { interviewID: id });
+          return { deleted: true };
+        }
+
+        const companyID = interviewToDelete.companyID;
+        const deletedPreference = interviewToDelete.company_preference;
+
+        // Delete the interview
+        await manager.delete(Interview, { interviewID: id });
+
+        // Update all pre-listed interviews for the same company with higher preferences
+        await manager
+          .createQueryBuilder()
+          .update(Interview)
+          .set({
+            company_preference: () => 'company_preference - 1'
+          })
+          .where('companyID = :companyID', { companyID })
+          .andWhere('type = :type', { type: InterviewType.PRE_LISTED })
+          .andWhere('company_preference > :deletedPreference', { deletedPreference })
+          .execute();
+
+        return { deleted: true, preferencesAdjusted: true };
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to remove pre-listed interview');
     }
   }
 
@@ -257,38 +304,36 @@ export class InterviewService {
       throw new InternalServerErrorException('Failed to get scheduled walk-in count by company');
     }
   }
+
   async getPrelistedSortedByStudent(studentID: string) {
-  try {
-    return await this.interviewRepository
-      .createQueryBuilder('interview')
-      .leftJoinAndSelect('interview.student', 'student')
-      .leftJoinAndSelect('interview.stall', 'stall')
-      .where('interview.studentID = :studentID', { studentID })
-      .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
-      .orderBy('interview.student_preference', 'ASC')
-      .addOrderBy('interview.company_preference', 'ASC')
-      .addOrderBy('interview.created_at', 'ASC')
-      .getMany();
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to retrieve prelisted interviews sorted by preferences for student');
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .leftJoinAndSelect('interview.student', 'student')
+        .leftJoinAndSelect('interview.stall', 'stall')
+        .where('interview.studentID = :studentID', { studentID })
+        .andWhere('interview.type = :type', { type: InterviewType.PRE_LISTED })
+        .orderBy('interview.student_preference', 'ASC')
+        .addOrderBy('interview.company_preference', 'ASC')
+        .addOrderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve prelisted interviews sorted by preferences for student');
+    }
+  }
+
+  async getWalkinSortedByStudent(studentID: string) {
+    try {
+      return await this.interviewRepository
+        .createQueryBuilder('interview')
+        .leftJoinAndSelect('interview.student', 'student')
+        .leftJoinAndSelect('interview.stall', 'stall')
+        .where('interview.studentID = :studentID', { studentID })
+        .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
+        .orderBy('interview.created_at', 'ASC')
+        .getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve walkin interviews sorted by creation date for student');
+    }
   }
 }
-
-async getWalkinSortedByStudent(studentID: string) {
-  try {
-    return await this.interviewRepository
-      .createQueryBuilder('interview')
-      .leftJoinAndSelect('interview.student', 'student')
-      .leftJoinAndSelect('interview.stall', 'stall')
-      .where('interview.studentID = :studentID', { studentID })
-      .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
-      .orderBy('interview.created_at', 'ASC')
-      .getMany();
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to retrieve walkin interviews sorted by creation date for student');
-  }
-}
-
-
-}
-
