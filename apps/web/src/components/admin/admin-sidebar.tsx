@@ -24,6 +24,7 @@ const items = [
   { title: "Profile", url: "/admin/profile", icon: Home },
   { title: "Students", url: "/admin/students", icon: Inbox },
   { title: "Companies", url: "/admin/companies", icon: List },
+    {title:"Interviews",url :"/admin/interviews",icon : Bell},
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
 ];
 
