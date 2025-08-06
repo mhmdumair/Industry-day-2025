@@ -24,8 +24,7 @@ const items = [
   { title: "Profile", url: "/company/profile", icon: Home },
   { title: "Interviews", url: "/company/interviews", icon: Inbox },
   { title: "Pre-list Students", url: "/company/pre-listed", icon: List },
-  { title: "Announcements", url: "/company/announcements", icon: Bell },
-  { title: "Selected Students", url: "/company/selected", icon: Search },
+  { title: "Announcements", url: "/company/announcements", icon: Bell }
 ];
 
 const CompanySidebar = () => {

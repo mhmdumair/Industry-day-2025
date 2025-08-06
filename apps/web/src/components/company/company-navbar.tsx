@@ -23,7 +23,7 @@ export default function CompanyNavbar() {
       const roomAdminId = searchParams.get("roomAdminId")
 
       let userId: string | undefined
-      
+
       if (companyId) {
         const { data } = await api.get(`/company/${companyId}`)
         userId =  data.user.userID
@@ -34,7 +34,7 @@ export default function CompanyNavbar() {
         const { data } = await api.get(`/admin/${adminId}`)
         userId = data.user?.userID
         console.log(data);
-        
+
       } else if (roomAdminId) {
         const { data } = await api.get(`/room-admin/${roomAdminId}`)
         userId = data.user?.userID
@@ -54,7 +54,8 @@ export default function CompanyNavbar() {
   }
 
   return (
-    <header className="w-[95%] shadow-sm bg-slate-100 border border-black rounded-md max-w-screen">
+      <>
+    <header className="w-[95%] shadow-sm bg-slate-100 border border-black rounded-md max-w-screen mt-2">
       <div className="w-full mx-auto px-4 py-3 flex items-center justify-between relative">
 
         <div className="flex items-center gap-3">
@@ -86,5 +87,6 @@ export default function CompanyNavbar() {
         </div>
       </div>
     </header>
+      </>
   )
 }

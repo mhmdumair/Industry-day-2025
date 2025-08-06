@@ -323,18 +323,6 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Email */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right font-medium">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={editData.user.email}
-                      onChange={(e) => handleInputChange("user.email", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter email"
-                      required
-                    />
-                  </div>
 
                   {/* Group Dropdown */}
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -414,7 +402,6 @@ export default function StudentProfileCard() {
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="linkedin" className="text-right font-medium">
                       LinkedIn
-                      <span className="text-xs text-gray-500 block">Optional</span>
                     </Label>
                     <Input
                       id="linkedin"
@@ -427,20 +414,6 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Profile Picture URL */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="profile-picture" className="text-right font-medium">
-                      Profile Picture
-                      <span className="text-xs text-gray-500 block">Optional</span>
-                    </Label>
-                    <Input
-                      id="profile-picture"
-                      value={editData.user.profile_picture ?? ""}
-                      onChange={(e) => handleInputChange("user.profile_picture", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter Profile Picture URL"
-                      type="url"
-                    />
-                  </div>
                 </div>
               )}
 
