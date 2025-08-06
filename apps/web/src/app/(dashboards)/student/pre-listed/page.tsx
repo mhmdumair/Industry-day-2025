@@ -49,8 +49,6 @@ const Page = () => {
                 </Button>
               </CardContent>
             </Card>
-
-
           </CardContent>
           <CardFooter className="m-0">
             <CardDescription>To register for more company queues, please go to Interviews menu</CardDescription>

@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
     Card,
     CardContent,
@@ -14,16 +16,53 @@ export function LoginForm({
                           }: React.ComponentProps<"div">) {
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card className=" bg-gray-300 text-black w-full max-w-sm shadow-lg border-black">
+            <Card className=" bg-white text-black w-full max-w-sm shadow-lg border-black">
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Login to your account</CardTitle>
                     <CardDescription className="text-black">
-                        Please use your provided Google account
+                        Enter your credentials to access your account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form>
                         <div className="grid gap-6">
+                            {/* Email/Password Login Section */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="m@example.com"
+                                    required
+                                    className="border-black"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    className="border-black"
+                                />
+                            </div>
+
+                            <Button type="submit" className="w-full">
+                                Sign in
+                            </Button>
+
+                            {/* Divider */}
+                            <div className="relative">
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="p-2 text-black text-center bg-red-500/80 border border-red-700 rounded-md">
+                                      Students, please use your science email to log in via Google using the button below
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Google Login Button */}
                             <div className="flex flex-col gap-4">
                                 <Button variant="outline" className="w-full border-black" type="button" onClick={() => {
                                     window.location.href = "http://localhost:3001/api/auth/google/login";
@@ -37,16 +76,10 @@ export function LoginForm({
                                     Login with Google
                                 </Button>
                             </div>
-                            <div className="text-center text-sm">
-                            </div>
                         </div>
                     </form>
                 </CardContent>
             </Card>
-            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By clicking continue, you agree to our Terms of Service
-                and Privacy Policy.
-            </div>
         </div>
     )
 }
