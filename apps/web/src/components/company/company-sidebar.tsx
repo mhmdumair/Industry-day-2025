@@ -32,7 +32,6 @@ const CompanySidebar = () => {
   const searchParams = useSearchParams();
   const companyId = searchParams.get('companyId');
 
-  // Append companyId param if present
   const itemsWithCompanyId = items.map(item => ({
     ...item,
     url: companyId ? `${item.url}?companyId=${companyId}` : item.url
