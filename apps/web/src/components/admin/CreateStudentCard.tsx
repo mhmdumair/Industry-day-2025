@@ -19,11 +19,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import api from "@/lib/axios";
 
 // Enum values
 const studentGroups = [
     "ZL", "BT", "CH", "MT", "BMS", "ST", "GL", "CS", "DS",
-    "ML", "BL", "MB", "CM", "AS", "ES", "SOR",
+    "ML", "BL", "MB", "CM", "AS", "ES", "SOR","GN"
 ];
 
 const studentLevels = [
@@ -34,9 +35,9 @@ export default function CreateStudentCard() {
     const [formData, setFormData] = useState({
         user: {
             email: "",
-            password: "",
             first_name: "",
             last_name: "",
+            role : "student"
         },
         student: {
             regNo: "",
@@ -79,15 +80,14 @@ export default function CreateStudentCard() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post("http://localhost:3001/api/student", formData);
+            await api.post("/student", formData);
             alert("Student created successfully!");
-            // Optional: Reset form
             setFormData({
                 user: {
                     email: "",
-                    password: "",
                     first_name: "",
                     last_name: "",
+                    role:"student"
                 },
                 student: {
                     regNo: "",
@@ -123,16 +123,14 @@ export default function CreateStudentCard() {
                                 required
                             />
                         </div>
+
                         <div>
                             <Label>Password</Label>
                             <Input
                                 name="password"
-                                type="password"
-                                value={formData.user.password}
-                                onChange={(e) => handleInputChange(e, "user")}
-                                required
                             />
                         </div>
+                       
                         <div>
                             <Label>First Name</Label>
                             <Input
