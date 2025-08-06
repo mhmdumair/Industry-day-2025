@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../lib/axios"
 import {
     Card,
     CardContent,
@@ -19,12 +19,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import api from "@/lib/axios";
 
 // Enum values
 const studentGroups = [
     "ZL", "BT", "CH", "MT", "BMS", "ST", "GL", "CS", "DS",
-    "ML", "BL", "MB", "CM", "AS", "ES", "SOR","GN"
+    "ML", "BL", "MB", "CM", "AS", "ES", "SOR",
 ];
 
 const studentLevels = [
@@ -87,7 +86,7 @@ export default function CreateStudentCard() {
                     email: "",
                     first_name: "",
                     last_name: "",
-                    role:"student"
+                    role : "student"
                 },
                 student: {
                     regNo: "",
@@ -123,14 +122,6 @@ export default function CreateStudentCard() {
                                 required
                             />
                         </div>
-
-                        <div>
-                            <Label>Password</Label>
-                            <Input
-                                name="password"
-                            />
-                        </div>
-                       
                         <div>
                             <Label>First Name</Label>
                             <Input
