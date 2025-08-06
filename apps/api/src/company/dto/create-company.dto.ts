@@ -68,7 +68,7 @@ export class CompanyDto {
   location: string;
 
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   companyWebsite: string;
 }
 
