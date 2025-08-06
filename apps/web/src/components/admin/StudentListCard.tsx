@@ -74,7 +74,7 @@ export default function StudentListCard() {
         try {
             setLoading(true);
             const { data } = await api.get("/student");
-            
+
             const formatted: StudentResponse[] = Array.isArray(data)
                 ? data.filter((s: any) => s && s.user && s.studentID)
                     .map((s: any) => ({
@@ -96,10 +96,11 @@ export default function StudentListCard() {
                         },
                     }))
                 : [];
-            
+
             setStudents(formatted);
             setError(null);
         } catch (e) {
+            console.error("Error fetching students:", e);
             setError("Failed to fetch students");
             setStudents([]);
         } finally {
@@ -108,38 +109,54 @@ export default function StudentListCard() {
     };
 
     const handleEditClick = (student: StudentResponse) => {
-        setEditingStudent({ ...student });
-        setIsDialogOpen(true);
+        try {
+            setEditingStudent({ ...student });
+            setIsDialogOpen(true);
+        } catch (e) {
+            console.error("Error opening dialog:", e);
+        }
     };
 
     const handleDialogClose = () => {
-        setEditingStudent(null);
-        setIsDialogOpen(false);
+        try {
+            setEditingStudent(null);
+            setIsDialogOpen(false);
+        } catch (e) {
+            console.error("Error closing dialog:", e);
+        }
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => {
-        if (!editingStudent) return;
-        
-        const { name, value } = e.target;
-        setEditingStudent(prev => ({
-            ...prev!,
-            [section]: {
-                ...prev![section],
-                [name]: value,
-            },
-        }));
+        try {
+            if (!editingStudent) return;
+
+            const { name, value } = e.target;
+            setEditingStudent(prev => ({
+                ...prev!,
+                [section]: {
+                    ...prev![section],
+                    [name]: value,
+                },
+            }));
+        } catch (e) {
+            console.error("Error updating input:", e);
+        }
     };
 
     const handleSelectChange = (name: "group" | "level", value: string) => {
-        if (!editingStudent) return;
-        
-        setEditingStudent(prev => ({
-            ...prev!,
-            student: {
-                ...prev!.student,
-                [name]: value,
-            },
-        }));
+        try {
+            if (!editingStudent) return;
+
+            setEditingStudent(prev => ({
+                ...prev!,
+                student: {
+                    ...prev!.student,
+                    [name]: value,
+                },
+            }));
+        } catch (e) {
+            console.error("Error updating select:", e);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -165,16 +182,15 @@ export default function StudentListCard() {
             };
 
             await api.patch(`/student/${editingStudent.student.studentID}`, payload);
-            
-            // Update the local state
-            setStudents(prev => prev.map(s => 
-                s.student.studentID === editingStudent.student.studentID 
-                    ? editingStudent 
+
+            setStudents(prev => prev.map(s =>
+                s.student.studentID === editingStudent.student.studentID
+                    ? editingStudent
                     : s
             ));
-            
+
             handleDialogClose();
-            
+
         } catch (error) {
             console.error("Update failed:", error);
             alert("Failed to update student");
@@ -183,9 +199,6 @@ export default function StudentListCard() {
         }
     };
 
-    if (loading) return <div className="p-4 text-center">Loading students...</div>;
-    if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
-
     return (
         <Card className="bg-white shadow-md">
             <CardHeader>
@@ -193,50 +206,56 @@ export default function StudentListCard() {
                 <CardDescription>Fetched from database</CardDescription>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border px-2 py-1">Reg No</th>
-                            <th className="border px-2 py-1">Name</th>
-                            <th className="border px-2 py-1">Email</th>
-                            <th className="border px-2 py-1">Group</th>
-                            <th className="border px-2 py-1">Level</th>
-                            <th className="border px-2 py-1">Contact</th>
-                            <th className="border px-2 py-1">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {students.length ? (
-                            students.map((s, i) => (
-                                <tr key={s.student.studentID || i}>
-                                    <td className="border px-2 py-1">{s.student.regNo}</td>
-                                    <td className="border px-2 py-1">
-                                        {s.user.first_name} {s.user.last_name}
-                                    </td>
-                                    <td className="border px-2 py-1">{s.user.email}</td>
-                                    <td className="border px-2 py-1">{s.student.group}</td>
-                                    <td className="border px-2 py-1">{s.student.level}</td>
-                                    <td className="border px-2 py-1">{s.student.contact}</td>
-                                    <td className="border px-2 py-1 text-center">
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => handleEditClick(s)}
-                                        >
-                                            Edit
-                                        </Button>
+                {loading ? (
+                    <div className="p-4 text-center">Loading students...</div>
+                ) : error ? (
+                    <div className="p-4 text-center text-red-600">{error}</div>
+                ) : (
+                    <table className="w-full text-sm border-collapse border border-gray-300">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border px-2 py-1">Reg No</th>
+                                <th className="border px-2 py-1">Name</th>
+                                <th className="border px-2 py-1">Email</th>
+                                <th className="border px-2 py-1">Group</th>
+                                <th className="border px-2 py-1">Level</th>
+                                <th className="border px-2 py-1">Contact</th>
+                                <th className="border px-2 py-1">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {students.length ? (
+                                students.map((s, i) => (
+                                    <tr key={s.student.studentID || i}>
+                                        <td className="border px-2 py-1">{s.student.regNo}</td>
+                                        <td className="border px-2 py-1">
+                                            {s.user.first_name} {s.user.last_name}
+                                        </td>
+                                        <td className="border px-2 py-1">{s.user.email}</td>
+                                        <td className="border px-2 py-1">{s.student.group}</td>
+                                        <td className="border px-2 py-1">{s.student.level}</td>
+                                        <td className="border px-2 py-1">{s.student.contact}</td>
+                                        <td className="border px-2 py-1 text-center">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleEditClick(s)}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td className="px-2 py-2 text-center" colSpan={7}>
+                                        No students found
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td className="px-2 py-2 text-center" colSpan={7}>
-                                    No students found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            )}
+                        </tbody>
+                    </table>
+                )}
             </CardContent>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -244,135 +263,27 @@ export default function StudentListCard() {
                     <DialogHeader>
                         <DialogTitle>Edit Student</DialogTitle>
                     </DialogHeader>
-                    
+
                     {editingStudent && (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Registration Number</Label>
-                                    <Input 
-                                        name="regNo" 
-                                        value={editingStudent.student.regNo} 
-                                        onChange={(e) => handleInputChange(e, "student")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Email</Label>
-                                    <Input 
-                                        name="email" 
-                                        value={editingStudent.user.email} 
-                                        onChange={(e) => handleInputChange(e, "user")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>First Name</Label>
-                                    <Input 
-                                        name="first_name" 
-                                        value={editingStudent.user.first_name} 
-                                        onChange={(e) => handleInputChange(e, "user")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Last Name</Label>
-                                    <Input 
-                                        name="last_name" 
-                                        value={editingStudent.user.last_name} 
-                                        onChange={(e) => handleInputChange(e, "user")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>NIC</Label>
-                                    <Input 
-                                        name="nic" 
-                                        value={editingStudent.student.nic || ""} 
-                                        onChange={(e) => handleInputChange(e, "student")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Contact</Label>
-                                    <Input 
-                                        name="contact" 
-                                        value={editingStudent.student.contact} 
-                                        onChange={(e) => handleInputChange(e, "student")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>LinkedIn</Label>
-                                    <Input 
-                                        name="linkedin" 
-                                        value={editingStudent.student.linkedin || ""} 
-                                        onChange={(e) => handleInputChange(e, "student")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Profile Picture URL</Label>
-                                    <Input 
-                                        name="profile_picture" 
-                                        value={editingStudent.user.profile_picture || ""} 
-                                        onChange={(e) => handleInputChange(e, "user")} 
-                                        disabled={updateLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Group</Label>
-                                    <Select
-                                        value={editingStudent.student.group}
-                                        onValueChange={(val) => handleSelectChange("group", val)}
-                                        disabled={updateLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select group" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {studentGroups.map((group) => (
-                                                <SelectItem key={group} value={group}>
-                                                    {group}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Level</Label>
-                                    <Select
-                                        value={editingStudent.student.level}
-                                        onValueChange={(val) => handleSelectChange("level", val)}
-                                        disabled={updateLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {studentLevels.map((level) => (
-                                                <SelectItem key={level} value={level}>
-                                                    {level.replace('_', ' ').toUpperCase()}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <InputField label="Registration Number" name="regNo" value={editingStudent.student.regNo} onChange={handleInputChange} section="student" />
+                                <InputField label="Email" name="email" value={editingStudent.user.email} onChange={handleInputChange} section="user" />
+                                <InputField label="First Name" name="first_name" value={editingStudent.user.first_name} onChange={handleInputChange} section="user" />
+                                <InputField label="Last Name" name="last_name" value={editingStudent.user.last_name} onChange={handleInputChange} section="user" />
+                                <InputField label="NIC" name="nic" value={editingStudent.student.nic || ""} onChange={handleInputChange} section="student" />
+                                <InputField label="Contact" name="contact" value={editingStudent.student.contact} onChange={handleInputChange} section="student" />
+                                <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
+                                <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
+                                <SelectField label="Group" value={editingStudent.student.group} options={studentGroups} onChange={(val) => handleSelectChange("group", val)} />
+                                <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />
                             </div>
+
                             <div className="flex gap-2">
-                                <Button 
-                                    type="submit" 
-                                    className="flex-1"
-                                    disabled={updateLoading}
-                                >
+                                <Button type="submit" className="flex-1" disabled={updateLoading}>
                                     {updateLoading ? "Saving..." : "Save Changes"}
                                 </Button>
-                                <Button 
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleDialogClose}
-                                    disabled={updateLoading}
-                                >
+                                <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading}>
                                     Cancel
                                 </Button>
                             </div>
@@ -381,5 +292,34 @@ export default function StudentListCard() {
                 </DialogContent>
             </Dialog>
         </Card>
+    );
+}
+
+function InputField({ label, name, value, onChange, section }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => void, section: "user" | "student" }) {
+    return (
+        <div>
+            <Label>{label}</Label>
+            <Input name={name} value={value} onChange={(e) => onChange(e, section)} />
+        </div>
+    );
+}
+
+function SelectField({ label, value, options, onChange }: { label: string, value: string, options: (string | { label: string, value: string })[], onChange: (val: string) => void }) {
+    return (
+        <div>
+            <Label>{label}</Label>
+            <Select value={value} onValueChange={onChange}>
+                <SelectTrigger>
+                    <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map((opt) => {
+                        const val = typeof opt === "string" ? opt : opt.value;
+                        const label = typeof opt === "string" ? opt : opt.label;
+                        return <SelectItem key={val} value={val}>{label}</SelectItem>;
+                    })}
+                </SelectContent>
+            </Select>
+        </div>
     );
 }
