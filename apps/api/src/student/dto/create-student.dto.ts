@@ -4,7 +4,6 @@ import { CreateUserDto } from 'src/user/dto/createUser.dto';
 import { StudentGroup, StudentLevel } from '../entities/student.entity';
 
 export class StudentDto {
-  @IsOptional()
   @IsString()
   regNo?: string ;
 
@@ -20,11 +19,9 @@ export class StudentDto {
   @IsString()
   linkedin?: string;
 
-  @IsOptional()
   @IsEnum(StudentGroup)
   group: StudentGroup;
 
-  @IsOptional()
   @IsEnum(StudentLevel)
   level: StudentLevel;
 }

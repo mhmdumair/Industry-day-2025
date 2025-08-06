@@ -19,7 +19,6 @@ import { Globe, Phone, User, Building } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
 
-// Enums for dropdowns
 export enum StudentGroup {
   ZL = 'ZL',
   BT = 'BT',
