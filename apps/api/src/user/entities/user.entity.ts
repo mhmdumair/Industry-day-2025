@@ -53,7 +53,6 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  // Hash the password automatically before inserting a new user
   @BeforeInsert()
   async hashPassword() {
     if (this.password) {
@@ -61,7 +60,6 @@ export class User {
     }
   }
 
-  // Method to validate password during login
   async validatePassword(password: string): Promise<boolean> {
     if (!this.password) return false; // Return false if user has no password (e.g., Google login)
     return bcrypt.compare(password, this.password);

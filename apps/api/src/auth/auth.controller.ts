@@ -3,7 +3,6 @@ import { GoogleAuthGuard } from './utils/google-auth.guard';
 import { Response } from 'express';
 import {LocalAuthGuard} from "./utils/local-auth.gaurd";
 
-// We define a clearer type for the request object after authentication
 interface AuthenticatedRequest extends Request {
   user: {
     userID: string;
@@ -26,8 +25,7 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: AuthenticatedRequest, @Res() res: Response) {
-    // The GoogleAuthGuard has already run and attached the user to `req.user`.
-    // If the user didn't exist, the guard would have already thrown an error.
+
     try {
       const user = req.user;
 
@@ -35,10 +33,8 @@ export class AuthController {
       return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
 
     } catch (error) {
-      // This catch block will handle any unexpected errors during the redirect
       console.error('Redirect failed:', error.message);
 
-      // Redirect to a generic error page on the frontend
       const message = (error instanceof UnauthorizedException)
           ? error.message
           : 'An unexpected error occurred during login.';
@@ -50,11 +46,21 @@ export class AuthController {
   }
 
   @Post('login')
-  @UseGuards(LocalAuthGuard)
-  async login(@Req() req: AuthenticatedRequest, @Res() res: Response) {
-    // If the LocalStrategy succeeds, the user is attached to req.user
-    const user = req.user;
-    // Redirect to the homepage just like with the Google login
-    return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
-  }
+@UseGuards(LocalAuthGuard)
+async login(@Req() req: AuthenticatedRequest) {
+  const user = req.user;
+  
+  // Return JSON response instead of redirect
+  return {
+    success: true,
+    message: 'Login successful',
+    user: {
+      userID: user.userID,
+      email: user.email,
+      role: user.role
+    },
+    redirectUrl: `http://localhost:3000/home?id=${user.userID}`
+  };
+}
+
 }
