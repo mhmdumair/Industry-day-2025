@@ -1,22 +1,61 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+"use client"; // Add this directive to use React hooks
+
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 export function LoginForm({
                               className,
                               ...props
                           }: React.ComponentProps<"div">) {
+    // State to manage form inputs, errors, and loading status
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Function to handle form submission
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch("http://localhost:3001/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (response.ok && response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+
+            const errorData = await response.json();
+            setError(errorData.message || "Login failed. Please check your credentials.");
+
+        } catch (err) {
+            setError("An unexpected error occurred. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card className=" bg-white text-black w-full max-w-sm shadow-lg border-black">
+            <Card className="bg-white text-black w-full max-w-sm shadow-lg border-black">
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Login to your account</CardTitle>
                     <CardDescription className="text-black">
@@ -24,7 +63,8 @@ export function LoginForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form>
+                    {/* Attach the submit handler to the form */}
+                    <form onSubmit={handleSubmit}>
                         <div className="grid gap-6">
                             {/* Email/Password Login Section */}
                             <div className="grid gap-2">
@@ -35,6 +75,9 @@ export function LoginForm({
                                     placeholder="m@example.com"
                                     required
                                     className="border-black"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={isLoading}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -46,11 +89,19 @@ export function LoginForm({
                                     type="password"
                                     required
                                     className="border-black"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isLoading}
                                 />
                             </div>
 
-                            <Button type="submit" className="w-full">
-                                Sign in
+                            {/* Display error message if one exists */}
+                            {error && (
+                                <p className="text-sm text-red-600 text-center">{error}</p>
+                            )}
+
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading ? "Signing in..." : "Sign in"}
                             </Button>
 
                             {/* Divider */}
@@ -64,9 +115,14 @@ export function LoginForm({
 
                             {/* Google Login Button */}
                             <div className="flex flex-col gap-4">
-                                <Button variant="outline" className="w-full border-black" type="button" onClick={() => {
-                                    window.location.href = "http://localhost:3001/api/auth/google/login";
-                                }} >
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-black"
+                                    type="button"
+                                    onClick={() => {
+                                        window.location.href = "http://localhost:3001/api/auth/google/login";
+                                    }}
+                                >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 0 48 48" width="48" height="48">
                                         <path fill="#FBBC05" d="M9.83,24c0-1.52,0.25-2.98,0.7-4.36L2.62,13.6C1.08,16.73,0.21,20.26,0.21,24c0,3.74,0.87,7.26,2.41,10.39l7.9-6.05c-0.45-1.36-0.7-2.82-0.7-4.34z"/>
                                         <path fill="#EB4335" d="M23.71,10.13c3.31,0,6.3,1.17,8.65,3.09l6.84-6.83C35.04,2.77,29.7,0.53,23.71,0.53c-9.29,0-17.28,5.31-21.09,13.07l7.91,6.04c1.82-5.53,7.02-9.51,13.18-9.51z"/>
@@ -81,5 +137,5 @@ export function LoginForm({
                 </CardContent>
             </Card>
         </div>
-    )
+    );
 }
