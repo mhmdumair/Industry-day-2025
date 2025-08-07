@@ -6,12 +6,14 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   OneToMany,
+  BeforeInsert,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt'; // Import bcrypt
 import { Admin } from '../../admin/entities/admin.entity';
 import { Student } from '../../student/entities/student.entity';
-import { RoomAdmin } from '../../room-admin/entities/room-admin.entity';
-import { Company } from '../../company/entities/company.entity';
-import { Announcement } from '../../announcement/entities/announcement.entity';
+import {RoomAdmin} from "../../room-admin/entities/room-admin.entity";
+import {Company} from "../../company/entities/company.entity";
+import {Announcement} from "../../announcement/entities/announcement.entity";
 
 export enum UserRole {
   STUDENT = 'student',
@@ -22,11 +24,14 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') 
+  @PrimaryGeneratedColumn('uuid')
   userID: string;
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ nullable: true })
+  password?: string;
 
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
@@ -46,6 +51,19 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @BeforeInsert()
+  async hashPassword() {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+
+  async validatePassword(password: string): Promise<boolean> {
+    if (!this.password) return false;
+    return bcrypt.compare(password, this.password);
+  }
+
+
   // Relationships
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
   admin: Admin | null;
@@ -60,6 +78,5 @@ export class User {
   company: Company | null;
 
   @OneToMany(() => Announcement, (announcement) => announcement.postedByUser, { nullable: true })
-  @OneToMany(() => Announcement, (announcement) => announcement.postedByUser)
   announcements: Announcement[];
 }
