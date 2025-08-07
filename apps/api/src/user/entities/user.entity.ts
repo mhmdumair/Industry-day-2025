@@ -30,7 +30,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  // Add the password column, making it nullable
   @Column({ nullable: true })
   password?: string;
 
@@ -40,7 +39,6 @@ export class User {
   @Column({ nullable: true })
   first_name: string;
 
-  // ... rest of your columns (last_name, profile_picture etc.)
   @Column({ nullable: true })
   last_name: string;
 
@@ -61,7 +59,7 @@ export class User {
   }
 
   async validatePassword(password: string): Promise<boolean> {
-    if (!this.password) return false; // Return false if user has no password (e.g., Google login)
+    if (!this.password) return false;
     return bcrypt.compare(password, this.password);
   }
 
