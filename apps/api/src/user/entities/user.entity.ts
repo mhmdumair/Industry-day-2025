@@ -6,12 +6,14 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   OneToMany,
+  BeforeInsert,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt'; // Import bcrypt
 import { Admin } from '../../admin/entities/admin.entity';
 import { Student } from '../../student/entities/student.entity';
-import { RoomAdmin } from '../../room-admin/entities/room-admin.entity';
-import { Company } from '../../company/entities/company.entity';
-import { Announcement } from '../../announcement/entities/announcement.entity';
+import {RoomAdmin} from "../../room-admin/entities/room-admin.entity";
+import {Company} from "../../company/entities/company.entity";
+import {Announcement} from "../../announcement/entities/announcement.entity";
 
 export enum UserRole {
   STUDENT = 'student',
@@ -22,11 +24,15 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') 
+  @PrimaryGeneratedColumn('uuid')
   userID: string;
 
   @Column({ unique: true })
   email: string;
+
+  // Add the password column, making it nullable
+  @Column({ nullable: true })
+  password?: string;
 
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
@@ -34,6 +40,7 @@ export class User {
   @Column({ nullable: true })
   first_name: string;
 
+  // ... rest of your columns (last_name, profile_picture etc.)
   @Column({ nullable: true })
   last_name: string;
 
@@ -45,6 +52,21 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  // Hash the password automatically before inserting a new user
+  @BeforeInsert()
+  async hashPassword() {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+
+  // Method to validate password during login
+  async validatePassword(password: string): Promise<boolean> {
+    if (!this.password) return false; // Return false if user has no password (e.g., Google login)
+    return bcrypt.compare(password, this.password);
+  }
+
 
   // Relationships
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
@@ -60,6 +82,5 @@ export class User {
   company: Company | null;
 
   @OneToMany(() => Announcement, (announcement) => announcement.postedByUser, { nullable: true })
-  @OneToMany(() => Announcement, (announcement) => announcement.postedByUser)
   announcements: Announcement[];
 }

@@ -1,12 +1,15 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from 'src/user/entities/user.entity';
+import { AuthService } from '../auth.service'; // Import AuthService
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(private configService: ConfigService) {
+  constructor(
+      private configService: ConfigService,
+      private authService: AuthService, // Inject AuthService
+  ) {
     // @ts-ignore
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -16,22 +19,22 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
+  /**
+   * This validate method is now responsible for calling the AuthService
+   * to check if the Google user exists in your database.
+   */
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
     const email = profile.emails?.[0]?.value;
-    const firstName = profile.name?.givenName;
-    const lastName = profile.name?.familyName;
-    const profilePicture = profile.photos?.[0]?.value;
 
-    if (!email || !firstName || !lastName) {
-      throw new Error('Required profile information missing from Google');
+    if (!email) {
+      throw new UnauthorizedException('Could not retrieve email from Google.');
     }
 
-    return {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      profile_picture: profilePicture,
-      role: UserRole.STUDENT,
-    };
+    // Call the service to find the user.
+    // The service will throw an error if the user is not found.
+    const user = await this.authService.validateGoogleUser({ email });
+
+    // If the service returns a user, Passport.js will attach it to the request.
+    return user;
   }
 }
