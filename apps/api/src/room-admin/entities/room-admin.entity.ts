@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
   JoinColumn,
 } from 'typeorm';
@@ -23,7 +22,6 @@ export class RoomAdmin {
   @Column()
   roomID: string;
 
-  // Relationships
   @OneToOne(() => User, (user) => user.roomAdmin, { nullable: true })
   @JoinColumn({ name: 'userID' })
   user: User;

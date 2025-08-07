@@ -20,7 +20,7 @@ export enum InterviewStatus {
   SCHEDULED = 'scheduled',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
-  INQUEUE = "inqueue"
+  INQUEUE = "in_queue"
 }
 
 @Unique(['companyID', 'studentID'])

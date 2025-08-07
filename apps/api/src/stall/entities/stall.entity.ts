@@ -4,7 +4,6 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  OneToOne,
   JoinColumn,
 } from 'typeorm';
 import { Room } from '../../room/entities/room.entity';
@@ -17,6 +16,25 @@ export enum StallStatus {
   PAUSED = 'paused',
   WALKIN = 'walk-in'
 }
+
+
+export enum preference {
+  BT = "BT", //Botany
+  ZL = "ZL", //Zoology
+  CH = "CH", //Chemistry
+  MT = "MT", //Mathematics
+  BMS = "BMS", //Biomedical Science
+  ST = "ST", //Statistics
+  GL = "GL", // Geology
+  CS = "CS", //Computer Science
+  DS = "DS", //Data Science
+  ML = "ML", //Microbiology
+  CM = "CM", //Computation and Management
+  ES = "ES", //Environmental Science
+  MB = "MB", //Molecular Biology
+  PH = "PH" //Physics
+}
+
 
 @Entity('stalls')
 export class Stall {

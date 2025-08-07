@@ -143,16 +143,6 @@ async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
     }
   }
 
-  async filterByStream(stream?: string, location?: string): Promise<Company[]> {
-    try {
-      const where: any = {};
-      if (stream) where.stream = stream;
-      if (location) where.location = location;
-      return await this.companyRepository.find({ where, relations: ['user'] });
-    } catch {
-      throw new InternalServerErrorException('Failed to filter companies');
-    }
-  }
 
   async update(id: string, dto: UpdateCompanyDto): Promise<Company> {
     try {

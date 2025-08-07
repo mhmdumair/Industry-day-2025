@@ -23,13 +23,6 @@ export class CompanyController {
     return this.companyService.findAll();
   }
 
-  @Get('filter')
-  filterByStream(
-    @Query('stream') stream?: string,
-    @Query('location') location?: string,
-  ) {
-    return this.companyService.filterByStream(stream, location);
-  }
 
   @Get('by-user/:userId')
   findByUserId(@Param('userId') userId: string) {

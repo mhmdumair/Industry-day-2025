@@ -10,24 +10,7 @@ import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.ent
 import { Stall } from '../../stall/entities/stall.entity';
 import { User } from '../../user/entities/user.entity';
 
-export enum CompanyStream {
-  ZL = 'ZL',
-  BT = 'BT',
-  CH = 'CH',
-  MT = 'MT',
-  BMS = 'BMS',
-  ST = 'ST',
-  GL = 'GL',
-  CS = 'CS',
-  DS = 'DS',
-  ML = 'ML',
-  BL = 'BL',
-  MB = 'MB',
-  CM = 'CM',
-  AS = 'AS',
-  ES = 'ES',
-  SOR = 'SOR',
-}
+
 export enum CompanySponsership {
   MAIN = 'MAIN',
   GOLD = 'GOLD',
@@ -61,9 +44,6 @@ export class Company {
   @Column({ nullable: true })
   logo: string;
 
-  @Column({ type: 'enum', enum: CompanyStream })
-  stream: CompanyStream;
-
   @Column({ type: 'enum', enum: CompanySponsership })
   sponsership: CompanySponsership;
 
@@ -81,8 +61,6 @@ export class Company {
     nullable: true,
   })
   shortlist: CompanyShortlist | null;
-
-
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];
