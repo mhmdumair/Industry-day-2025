@@ -38,6 +38,7 @@ export default function CreateRoomAdminCard() {
         },
         roomAdmin: {
             designation: "",
+            contact: "", // Added contact field
             roomID: "",
         },
     });
@@ -121,6 +122,7 @@ export default function CreateRoomAdminCard() {
                 },
                 roomAdmin: {
                     designation: "",
+                    contact: "", // Reset contact field
                     roomID: "",
                 },
             });
@@ -198,6 +200,16 @@ export default function CreateRoomAdminCard() {
                             />
                         </div>
                         <div>
+                            <Label>Contact</Label>
+                            <Input
+                                name="contact"
+                                value={formData.roomAdmin.contact}
+                                onChange={(e) => handleInputChange(e, "roomAdmin")}
+                                placeholder="e.g., +94 77 123 4567"
+                                required
+                            />
+                        </div>
+                        <div className="sm:col-span-2">
                             <Label>Assigned Room</Label>
                             {roomsError ? (
                                 <div className="space-y-2">

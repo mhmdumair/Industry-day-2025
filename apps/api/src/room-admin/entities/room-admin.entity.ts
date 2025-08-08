@@ -20,6 +20,9 @@ export class RoomAdmin {
   designation: string;
 
   @Column()
+  contact : string
+
+  @Column()
   roomID: string;
 
   @OneToOne(() => User, (user) => user.roomAdmin, { nullable: true })

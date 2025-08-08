@@ -16,5 +16,9 @@ export class UpdateRoomAdminDto {
 
   @IsOptional()
   @IsString()
+  contact?: string;
+
+  @IsOptional()
+  @IsString()
   roomID?: string;
 }

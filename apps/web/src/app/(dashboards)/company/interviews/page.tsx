@@ -58,6 +58,8 @@ interface RoomAdmin {
     roomAdminID: string;
     userID: string;
     roomID: string;
+    designation: string;
+    contact: string;  // Added contact field
     user: {
         userID: string;
         email: string;
@@ -224,6 +226,8 @@ const Page = () => {
                                         {admins.length > 1 && <strong>Admin {index + 1}:</strong>}<br />
                                         Name: {admin.user.first_name} {admin.user.last_name}<br />
                                         Email: {admin.user.email}<br />
+                                        Contact: {admin.contact}<br />
+                                        Designation: {admin.designation}<br />
                                         {index < admins.length - 1 && <hr className="my-2" />}
                                     </div>
                                 ))}
