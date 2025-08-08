@@ -2,11 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { InterviewService } from './interview.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
+import { InterviewStatus } from './entities/interview.entity';
 
 @Controller('interview')
 export class InterviewController {
   constructor(private readonly interviewService: InterviewService) {}
 
+  // Basic CRUD
   @Post()
   create(@Body() createInterviewDto: CreateInterviewDto) {
     return this.interviewService.create(createInterviewDto);
@@ -15,6 +17,23 @@ export class InterviewController {
   @Post('bulk')
   bulkCreate(@Body() createInterviewDtos: CreateInterviewDto[]) {
     return this.interviewService.bulkCreate(createInterviewDtos);
+  }
+
+  // Prelist specific routes
+  @Post('prelist')
+  createPrelist(@Body() createInterviewDto: CreateInterviewDto) {
+    return this.interviewService.createPrelist(createInterviewDto);
+  }
+
+  @Post('prelist/bulk')
+  bulkCreatePrelist(@Body() createInterviewDtos: CreateInterviewDto[]) {
+    return this.interviewService.bulkCreatePrelist(createInterviewDtos);
+  }
+
+  // Walk-in specific routes
+  @Post('walkin')
+  createWalkin(@Body() createInterviewDto: CreateInterviewDto) {
+    return this.interviewService.createWalkin(createInterviewDto);
   }
 
   @Get()
@@ -38,32 +57,22 @@ export class InterviewController {
   }
 
   @Get('company/:companyID/prelisted')
-  getPrelistedByCompany(
-    @Param('companyID') companyID: string,
-  ) {
+  getPrelistedByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getPrelistedByCompany(companyID);
   }
 
-  // New route: Get pre-listed scheduled interviews by company
   @Get('company/:companyID/prelisted/scheduled')
-  getPrelistedScheduledByCompany(
-    @Param('companyID') companyID: string,
-  ) {
+  getPrelistedScheduledByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getPrelistedScheduledByCompany(companyID);
   }
 
   @Get('company/:companyID/walkin')
-  getWalkinByCompany(
-    @Param('companyID') companyID: string,
-  ) {
+  getWalkinByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getWalkinByCompany(companyID);
   }
 
-  // New route: Get walk-in scheduled interviews by company
   @Get('company/:companyID/walkin/scheduled')
-  getWalkinScheduledByCompany(
-    @Param('companyID') companyID: string,
-  ) {
+  getWalkinScheduledByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getWalkinScheduledByCompany(companyID);
   }
 
@@ -83,16 +92,12 @@ export class InterviewController {
   }
 
   @Get('student/:studentID/prelisted/sorted')
-  getPrelistedSortedByStudent(
-    @Param('studentID') studentID: string,
-  ) {
+  getPrelistedSortedByStudent(@Param('studentID') studentID: string) {
     return this.interviewService.getPrelistedSortedByStudent(studentID);
   }
 
   @Get('student/:studentID/walkin/sorted')
-  getWalkinSortedByStudent(
-    @Param('studentID') studentID: string,
-  ) {
+  getWalkinSortedByStudent(@Param('studentID') studentID: string) {
     return this.interviewService.getWalkinSortedByStudent(studentID);
   }
 
@@ -101,9 +106,47 @@ export class InterviewController {
     return this.interviewService.findOne(id);
   }
 
+  @Patch(':id/student-preference')
+  setStudentPreference(
+    @Param('id') id: string,
+    @Body() body: { student_preference: number },
+  ) {
+    return this.interviewService.setStudentPreference(
+      id,
+      body.student_preference,
+    );
+}
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInterviewDto: UpdateInterviewDto) {
     return this.interviewService.update(id, updateInterviewDto);
+  }
+
+  // Status change routes
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() statusDto: { status: InterviewStatus }
+  ) {
+    return this.interviewService.updateStatus(id, statusDto.status);
+  }
+
+  @Patch(':id/schedule')
+  scheduleInterview(@Param('id') id: string) {
+    return this.interviewService.scheduleInterview(id);
+  }
+
+  @Patch(':id/complete')
+  completeInterview(
+    @Param('id') id: string,
+    @Body() completionDto: { remark?: string }
+  ) {
+    return this.interviewService.completeInterview(id, completionDto.remark);
+  }
+
+  @Patch(':id/cancel')
+  cancelInterview(@Param('id') id: string) {
+    return this.interviewService.cancelInterview(id);
   }
 
   @Delete(':id')

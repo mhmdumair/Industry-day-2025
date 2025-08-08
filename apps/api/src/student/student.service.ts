@@ -45,7 +45,6 @@ export class StudentService {
     }
   }
 
-  // Updated bulk creation method with proper transaction handling
   async createBulk(createStudentDtos: CreateStudentDto[]): Promise<{
     successful: Student[];
     failed: { index: number; dto: CreateStudentDto; error: string }[];
@@ -111,7 +110,6 @@ export class StudentService {
     }
   }
 
-  // Find student by registration number
   async findByRegNo(regNo: string): Promise<Student | null> {
     try {
       return await this.studentRepository.findOne({ 
