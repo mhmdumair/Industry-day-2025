@@ -27,7 +27,8 @@ const items = [
     {title:"Interviews",url :"/admin/interviews",icon : Bell},
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
   { title: "Rooms", url: "/admin/rooms", icon: Bell },
-  { title: "Room Admins", url: "/admin/room-admins", icon: Bell }
+  { title: "Room Admins", url: "/admin/room-admins", icon: Bell },
+  { title: "Stalls", url: "/admin/stalls", icon: Bell },
 ];
 
 const AdminSidebar = () => {
