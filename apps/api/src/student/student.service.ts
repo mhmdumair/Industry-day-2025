@@ -19,13 +19,11 @@ export class StudentService {
     await queryRunner.startTransaction();
 
     try {
-      // Create user within the transaction
       const createdUser = await this.userService.createUserTransactional(
         createStudentDto.user,
         queryRunner.manager
       );
 
-      // Create student within the same transaction
       const student = queryRunner.manager.create(Student, {
         ...createStudentDto.student,
         userID: createdUser.userID,
