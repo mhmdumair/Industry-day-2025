@@ -161,8 +161,7 @@ export default function CompanyFilter() {
   );
 
   return (
-    <div className="mt-3 w-screen mx-auto p-4 flex flex-col items-center gap-6">
-      {/* ----------  Add / Confirm  ---------- */}
+    <div className="mt-3 mx-auto p-4 flex flex-col items-center gap-6">
       <Card className="w-11/12 max-w-2xl bg-slate-100/80">
         <CardHeader>
           <CardTitle>Pre-List Students</CardTitle>

@@ -43,7 +43,7 @@ interface RoomAdmin {
   room?: Room;
 }
 
-export default function RoomAdminListCard() {
+export default function RoomadminList() {
   const [roomAdmins, setRoomAdmins] = useState<RoomAdmin[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);

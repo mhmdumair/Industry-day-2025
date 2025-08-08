@@ -39,7 +39,7 @@ interface Company {
   user: User;
 }
 
-export default function CompanyListCard() {
+export default function CompanyList() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

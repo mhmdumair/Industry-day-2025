@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import CreateRoomCard from "../../../../components/admin/CreateRoomCard";
-import RoomsListCard from "../../../../components/admin/RoomListCard";
+import CreateRoom from "../../../../components/admin/create-room";
+import RoomsListCard from "../../../../components/admin/room-list";
 
 export default function RoomsPage() {
     return (
@@ -12,7 +12,7 @@ export default function RoomsPage() {
                 <p className="text-gray-600">Create and manage rooms in the system</p>
             </div>
             
-            <CreateRoomCard />
+            <CreateRoom />
             <RoomsListCard />
         </div>
     );

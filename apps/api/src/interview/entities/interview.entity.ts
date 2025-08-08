@@ -32,7 +32,6 @@ export class Interview {
   @Column({ type: 'uuid', nullable: true })
   stallID: string | null;
 
-
   @Column()
   companyID :string
 

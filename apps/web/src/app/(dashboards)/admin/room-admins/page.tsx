@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import CreateRoomAdminCard from "../../../../components/admin/CreateRoomAdminCard";
-import RoomAdminListCard from "../../../../components/admin/RoomAdminListCard";
+import CreateRoomadmin from "../../../../components/admin/create-roomadmin";
+import RoomadminList from "../../../../components/admin/roomadmin-list";
 
 export default function RoomAdminPage() {
     return (
@@ -12,8 +12,8 @@ export default function RoomAdminPage() {
                 <p className="text-gray-600">Create and manage room administrators in the system</p>
             </div>
             
-            <CreateRoomAdminCard />
-            <RoomAdminListCard />
+            <CreateRoomadmin />
+            <RoomadminList />
         </div>
     );
 }

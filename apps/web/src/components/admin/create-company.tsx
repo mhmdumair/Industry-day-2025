@@ -29,7 +29,7 @@ const companyStreams = [
 // Make sure these match your CompanySponsership enum values exactly
 const companySponsorships = ["GOLD", "SILVER", "BRONZE"];
 
-export default function CreateCompanyCard() {
+export default function CreateCompany() {
   const [formData, setFormData] = useState({
     user: {
       email: "",
