@@ -18,7 +18,7 @@ export enum StallStatus {
 }
 
 
-export enum preference {
+export enum Preference {
   BT = "BT", //Botany
   ZL = "ZL", //Zoology
   CH = "CH", //Chemistry
@@ -32,7 +32,8 @@ export enum preference {
   CM = "CM", //Computation and Management
   ES = "ES", //Environmental Science
   MB = "MB", //Molecular Biology
-  PH = "PH" //Physics
+  PH = "PH", //Physics
+  ALL = "ALL"
 }
 
 
@@ -49,6 +50,9 @@ export class Stall {
 
   @Column()
   companyID: string;
+
+  @Column({type : 'enum',enum :Preference,default: Preference.ALL})
+  preference : Preference
 
   @Column({ type: 'enum', enum: StallStatus })
   status: StallStatus;

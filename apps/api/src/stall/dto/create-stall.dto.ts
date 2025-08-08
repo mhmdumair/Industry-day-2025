@@ -1,8 +1,7 @@
-import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
-import { StallStatus } from '../entities/stall.entity';
+import { IsEnum, IsNotEmpty, IsString, IsUUID, IsOptional } from 'class-validator';
+import { StallStatus, Preference } from '../entities/stall.entity';
 
 export class CreateStallDto {
-
   @IsUUID()
   @IsNotEmpty()
   roomID: string;
@@ -17,4 +16,8 @@ export class CreateStallDto {
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @IsEnum(Preference)
+  @IsOptional()
+  preference?: Preference;
 }
