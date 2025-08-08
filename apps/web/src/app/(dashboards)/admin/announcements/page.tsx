@@ -60,7 +60,7 @@ export default function AnnouncementBoard() {
                     title: a.title,
                     description: a.content,
                     audience: a.audienceType,
-                    timestamp: new Date(a.createdAt).toLocaleTimeString('en-US', {
+                    timestamp: new Date(a.created_at).toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit'
                     }),
@@ -91,15 +91,15 @@ export default function AnnouncementBoard() {
         };
 
         try {
-          console.log(payload);
-          
+            console.log(payload);
+            
             const res = await api.post("/announcement", payload);
             const newAnnouncement: Announcement = {
                 announcementID: res.data.announcementID,
                 title: res.data.title,
                 description: res.data.content,
                 audience: res.data.audienceType,
-                timestamp: new Date(res.data.createdAt).toLocaleTimeString('en-US', {
+                timestamp: new Date(res.data.created_at).toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit'
                 }),
@@ -170,9 +170,9 @@ export default function AnnouncementBoard() {
                                                 <SelectValue placeholder="Select audience" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Students">Students</SelectItem>
-                                                <SelectItem value="Admin">Admin</SelectItem>
-                                                <SelectItem value="All">All</SelectItem>
+                                                <SelectItem value="ALL">All</SelectItem>
+                                                <SelectItem value="STUDENTS">Students</SelectItem>
+                                                <SelectItem value="COMPANIES">Companies</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
