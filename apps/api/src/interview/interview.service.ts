@@ -53,7 +53,7 @@ export class InterviewService {
     .select('MAX(i.company_preference)', 'max')
     .where('i.companyID = :companyID', { companyID })
     .andWhere('i.type = :type', { type: InterviewType.PRE_LISTED })
-    .getRawOne<{ max: string | null }>();     // row may be undefined
+    .getRawOne<{ max: string | null }>();   
 
   const maxPref = row?.max ? Number(row.max) : 0; // safe-guard
   return maxPref + 1;
@@ -313,7 +313,6 @@ export class InterviewService {
         })
         .andWhere('interview.stallID IS NULL');
 
-      // Priority column: 0 if student.group contains stream
       if (stream !== 'ALL') {
         qb = qb
           .addSelect(
