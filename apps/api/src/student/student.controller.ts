@@ -48,6 +48,6 @@ export class StudentController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.studentService.remove(+id);
+    return this.studentService.remove(id);
   }
 }

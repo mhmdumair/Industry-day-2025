@@ -111,6 +111,18 @@ export class StudentService {
     }
   }
 
+  // Find student by registration number
+  async findByRegNo(regNo: string): Promise<Student | null> {
+    try {
+      return await this.studentRepository.findOne({ 
+        where: { regNo: regNo },
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch student by registration number');
+    }
+  }
+
   async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
     try {
       const where: any = {};
@@ -146,7 +158,25 @@ export class StudentService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const student = await this.studentRepository.findOne({ 
+        where: { studentID: id } 
+      });
+      
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${id} not found`);
+      }
+      
+      await this.studentRepository.remove(student);
+      return { message: `Student ${id} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove student');
+    }
   }
+
+  
 }
