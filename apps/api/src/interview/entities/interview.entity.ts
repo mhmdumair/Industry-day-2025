@@ -29,8 +29,9 @@ export class Interview {
   @PrimaryGeneratedColumn('uuid')
   interviewID: string;
 
-  @Column({nullable:true})
-  stallID: string;
+  @Column({ type: 'uuid', nullable: true })
+  stallID: string | null;
+
 
   @Column()
   companyID :string

@@ -436,4 +436,23 @@ export class InterviewService {
     interview.student_preference = preference;
     return this.interviewRepository.save(interview);
   }
+
+  async clearWalkinsFromStall(
+      stallID: string  ,
+    ): Promise<{ updated: number }> {
+      const list = await this.interviewRepository.find({
+        where: { stallID, type: InterviewType.WALK_IN },
+      });
+
+      if (list.length === 0) return { updated: 0 };
+
+      list.forEach((iv) => {
+        iv.stallID = null;
+        iv.status = InterviewStatus.SCHEDULED;
+      });
+
+      await this.interviewRepository.save(list);
+      return { updated: list.length };
+  }
+
 }

@@ -204,7 +204,7 @@ export default function AdminProfileCard() {
     const fullName = `${profileData.user.first_name} ${profileData.user.last_name}`.trim();
 
     return (
-        <div className="mt-3 w-4/5 mx-auto p-4">
+        <div className="mt-3 w-fit mx-auto p-4">
             <Card className="bg-gray-50 shadow-lg mt-3">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
