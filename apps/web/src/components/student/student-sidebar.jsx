@@ -20,8 +20,8 @@ import Link from "next/link";
 
 const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
-  { title: "Interviews", url: "/student/interviews", icon: Inbox },
-  { title: "Pre-listed", url: "/student/pre-listed", icon: List },
+  { title: "Register for Interviews", url: "/student/interviews", icon: Inbox },
+  { title: "Registered interviews", url: "/student/pre-listed", icon: List },
 ];
 
 const StudentSidebar = () => {
