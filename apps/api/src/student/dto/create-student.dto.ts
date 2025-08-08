@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsEnum, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
-import { StudentGroup, StudentLevel } from '../entities/student.entity';
+import { StudentLevel } from '../entities/student.entity';
 
 export class StudentDto {
   @IsString()
@@ -19,8 +19,8 @@ export class StudentDto {
   @IsString()
   linkedin?: string;
 
-  @IsEnum(StudentGroup)
-  group: StudentGroup;
+  @IsString()
+  group:string;
 
   @IsEnum(StudentLevel)
   level: StudentLevel;
@@ -36,4 +36,3 @@ export class CreateStudentDto {
   student: StudentDto;
 }
 
-export { StudentGroup} from '../entities/student.entity';
