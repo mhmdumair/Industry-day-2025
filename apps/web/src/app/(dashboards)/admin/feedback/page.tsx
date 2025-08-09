@@ -1,4 +1,3 @@
-// src/app/(dashboards)/admin/feedback/FeedbackList.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -63,9 +62,19 @@ export default function FeedbackList() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    const fetchAllFeedback = async () => {
+    const fetchFeedback = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await api.get("/feedback");
+        let response;
+        if (filter === "student") {
+          response = await api.get("/feedback/students");
+        } else if (filter === "company") {
+          response = await api.get("/feedback/companies");
+        } else {
+          response = await api.get("/feedback");
+        }
+        
         const initialFeedbacks: Feedback[] = response.data;
 
         const feedbacksWithDetails = await Promise.all(
@@ -88,8 +97,9 @@ export default function FeedbackList() {
             return feedback;
           })
         );
-
+        
         setFeedbacks(feedbacksWithDetails);
+
       } catch (err) {
         console.error("Failed to fetch feedback:", err);
         setError("Failed to load feedback data. Please try again.");
@@ -98,8 +108,8 @@ export default function FeedbackList() {
       }
     };
 
-    fetchAllFeedback();
-  }, []);
+    fetchFeedback();
+  }, [filter]);
 
   const filteredFeedbacks = feedbacks.filter((feedback) => {
     if (filter === "all") return true;

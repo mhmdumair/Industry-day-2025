@@ -239,7 +239,6 @@ export default function CreateCompany() {
   );
 }
 
-// Re-usable Field component for cleaner code
 function Field({
   label,
   name,
