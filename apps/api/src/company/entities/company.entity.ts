@@ -9,6 +9,7 @@ import {
 import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
 import { Stall } from '../../stall/entities/stall.entity';
 import { User } from '../../user/entities/user.entity';
+import { Interview } from 'src/typeorm/entities';
 
 
 export enum CompanySponsership {
@@ -64,6 +65,10 @@ export class Company {
 
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];
+
+  @OneToMany(() => Interview, (interview) => interview.company)
+  interviews: Interview[];
+
 }
 
 
