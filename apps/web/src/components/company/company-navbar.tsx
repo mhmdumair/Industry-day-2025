@@ -1,12 +1,11 @@
 "use client"
 
 import React, { useState } from "react"
-import Link  from "next/link"
 import { useSearchParams } from "next/navigation"
 import api from "@/lib/axios"
 
 import { Button } from "../ui/button"
-import { PanelLeftOpen, Home } from "lucide-react"
+import { Home } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export default function CompanyNavbar() {
@@ -20,7 +19,6 @@ export default function CompanyNavbar() {
       const companyId   = searchParams.get("companyId")
       const studentId   = searchParams.get("studentId")
       const adminId     = searchParams.get("adminId")
-      const roomAdminId = searchParams.get("roomAdminId")
 
       let userId: string | undefined
 
@@ -34,10 +32,6 @@ export default function CompanyNavbar() {
         const { data } = await api.get(`/admin/${adminId}`)
         userId = data.user?.userID
         console.log(data);
-
-      } else if (roomAdminId) {
-        const { data } = await api.get(`/room-admin/${roomAdminId}`)
-        userId = data.user?.userID
       }
 
       if (userId) {
@@ -54,14 +48,11 @@ export default function CompanyNavbar() {
   }
 
   return (
-      <>
-    <header className="w-[95%] shadow-sm bg-slate-100 border border-black rounded-md max-w-screen mt-2">
+    <header className="w-full shadow-sm bg-slate-100 border border-black rounded-md max-w-screen mt-2">
       <div className="w-full mx-auto px-4 py-3 flex items-center justify-between relative">
 
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="p-2 hover:bg-slate-200 rounded-md transition-colors">
-            <PanelLeftOpen className="h-5 w-5" />
-          </SidebarTrigger>
+          <SidebarTrigger/>
 
           <div className="flex items-center gap-2">
             <img src="/unilogo.png" alt="University Logo" className="h-10 sm:h-12 w-auto" />
@@ -72,7 +63,6 @@ export default function CompanyNavbar() {
           </div>
         </div>
 
-        {/* right: Home icon */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -87,6 +77,5 @@ export default function CompanyNavbar() {
         </div>
       </div>
     </header>
-      </>
   )
 }

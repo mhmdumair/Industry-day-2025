@@ -26,7 +26,7 @@ interface CreateRoomForm {
     isActive: boolean;
 }
 
-export default function CreateRoomCard() {
+export default function CreateRoom() {
     const [formData, setFormData] = useState<CreateRoomForm>({
         roomName: "",
         location: "",

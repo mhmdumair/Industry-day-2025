@@ -134,25 +134,26 @@ export class StudentService {
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
+    
     try {
       const student = await this.studentRepository.findOne({
         where: { studentID: id },
         relations: ['user'],
       });
 
-      if (!student) {
-        throw new NotFoundException(`Student with ID ${id} not found`);
-      }
-
-      const updatedStudent = this.studentRepository.merge(student, updateStudentDto);
-      return await this.studentRepository.save(updatedStudent);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to update student');
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
     }
+
+    const updatedStudent = this.studentRepository.merge(student, updateStudentDto);
+    return await this.studentRepository.save(updatedStudent);
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Failed to update student');
   }
+}
 
   async remove(id: string): Promise<{ message: string }> {
     try {

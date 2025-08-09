@@ -1,25 +1,26 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { cookies } from "next/headers";
-import CompanyNavbar from "@/components/company/company-navbar";
-import RoomadminSidebar from "@/components/roomadmin/roomadmin-sidebar";
+"use client";
 
-export default async function CompanyLayout({
-                                                children,
-                                            }: {
+import React from "react";
+import RoomAdminSidebar from "@/components/roomadmin/roomadmin-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import RoomAdminNavbar from "@/components/roomadmin/roomadmin-navbar";
+
+export default function RoomAdminLayout({
+                                          children,
+                                      }: {
     children: React.ReactNode;
 }) {
-    const cookieStore = await cookies();
-    const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
-
     return (
-        <main className={`flex antialiased`}>
-            <SidebarProvider defaultOpen={defaultOpen}>
-                <RoomadminSidebar />
-                <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-                    <CompanyNavbar />
-                    <div className="">{children}</div>
-                </div>
-            </SidebarProvider>
-        </main>
+        <SidebarProvider>
+            <div className="flex antialiased bg-transparent w-full ml-3 mr-3">
+                <RoomAdminSidebar />
+                <main className="flex flex-col min-h-screen w-full">
+                    <RoomAdminNavbar />
+                    <div className="w-full p-2 sm:p-4">
+                        {children}
+                    </div>
+                </main>
+            </div>
+        </SidebarProvider>
     );
 }

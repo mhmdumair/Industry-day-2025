@@ -30,7 +30,7 @@ const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
 ];
 
-export default function CreateStudentCard() {
+export default function CreateStudent() {
     const [formData, setFormData] = useState({
         user: {
             email: "",
@@ -104,7 +104,7 @@ export default function CreateStudentCard() {
     };
 
     return (
-        <Card className="bg-white shadow-md">
+        <Card className="bg-white shadow-md mt-3 mb-3 max-w-[75%] mx-auto">
             <CardHeader>
                 <CardTitle>Create Student</CardTitle>
                 <CardDescription>Register new user and student details</CardDescription>

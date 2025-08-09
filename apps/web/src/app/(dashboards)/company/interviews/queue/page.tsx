@@ -76,7 +76,7 @@ export default function ResumePage() {
     };
 
     return (
-        <div className="bg-transparent min-h-screen w-full p-4 lg:p-6 overflow-x-hidden">
+        <div className="bg-transparent w-full p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">
 
                 {/* Left Section: PDF Viewer (spans 2 columns on large screens) */}

@@ -27,7 +27,7 @@ interface Room {
     isActive: boolean;
 }
 
-export default function CreateRoomAdminCard() {
+export default function CreateRoomadmin() {
     const [formData, setFormData] = useState({
         user: {
             email: "",

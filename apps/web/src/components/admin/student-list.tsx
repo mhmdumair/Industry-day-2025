@@ -58,7 +58,7 @@ interface StudentResponse {
     user: User;
 }
 
-export default function StudentListCard() {
+export default function StudentList() {
     const [students, setStudents] = useState<StudentResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -200,7 +200,7 @@ export default function StudentListCard() {
     };
 
     return (
-        <Card className="bg-white shadow-md">
+        <Card className="bg-white shadow-md w-full">
             <CardHeader>
                 <CardTitle>Student List</CardTitle>
                 <CardDescription>Fetched from database</CardDescription>

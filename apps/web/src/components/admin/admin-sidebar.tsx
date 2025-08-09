@@ -2,9 +2,11 @@
 import {
   Home,
   Inbox,
-  Search,
+  Calendar,
+  Users,
   Bell,
-  List,
+  House,
+  Building,
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,11 +25,11 @@ import Link from "next/link";
 const items = [
   { title: "Profile", url: "/admin/profile", icon: Home },
   { title: "Students", url: "/admin/students", icon: Inbox },
-  { title: "Companies", url: "/admin/companies", icon: List },
-    {title:"Interviews",url :"/admin/interviews",icon : Bell},
+  { title: "Companies", url: "/admin/companies", icon: Building },
+  { title: "Interviews", url: "/admin/interviews", icon: Calendar },
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
-  { title: "Rooms", url: "/admin/rooms", icon: Bell },
-  { title: "Room Admins", url: "/admin/room-admins", icon: Bell },
+  { title: "Rooms", url: "/admin/rooms", icon: House },
+  { title: "Room Admins", url: "/admin/room-admins", icon: Users },
   { title: "Stalls", url: "/admin/stalls", icon: Bell },
 ];
 
@@ -36,7 +38,7 @@ const AdminSidebar = () => {
   const adminId = searchParams.get('adminId');
 
   return (
-    <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+    <Sidebar variant="sidebar" className="min-h-screen bg-black border-slate-700">
       <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
 
       <SidebarContent className="bg-slate-100">

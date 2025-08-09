@@ -1,6 +1,5 @@
 import { IsString, IsOptional, IsEnum, IsUrl } from 'class-validator';
 import { CompanySponsership } from 'src/company/entities/company.entity';
-import { User } from 'src/typeorm/entities';
 import { UpdateUserDto } from 'src/user/dto/updateUser.dto';
 
 export class UpdateCompanyDto {
@@ -31,7 +30,6 @@ export class UpdateCompanyDto {
   @IsOptional()
   @IsString()
   logo?: string;
-
 
   @IsOptional()
   @IsString()
