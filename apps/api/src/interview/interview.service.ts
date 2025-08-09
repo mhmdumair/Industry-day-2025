@@ -11,10 +11,11 @@ import {
   InterviewType,
   InterviewStatus,
 } from './entities/interview.entity';
-import { CreateInterviewDto } from './dto/create-interview.dto';
+import { CreateInterviewByRegNoDto, CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { Student } from '../student/entities/student.entity';
 import { Stall } from '../stall/entities/stall.entity';
+import { StudentService } from 'src/student/student.service';
 
 @Injectable()
 export class InterviewService {
@@ -25,8 +26,8 @@ export class InterviewService {
     private studentRepository: Repository<Student>,
     @InjectRepository(Stall)
     private stallRepository: Repository<Stall>,
+    private studentSerrvice: StudentService
   ) {}
-
 
   private async renumberPreferences(companyID: string): Promise<void> {
     const list = await this.interviewRepository.find({
@@ -46,19 +47,17 @@ export class InterviewService {
     if (changed) await this.interviewRepository.save(list);
   }
 
-  /** Next preference = max + 1 (after any previous renumber) */
   private async nextCompanyPreference(companyID: string): Promise<number> {
-  const row = await this.interviewRepository
-    .createQueryBuilder('i')
-    .select('MAX(i.company_preference)', 'max')
-    .where('i.companyID = :companyID', { companyID })
-    .andWhere('i.type = :type', { type: InterviewType.PRE_LISTED })
-    .getRawOne<{ max: string | null }>();   
+    const row = await this.interviewRepository
+      .createQueryBuilder('i')
+      .select('MAX(i.company_preference)', 'max')
+      .where('i.companyID = :companyID', { companyID })
+      .andWhere('i.type = :type', { type: InterviewType.PRE_LISTED })
+      .getRawOne<{ max: string | null }>();
 
-  const maxPref = row?.max ? Number(row.max) : 0; // safe-guard
-  return maxPref + 1;
-}
-
+    const maxPref = row?.max ? Number(row.max) : 0;
+    return maxPref + 1;
+  }
 
   async create(dto: CreateInterviewDto): Promise<Interview> {
     try {
@@ -71,29 +70,34 @@ export class InterviewService {
     }
   }
 
-  async createPrelist(dto: CreateInterviewDto): Promise<Interview> {
-    try {
-      const interview = this.interviewRepository.create({
-        ...dto,
-        type: InterviewType.PRE_LISTED,
-        stallID: undefined,
-        company_preference: await this.nextCompanyPreference(dto.companyID),
-      });
-      return await this.interviewRepository.save(interview);
-    } catch (err) {
-      throw new InternalServerErrorException(
-        `Failed to create pre-list interview: ${err.message}`,
-      );
+  async createPrelist(dto: Partial<CreateInterviewDto>): Promise<Interview> {
+  try {
+    if (!dto.companyID) {
+      throw new BadRequestException('companyID must be provided for a pre-listed interview.');
     }
-  }
 
-  async createWalkin(dto: CreateInterviewDto): Promise<Interview> {
+    const interview = this.interviewRepository.create({
+      ...dto,
+      type: InterviewType.PRE_LISTED,
+      status: InterviewStatus.SCHEDULED,
+      stallID: undefined,
+      company_preference: await this.nextCompanyPreference(dto.companyID),
+    });
+    return await this.interviewRepository.save(interview);
+  } catch (err) {
+    throw new InternalServerErrorException(
+      `Failed to create pre-list interview: ${err.message}`,
+    );
+  }
+}
+
+  async createWalkin(dto: Partial<CreateInterviewDto>): Promise<Interview> {
     try {
       const interview = this.interviewRepository.create({
         ...dto,
         type: InterviewType.WALK_IN,
-        stallID: undefined,
         status: InterviewStatus.INQUEUE,
+        stallID: undefined,
       });
       return await this.interviewRepository.save(interview);
     } catch (err) {
@@ -102,7 +106,6 @@ export class InterviewService {
       );
     }
   }
-
 
   async bulkCreate(
     dtos: CreateInterviewDto[],
@@ -151,10 +154,9 @@ export class InterviewService {
 
     const prefs: Record<string, number> = {};
     const companyIDs = [...new Set(dtos.map(d => d.companyID))];
-    
-    // Ensure preferences are contiguous before starting
+
     await Promise.all(companyIDs.map(id => this.renumberPreferences(id)));
-    
+
     await Promise.all(
       companyIDs.map(async id => {
         prefs[id] = await this.nextCompanyPreference(id) - 1;
@@ -192,6 +194,28 @@ export class InterviewService {
         failed: failed.length,
       },
     };
+  }
+
+  async createInterviewByRegNo(
+    dto: CreateInterviewByRegNoDto,
+  ): Promise<Interview> {
+    const student = await this.studentSerrvice.findByRegNo(dto.regNo);
+    if (!student) {
+      throw new NotFoundException(
+        `Student with registration number ${dto.regNo} not found`,
+      );
+    }
+
+    const baseDto: Partial<CreateInterviewDto> = {
+      companyID: dto.companyID,
+      studentID: student.studentID,
+    };
+
+    if (dto.type === InterviewType.PRE_LISTED) {
+      return this.createPrelist(baseDto);
+    } else {
+      return this.createWalkin(baseDto);
+    }
   }
 
 
@@ -233,8 +257,6 @@ export class InterviewService {
     });
   }
 
-  /* ----------  PRE-LIST QUERIES  ---------- */
-
   private prelistOrder = {
     company_preference: 'ASC' as const,
     student_preference: 'ASC' as const,
@@ -259,8 +281,6 @@ export class InterviewService {
       order: this.prelistOrder,
     });
   }
-
-  /* ----------  WALK-IN QUERIES  ---------- */
 
   getWalkinByCompany(companyID: string) {
     return this.interviewRepository.find({
@@ -288,8 +308,6 @@ export class InterviewService {
     });
     return { count };
   }
-
-
 
   async getNextWalkinInterview(
     companyID: string,
@@ -353,10 +371,6 @@ export class InterviewService {
     });
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  UPDATE / STATUS / CANCEL                                          */
-  /* ------------------------------------------------------------------ */
-
   async update(id: string, dto: UpdateInterviewDto) {
     const interview = await this.findOne(id);
     if (!interview)
@@ -387,10 +401,6 @@ export class InterviewService {
     return this.updateStatus(id, InterviewStatus.CANCELLED);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  REMOVE                                                            */
-  /* ------------------------------------------------------------------ */
-
   async remove(id: string) {
     const interview = await this.findOne(id);
     if (!interview)
@@ -412,15 +422,10 @@ export class InterviewService {
     const companyID = interview.companyID;
     await this.interviewRepository.remove(interview);
     
-    // Renumber preferences to keep them contiguous
     await this.renumberPreferences(companyID);
     
     return { message: `Pre-listed interview ${id} removed successfully` };
   }
-
-  /* ------------------------------------------------------------------ */
-  /*  STUDENT PREFERENCE                                                */
-  /* ------------------------------------------------------------------ */
 
   async setStudentPreference(
     id: string,
@@ -438,21 +443,20 @@ export class InterviewService {
   }
 
   async clearWalkinsFromStall(
-      stallID: string  ,
-    ): Promise<{ updated: number }> {
-      const list = await this.interviewRepository.find({
-        where: { stallID, type: InterviewType.WALK_IN },
-      });
+    stallID: string,
+  ): Promise<{ updated: number }> {
+    const list = await this.interviewRepository.find({
+      where: { stallID, type: InterviewType.WALK_IN },
+    });
 
-      if (list.length === 0) return { updated: 0 };
+    if (list.length === 0) return { updated: 0 };
 
-      list.forEach((iv) => {
-        iv.stallID = null;
-        iv.status = InterviewStatus.SCHEDULED;
-      });
+    list.forEach((iv) => {
+      iv.stallID = null;
+      iv.status = InterviewStatus.SCHEDULED;
+    });
 
-      await this.interviewRepository.save(list);
-      return { updated: list.length };
+    await this.interviewRepository.save(list);
+    return { updated: list.length };
   }
-
 }

@@ -34,3 +34,17 @@ export class CreateInterviewDto {
   @Min(1)
   company_preference: number;
 }
+
+export class CreateInterviewByRegNoDto{
+  @IsString()
+  @IsNotEmpty()
+  regNo :string;
+
+  @IsString()
+  @IsNotEmpty()
+  companyID :string;
+
+  @IsEnum(InterviewType)
+  type :InterviewType
+
+}

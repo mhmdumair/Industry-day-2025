@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { InterviewService } from './interview.service';
-import { CreateInterviewDto } from './dto/create-interview.dto';
+import { CreateInterviewByRegNoDto, CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { InterviewStatus } from './entities/interview.entity';
 
@@ -34,6 +34,11 @@ export class InterviewController {
   @Post('walkin')
   createWalkin(@Body() createInterviewDto: CreateInterviewDto) {
     return this.interviewService.createWalkin(createInterviewDto);
+  }
+
+  @Post('by-regno')
+  createInterviewByRegNo(@Body() dto: CreateInterviewByRegNoDto) {
+    return this.interviewService.createInterviewByRegNo(dto);
   }
 
   @Get()

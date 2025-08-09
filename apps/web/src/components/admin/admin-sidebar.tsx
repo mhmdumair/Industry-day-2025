@@ -28,8 +28,14 @@ const items = [
   { title: "Companies", url: "/admin/companies", icon: Building },
   { title: "Interviews", url: "/admin/interviews", icon: Calendar },
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
+<<<<<<< HEAD
   { title: "Rooms", url: "/admin/rooms", icon: House },
   { title: "Room Admins", url: "/admin/room-admins", icon: Users }
+=======
+  { title: "Rooms", url: "/admin/rooms", icon: Bell },
+  { title: "Room Admins", url: "/admin/room-admins", icon: Bell },
+  { title: "Stalls", url: "/admin/stalls", icon: Bell },
+>>>>>>> f9dec293184f13cca32e9b3b7bebb9540587b686
 ];
 
 const AdminSidebar = () => {
