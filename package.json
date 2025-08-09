@@ -44,6 +44,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react-pdf": "^10.0.1",
+    "react-router-dom": "^7.7.1",
     "typeorm": "^0.3.25"
   }
 }

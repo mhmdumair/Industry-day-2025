@@ -23,25 +23,22 @@ import Link from "next/link";
 const items = [
   { title: "Profile", url: "/company/profile", icon: Home },
   { title: "Interviews", url: "/company/interviews", icon: Inbox },
-  { title: "Pre-listed", url: "/company/pre-listed", icon: List },
-  { title: "Announcements", url: "/company/announcements", icon: Bell },
-  { title: "Selected Students", url: "/company/selected", icon: Search },
+  { title: "Pre-list Students", url: "/company/pre-listed", icon: List },
+  { title: "Announcements", url: "/company/announcements", icon: Bell }
 ];
 
 const CompanySidebar = () => {
   const searchParams = useSearchParams();
   const companyId = searchParams.get('companyId');
 
-  // Append companyId param if present
   const itemsWithCompanyId = items.map(item => ({
     ...item,
     url: companyId ? `${item.url}?companyId=${companyId}` : item.url
   }));
 
   return (
-    <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+    <Sidebar variant="sidebar" className="min-h-screen bg-black border-slate-700">
       <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
-
       <SidebarContent className="bg-slate-100">
         <SidebarGroup>
           <SidebarGroupContent>

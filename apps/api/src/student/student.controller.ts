@@ -12,7 +12,6 @@ export class StudentController {
     return this.studentService.create(createStudentDto);
   }
 
-  // New route for bulk student creation
   @Post('bulk')
   createBulk(@Body() createStudentDtos: CreateStudentDto[]) {
     return this.studentService.createBulk(createStudentDtos);
@@ -48,6 +47,6 @@ export class StudentController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.studentService.remove(+id);
+    return this.studentService.remove(id);
   }
 }

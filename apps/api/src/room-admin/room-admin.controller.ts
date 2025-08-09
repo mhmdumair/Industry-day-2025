@@ -27,6 +27,11 @@ export class RoomAdminController {
     return this.roomAdminService.findByUserId(userId);
   }
 
+  @Get('by-room/:roomId')
+  async findByRoomId(@Param('roomId') roomId: string) {
+    return this.roomAdminService.findByRoomId(roomId);
+  }
+
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateRoomAdminDto: UpdateRoomAdminDto) {
     return this.roomAdminService.update(id, updateRoomAdminDto);

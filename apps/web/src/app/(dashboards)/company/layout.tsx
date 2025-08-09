@@ -2,24 +2,27 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 import CompanySidebar from "@/components/company/company-sidebar";
 import CompanyNavbar from "@/components/company/company-navbar";
+import React from "react";
 
 export default async function CompanyLayout({
-                                              children,
-                                            }: {
+  children,
+}: {
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-      <main className={`flex antialiased`}>
-        <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider>
+        <div className="flex antialiased bg-transparent w-full ml-3 mr-3">
           <CompanySidebar />
-          <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+          <main className="flex flex-col min-h-screen w-full">
             <CompanyNavbar />
-            <div className="">{children}</div>
-          </div>
-        </SidebarProvider>
-      </main>
+            <div className="w-full p-2 sm:p-4">
+              {children}
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
   );
 }

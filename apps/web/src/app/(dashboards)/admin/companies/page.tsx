@@ -1,9 +1,13 @@
-import React from 'react'
+"use client";
 
-const page = () => {
+import CreateCompany from "../../../../components/admin/create-company"
+import CompanyList   from "../../../../components/admin/company-list";
+
+export default function CompanyDashboard() {
   return (
-    <div>Companies List with pagination</div>
-  )
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+      <CompanyList />
+      <CreateCompany />
+    </div>
+  );
 }
-
-export default page

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../lib/axios"
 import {
     Card,
     CardContent,
@@ -30,13 +30,13 @@ const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
 ];
 
-export default function CreateStudentCard() {
+export default function CreateStudent() {
     const [formData, setFormData] = useState({
         user: {
             email: "",
-            password: "",
             first_name: "",
             last_name: "",
+            role : "student"
         },
         student: {
             regNo: "",
@@ -79,15 +79,14 @@ export default function CreateStudentCard() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post("http://localhost:3001/api/student", formData);
+            await api.post("/student", formData);
             alert("Student created successfully!");
-            // Optional: Reset form
             setFormData({
                 user: {
                     email: "",
-                    password: "",
                     first_name: "",
                     last_name: "",
+                    role : "student"
                 },
                 student: {
                     regNo: "",
@@ -105,7 +104,7 @@ export default function CreateStudentCard() {
     };
 
     return (
-        <Card className="bg-white shadow-md">
+        <Card className="bg-white shadow-md mt-3 mb-3 max-w-[75%] mx-auto">
             <CardHeader>
                 <CardTitle>Create Student</CardTitle>
                 <CardDescription>Register new user and student details</CardDescription>
@@ -119,16 +118,6 @@ export default function CreateStudentCard() {
                             <Input
                                 name="email"
                                 value={formData.user.email}
-                                onChange={(e) => handleInputChange(e, "user")}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <Label>Password</Label>
-                            <Input
-                                name="password"
-                                type="password"
-                                value={formData.user.password}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
                             />
