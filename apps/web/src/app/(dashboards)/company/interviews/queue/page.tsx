@@ -49,7 +49,17 @@ interface StudentData {
     };
 }
 
-// Interface for the QueueCard props
+// Interfaces for fetched company and stall data
+interface CompanyData {
+    companyName: string;
+    // other company properties
+}
+
+interface StallData {
+    stallNumber: string;
+    // other stall properties
+}
+
 interface QueueCardProps {
     companyName: string;
     stallNumber: string;
@@ -59,7 +69,6 @@ interface QueueCardProps {
 }
 
 const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents, onStudentClick }: QueueCardProps) => {
-    // getStatusStyles now only needs status
     const getStatusStyles = (status: string, type: string) => {
         if (type === 'prelisted') {
             switch (status) {
@@ -76,7 +85,7 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
                     return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
                 case 'missed':
                     return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
-                default: // 'queued'
+                default: 
                     return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
             }
         }
@@ -129,8 +138,6 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
     );
 };
 
-
-// --- Main Page Component ---
 export default function ResumePage() {
     const searchParams = useSearchParams();
     const companyID = searchParams.get('companyId');
@@ -139,12 +146,29 @@ export default function ResumePage() {
     const [currentInterviewID, setCurrentInterviewID] = useState<string | null>(null);
     const [prelistedStudents, setPrelistedStudents] = useState<StudentData[]>([]);
     const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
+    const [companyName, setCompanyName] = useState<string>('');
+    const [stallNumber, setStallNumber] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
-    const maxSize = 30;
+    const maxSize = 15;
+
+    const fetchCompanyAndStallData = async () => {
+        if (!companyID || !stallID) return;
+
+        try {
+            const companyResponse = await api.get(`/company/${companyID}`);
+            setCompanyName(companyResponse.data.companyName);
+
+            const stallResponse = await api.get(`/stall/${stallID}`);
+            setStallNumber(stallResponse.data.stallNumber);
+        } catch (error) {
+            console.error("Failed to fetch company or stall data:", error);
+            // Handle error, e.g., set default names or show an error message
+        }
+    };
 
     const fillEmptySlots = async () => {
         if (!companyID || !stallID) return;
@@ -155,7 +179,6 @@ export default function ResumePage() {
             try {
                 const { data: newWalkins } = await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
                 console.log("New walk-ins fetched:", newWalkins);
-                // After filling slots, re-fetch the entire queue to update the UI
                 await refreshQueue();
             } catch (error) {
                 console.error("Failed to fill empty slots:", error);
@@ -173,16 +196,11 @@ export default function ResumePage() {
 
             setPrelistedStudents(fetchedPrelisted);
             setWalkinStudents(fetchedWalkin);
-            
-            // Set the size state with the new data
-            // Note: The size state is not directly used in the fillEmptySlots function now, but can be useful for other UI components.
-            // Keeping it here for reference.
-            // setSize(fetchedPrelisted.length + fetchedWalkin.length);
+
         } catch (error) {
             console.error("Failed to fetch queue:", error);
             setPrelistedStudents([]);
             setWalkinStudents([]);
-            // setSize(0);
         } finally {
             setLoading(false);
         }
@@ -190,12 +208,11 @@ export default function ResumePage() {
 
     useEffect(() => {
         if (companyID && stallID) {
-            // Initial fetch and fill
+            fetchCompanyAndStallData(); // Fetch company and stall info once
             refreshQueue().then(() => {
                 fillEmptySlots();
             });
 
-            // Set up a periodic refresh and fill
             const interval = setInterval(() => {
                 refreshQueue().then(() => {
                     fillEmptySlots();
@@ -211,7 +228,6 @@ export default function ResumePage() {
         try {
             await api.patch(`/interview/${currentStudent.interviewID}/complete`);
             
-            // Re-fetch the queue to update the UI
             await refreshQueue();
             
             const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
@@ -221,7 +237,6 @@ export default function ResumePage() {
                 setCurrentInterviewID(null);
             }
             
-            // Fill empty slots immediately after an interview finishes
             await fillEmptySlots();
 
         } catch (error) {
@@ -297,8 +312,8 @@ export default function ResumePage() {
                 {/* Right Section: Queue Card */}
                 <div className="lg:col-span-1 h-full overflow-y-auto">
                     <QueueCard
-                        companyName="MAS Holdings"
-                        stallNumber="Stall 1"
+                        companyName={companyName}
+                        stallNumber={stallNumber}
                         prelistedStudents={filteredPrelisted}
                         walkinStudents={filteredWalkin}
                         onStudentClick={setCurrentInterviewID}
