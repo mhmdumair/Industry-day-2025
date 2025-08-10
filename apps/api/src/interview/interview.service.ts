@@ -358,7 +358,7 @@ export class InterviewService {
   getPrelistedSortedByStudent(studentID: string) {
     return this.interviewRepository.find({
       where: { studentID, type: InterviewType.PRE_LISTED },
-      relations: ['stall', 'student', 'student.user'],
+      relations: ['stall', 'student', 'student.user','company'],
       order: this.prelistOrder,
     });
   }
@@ -366,7 +366,7 @@ export class InterviewService {
   getWalkinSortedByStudent(studentID: string) {
     return this.interviewRepository.find({
       where: { studentID, type: InterviewType.WALK_IN },
-      relations: ['stall', 'student', 'student.user'],
+      relations: ['stall', 'student', 'student.user','company'],
       order: { created_at: 'ASC' },
     });
   }
