@@ -22,13 +22,13 @@ const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
   { title: "Register for interviews", url: "/student/register", icon: Inbox },
   { title: "Registered Interviews", url: "/student/interviews", icon: List },
+  { title: "Feedback", url: "/student/feedback", icon: Inbox }
 ];
 
 const StudentSidebar = () => {
   const searchParams = useSearchParams();
   const studentId = searchParams.get('studentId');
 
-  // Append studentId query parameter if present
   const itemsWithStudentId = items.map(item => ({
     ...item,
     url: studentId ? `${item.url}?studentId=${studentId}` : item.url,

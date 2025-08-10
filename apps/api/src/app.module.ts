@@ -21,6 +21,7 @@ import { AnnouncementModule } from './announcement/announcement.module';
 import { CvModule } from './cv/cv.module';
 import { ShortlistModule } from './shortlist/shortlist.module';
 import { InterviewModule } from './interview/interview.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { InterviewModule } from './interview/interview.module';
     CvModule,
     ShortlistModule,
     InterviewModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -19,6 +19,7 @@ export { Interview } from '../../interview/entities/interview.entity';
 // Queue-related entities
 
 export { Announcement } from '../../announcement/entities/announcement.entity';
+export {Feedback} from "../../feedback/entities/feedback.entity"
 
 // Event-related entities
 

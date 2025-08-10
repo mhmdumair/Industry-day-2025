@@ -31,6 +31,7 @@ const items = [
   { title: "Rooms", url: "/admin/rooms", icon: House },
   { title: "Room Admins", url: "/admin/room-admins", icon: Users },
   { title: "Stalls", url: "/admin/stalls", icon: Bell },
+  { title: "Feedbacks", url: "/admin/feedback", icon: Inbox }
 ];
 
 const AdminSidebar = () => {
