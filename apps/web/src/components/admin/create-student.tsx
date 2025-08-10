@@ -20,12 +20,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-// Enum values
-const studentGroups = [
-    "ZL", "BT", "CH", "MT", "BMS", "ST", "GL", "CS", "DS",
-    "ML", "BL", "MB", "CM", "AS", "ES", "SOR",
-];
-
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
 ];
@@ -36,14 +30,14 @@ export default function CreateStudent() {
             email: "",
             first_name: "",
             last_name: "",
-            role : "student"
+            role: "student",
         },
         student: {
             regNo: "",
             nic: "",
             linkedin: "",
             contact: "",
-            group: "CS",
+            group: "", 
             level: "level_3",
         },
     });
@@ -64,7 +58,7 @@ export default function CreateStudent() {
 
     const handleSelectChange = (
         section: "student",
-        name: "group" | "level",
+        name: "level", // Only level is left here
         value: string
     ) => {
         setFormData((prev) => ({
@@ -86,14 +80,14 @@ export default function CreateStudent() {
                     email: "",
                     first_name: "",
                     last_name: "",
-                    role : "student"
+                    role: "student",
                 },
                 student: {
                     regNo: "",
                     nic: "",
                     linkedin: "",
                     contact: "",
-                    group: "CS",
+                    group: "", // Reset to empty string
                     level: "level_3",
                 },
             });
@@ -181,23 +175,12 @@ export default function CreateStudent() {
                         </div>
                         <div>
                             <Label>Group</Label>
-                            <Select
+                            <Input
+                                name="group"
                                 value={formData.student.group}
-                                onValueChange={(val) =>
-                                    handleSelectChange("student", "group", val)
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select group" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {studentGroups.map((group) => (
-                                        <SelectItem key={group} value={group}>
-                                            {group}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                onChange={(e) => handleInputChange(e, "student")}
+                                required
+                            />
                         </div>
                         <div>
                             <Label>Level</Label>

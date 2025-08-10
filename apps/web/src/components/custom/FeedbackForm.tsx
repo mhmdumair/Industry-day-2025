@@ -17,12 +17,10 @@ import { Loader2, Star } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
-// Define the shape of the user data returned by the API
 interface UserData {
   user: {
     userID: string;
   };
-  // Other properties like companyName, etc.
 }
 
 export default function FeedbackForm() {
