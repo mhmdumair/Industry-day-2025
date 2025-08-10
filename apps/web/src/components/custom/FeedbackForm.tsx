@@ -65,9 +65,9 @@ export default function FeedbackForm() {
         console.error("Failed to fetch user data:", err);
         const axiosError = err as AxiosError;
         setError(
-          `Failed to fetch data: ${
-            axiosError.response?.statusText || "An unexpected error occurred."
-          }`
+            `Failed to fetch data: ${
+                axiosError.response?.statusText || "An unexpected error occurred."
+            }`
         );
       } finally {
         setLoading(false);
@@ -105,9 +105,9 @@ export default function FeedbackForm() {
       console.error("Feedback submission failed:", err);
       const axiosError = err as AxiosError;
       setError(
-        `Failed to submit feedback: ${
-          axiosError.response?.statusText || "An unexpected error occurred."
-        }`
+          `Failed to submit feedback: ${
+              axiosError.response?.statusText || "An unexpected error occurred."
+          }`
       );
     } finally {
       setSubmissionLoading(false);
@@ -116,9 +116,9 @@ export default function FeedbackForm() {
 
   if (loading) {
     return (
-      <div className="flex justify-center p-4 min-h-[500px] items-center">
-        <Loader2 className="h-8 w-8 animate-spin mr-2" /> Loading...
-      </div>
+        <div className="flex justify-center p-4 min-h-[500px] items-center">
+          <Loader2 className="h-8 w-8 animate-spin mr-2" /> Loading...
+        </div>
     );
   }
 
@@ -127,83 +127,83 @@ export default function FeedbackForm() {
   }
 
   return (
-    <div className="flex justify-center p-4">
-      <Card className="w-full max-w-lg shadow-2xl border border-gray-200">
-        <CardHeader className="text-center p-6">
-          <CardTitle className="text-3xl font-bold">Provide Feedback</CardTitle>
-          <CardDescription className="text-base text-gray-500 mt-2">
-            Help us improve by sharing your experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Rating Section */}
-            <div className="flex flex-col items-center">
-              <Label htmlFor="rating" className="text-lg font-semibold mb-4">
-                Your Rating
-              </Label>
-              <RadioGroup
-                onValueChange={(value) => setRating(parseInt(value, 10))}
-                className="flex justify-center space-x-2"
-              >
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Label
-                    key={star}
-                    htmlFor={`star-${star}`}
-                    className="cursor-pointer"
-                  >
-                    <RadioGroupItem
-                      value={String(star)}
-                      id={`star-${star}`}
-                      className="peer sr-only"
-                    />
-                    <Star
-                      className={`h-10 w-10 transition-colors ${
-                        rating && star <= rating
-                          ? "text-yellow-400"
-                          : "text-gray-300"
-                      } hover:text-yellow-400 peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2`}
-                    />
-                  </Label>
-                ))}
-              </RadioGroup>
-            </div>
+      <div className="flex p-4 mx-auto bg-transparent">
+        <Card className="bg-slate-100/80 mb-2 last:mb-0 w-full max-w-xl mx-auto ">
+          <CardHeader>
+            <CardTitle>Provide Feedback</CardTitle>
+            <CardDescription>
+              Help us improve by sharing your experience.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Rating Section */}
+              <div className="flex flex-col items-center">
+                <Label htmlFor="rating" className="font-semibold mb-4">
+                  Your Rating
+                </Label>
+                <RadioGroup
+                    onValueChange={(value) => setRating(parseInt(value, 10))}
+                    className="flex justify-center space-x-2"
+                >
+                  {[1, 2, 3, 4, 5].map((star) => (
+                      <Label
+                          key={star}
+                          htmlFor={`star-${star}`}
+                          className="cursor-pointer"
+                      >
+                        <RadioGroupItem
+                            value={String(star)}
+                            id={`star-${star}`}
+                            className="peer sr-only"
+                        />
+                        <Star
+                            className={`h-8 w-8 transition-colors ${
+                                rating && star <= rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                            } hover:text-yellow-400 peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2`}
+                        />
+                      </Label>
+                  ))}
+                </RadioGroup>
+              </div>
 
-            {/* Comment Section */}
-            <div>
-              <Label htmlFor="comment" className="text-lg font-semibold">Comments (Optional)</Label>
-              <Textarea
-                id="comment"
-                placeholder="Share your thoughts about your experience..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={5}
-                className="resize-none mt-2 text-base"
-              />
-            </div>
+              {/* Comment Section */}
+              <div>
+                <Label htmlFor="comment" className="text-">Comments</Label>
+                <Textarea
+                    id="comment"
+                    placeholder="Share your thoughts about your experience..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={5}
+                    className="resize-none mt-2"
+                />
+              </div>
 
-            {/* Status Messages */}
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
-            {success && (
-              <p className="text-sm text-green-500 text-center">{success}</p>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full h-12 text-lg font-semibold"
-              disabled={submissionLoading || !userID || !rating}
-            >
-              {submissionLoading && (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              {/* Status Messages */}
+              {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
               )}
-              Submit Feedback
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+              {success && (
+                  <p className="text-sm text-green-500 text-center">{success}</p>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                  type="submit"
+                  className="w-full h-12 font-semibold"
+                  disabled={submissionLoading || !userID || !rating || !comment.trim()}
+              >
+                {submissionLoading && (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                )}
+                Submit Feedback
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
   );
 }
