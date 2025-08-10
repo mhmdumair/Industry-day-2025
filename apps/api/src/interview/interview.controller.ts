@@ -51,7 +51,7 @@ export class InterviewController {
     return this.interviewService.findByStudentId(studentID);
   }
 
-  @Get('stall/:stallID')
+  @Get('stall/:stallID/inqueue')
   findByStall(@Param('stallID') stallID: string) {
     return this.interviewService.findByStallId(stallID);
   }
@@ -66,7 +66,7 @@ export class InterviewController {
     return this.interviewService.getPrelistedByCompany(companyID);
   }
 
-  @Get('company/:companyID/prelisted/scheduled')
+  @Get('company/:companyID/prelisted/inqueue')
   getPrelistedScheduledByCompany(@Param('companyID') companyID: string) {
     return this.interviewService.getPrelistedScheduledByCompany(companyID);
   }
@@ -144,9 +144,8 @@ export class InterviewController {
   @Patch(':id/complete')
   completeInterview(
     @Param('id') id: string,
-    @Body() completionDto: { remark?: string }
   ) {
-    return this.interviewService.completeInterview(id, completionDto.remark);
+    return this.interviewService.completeInterview(id);
   }
 
   @Patch(':id/cancel')

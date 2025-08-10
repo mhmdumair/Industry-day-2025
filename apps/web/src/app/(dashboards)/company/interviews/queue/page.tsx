@@ -1,24 +1,99 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import api from "@/lib/axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
-// This component is now more dynamic and uses conditional styling for different student statuses.
-const QueueCard = ({ companyName, stallNumber, students }) => {
+// Enum for Preference Streams
+export enum Preference {
+    BT = "BT", //Botany
+    ZL = "ZL", //Zoology
+    CH = "CH", //Chemistry
+    MT = "MT", //Mathematics
+    BMS = "BMS", //Biomedical Science
+    ST = "ST", //Statistics
+    GL = "GL", // Geology
+    CS = "CS", //Computer Science
+    DS = "DS", //Data Science
+    ML = "ML", //Microbiology
+    CM = "CM", //Computation and Management
+    ES = "ES", //Environmental Science
+    MB = "MB", //Molecular Biology
+    PH = "PH", //Physics
+    ALL = "ALL"
+}
 
-    const getStatusStyles = (status) => {
-        switch (status) {
-            case 'interviewing':
-                return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
-            case 'waiting':
-                return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
-            case 'missed':
-                return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
-            default: // 'queued'
-                return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
+// Interface for the fetched student data
+interface StudentData {
+    interviewID: string;
+    studentID: string;
+    status: string;
+    type: 'prelisted' | 'walkin';
+    student: {
+        regNo: string;
+        group: string;
+        user: {
+            first_name: string;
+            last_name: string;
+        };
+    };
+}
+
+// Interface for the QueueCard props
+interface QueueCardProps {
+    companyName: string;
+    stallNumber: string;
+    prelistedStudents: StudentData[];
+    walkinStudents: StudentData[];
+    onStudentClick: (studentId: string) => void;
+}
+
+const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents, onStudentClick }: QueueCardProps) => {
+    // getStatusStyles now only needs status
+    const getStatusStyles = (status: string, type: string) => {
+        if (type === 'prelisted') {
+            switch (status) {
+                case 'interviewing':
+                    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+                default:
+                    return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200";
+            }
+        } else { // 'walkin'
+            switch (status) {
+                case 'interviewing':
+                    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+                case 'waiting':
+                    return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
+                case 'missed':
+                    return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
+                default: // 'queued'
+                    return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
+            }
         }
     };
+
+    const renderStudentList = (students: StudentData[]) => (
+        students.map((student) => (
+            <Button
+                key={student.interviewID}
+                onClick={() => onStudentClick(student.interviewID)}
+                className={`w-full justify-start p-3 h-auto border ${getStatusStyles(student.status, student.type)}`}
+            >
+                <span className="font-semibold mr-3">{student.student.regNo}</span>
+                <span className="truncate">{student.student.user.first_name} {student.student.user.last_name}</span>
+            </Button>
+        ))
+    );
 
     return (
         <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full">
@@ -31,18 +106,24 @@ const QueueCard = ({ companyName, stallNumber, students }) => {
             {/* Divider Line */}
             <hr className="border-gray-200" />
 
-            {/* Queue List */}
+            {/* Pre-listed Queue */}
             <div className="flex flex-col gap-3">
-                <h3 className="font-semibold text-gray-700">Interview Queue</h3>
-                {students.map((student, i) => (
-                    <Button
-                        key={i}
-                        className={`w-full justify-start p-3 h-auto border ${getStatusStyles(student.status)}`}
-                    >
-                        <span className="font-semibold mr-3">{student.id}</span>
-                        <span className="truncate">{student.name}</span>
-                    </Button>
-                ))}
+                <h3 className="font-semibold text-blue-700">Pre-listed Queue</h3>
+                {prelistedStudents.length > 0 ? (
+                    renderStudentList(prelistedStudents)
+                ) : (
+                    <p className="text-sm text-gray-500">No pre-listed students in the queue.</p>
+                )}
+            </div>
+
+            {/* Walk-in Queue */}
+            <div className="flex flex-col gap-3">
+                <h3 className="font-semibold text-amber-700">Walk-in Queue</h3>
+                {walkinStudents.length > 0 ? (
+                    renderStudentList(walkinStudents)
+                ) : (
+                    <p className="text-sm text-gray-500">No walk-in students in the queue.</p>
+                )}
             </div>
         </Card>
     );
@@ -51,76 +132,176 @@ const QueueCard = ({ companyName, stallNumber, students }) => {
 
 // --- Main Page Component ---
 export default function ResumePage() {
-    const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
-    // The user's code didn't use this array to change the iframe, but the logic is here if needed.
-    const pdfFiles = ['1.pdf', '2.pdf', '3.pdf'];
+    const searchParams = useSearchParams();
+    const companyID = searchParams.get('companyId');
+    const stallID = searchParams.get('stallId');
 
-    // Sample data for the queue
-    const queueStudents = [
-        { id: "S2010", name: "Mohommad Umair", status: "interviewing" },
-        { id: "S2011", name: "Alia Hassan", status: "waiting" },
-        { id: "S2012", name: "Kenji Tanaka", status: "missed" },
-        { id: "S2013", name: "Fatima Al-Sayed", status: "waiting" },
-        { id: "S2014", name: "Johnathan Smith", status: "queued" },
-        { id: "S2015", name: "Priya Sharma", status: "queued" },
-        { id: "S2016", name: "Carlos Rodriguez", status: "queued" },
-    ];
+    const [currentInterviewID, setCurrentInterviewID] = useState<string | null>(null);
+    const [prelistedStudents, setPrelistedStudents] = useState<StudentData[]>([]);
+    const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
 
+    const activeStudents = [...prelistedStudents, ...walkinStudents];
+    const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
+    const maxSize = 30;
 
-    const handleNext = () => {
-        setCurrentPdfIndex((prev) => (prev + 1) % pdfFiles.length);
+    const fillEmptySlots = async () => {
+        if (!companyID || !stallID) return;
+        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
+
+        if (slotsToFill > 0) {
+            console.log(`Filling ${slotsToFill} empty slots...`);
+            try {
+                const { data: newWalkins } = await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
+                console.log("New walk-ins fetched:", newWalkins);
+                // After filling slots, re-fetch the entire queue to update the UI
+                await refreshQueue();
+            } catch (error) {
+                console.error("Failed to fill empty slots:", error);
+            }
+        }
+    };
+    
+    const refreshQueue = async () => {
+        if (!stallID || !companyID) return;
+
+        setLoading(true);
+        try {
+            const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyID}/prelisted/inqueue`);
+            const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallID}/inqueue`);
+
+            setPrelistedStudents(fetchedPrelisted);
+            setWalkinStudents(fetchedWalkin);
+            
+            // Set the size state with the new data
+            // Note: The size state is not directly used in the fillEmptySlots function now, but can be useful for other UI components.
+            // Keeping it here for reference.
+            // setSize(fetchedPrelisted.length + fetchedWalkin.length);
+        } catch (error) {
+            console.error("Failed to fetch queue:", error);
+            setPrelistedStudents([]);
+            setWalkinStudents([]);
+            // setSize(0);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handlePrev = () => {
-        setCurrentPdfIndex((prev) => (prev - 1 + pdfFiles.length) % pdfFiles.length);
+    useEffect(() => {
+        if (companyID && stallID) {
+            // Initial fetch and fill
+            refreshQueue().then(() => {
+                fillEmptySlots();
+            });
+
+            // Set up a periodic refresh and fill
+            const interval = setInterval(() => {
+                refreshQueue().then(() => {
+                    fillEmptySlots();
+                });
+            }, 10000);
+            
+            return () => clearInterval(interval);
+        }
+    }, [companyID, stallID]);
+
+    const handleFinishInterview = async () => {
+        if (!currentStudent) return;
+        try {
+            await api.patch(`/interview/${currentStudent.interviewID}/complete`);
+            
+            // Re-fetch the queue to update the UI
+            await refreshQueue();
+            
+            const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
+            if (nextStudentIndex < activeStudents.length) {
+                setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
+            } else {
+                setCurrentInterviewID(null);
+            }
+            
+            // Fill empty slots immediately after an interview finishes
+            await fillEmptySlots();
+
+        } catch (error) {
+            console.error("Failed to finish interview:", error);
+        }
     };
+
+    const filteredPrelisted = selectedPreference === Preference.ALL
+        ? prelistedStudents
+        : prelistedStudents.filter((student: StudentData) => student.student.group.toUpperCase().includes(selectedPreference));
+
+    const filteredWalkin = selectedPreference === Preference.ALL
+        ? walkinStudents
+        : walkinStudents.filter((student: StudentData) => student.student.group.toUpperCase().includes(selectedPreference));
+
+    const currentStudentType = currentStudent?.type === 'walkin' ? 'Walk-in' : 'Pre-Listed';
 
     return (
         <div className="bg-transparent w-full p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">
 
-                {/* Left Section: PDF Viewer (spans 2 columns on large screens) */}
+                {/* Left Section: PDF Viewer */}
                 <div className="lg:col-span-2 flex flex-col gap-4 h-full">
-
-                    {/* Navigation Bar */}
                     <Card className="flex flex-row justify-between items-center p-3 bg-white">
-                        <Button onClick={handlePrev} variant="outline" className="hidden">
-                            ← Previous
-                        </Button>
-
-                        {/* Student Status Badge */}
                         <div className="flex items-center gap-2">
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300 py-1 px-3">
-                                Pre-Listed Student
-                            </Badge>
+                            {/* Preference Stream Dropdown */}
+                            <Select
+                                value={selectedPreference}
+                                onValueChange={(value: Preference) => setSelectedPreference(value)}
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Filter by Stream" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.values(Preference).map(pref => (
+                                        <SelectItem key={pref} value={pref}>
+                                            {pref}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {currentStudent && (
+                                <Badge className={`py-1 px-3 ${currentStudent.type === 'prelisted' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    {currentStudentType} Student
+                                </Badge>
+                            )}
                             <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 py-1 px-3">
-                                Position: 2
+                                Position: {currentStudent ? activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1 : 'N/A'}
                             </Badge>
                         </div>
-
-                        <Button onClick={handleNext} className='border bg-blue-600 text-white hover:bg-blue-700'>
+                        <Button onClick={handleFinishInterview} className='border bg-blue-600 text-white hover:bg-blue-700'>
                             Finish Interview
                         </Button>
                     </Card>
 
                     {/* PDF iframe Container */}
                     <Card className="flex-1 w-full h-full">
-                        <iframe
-                            // This URL is from your original code. The key prop ensures it re-renders on change.
-                            src={`https://drive.google.com/file/d/1PpmNJO4Ibol0gzjggzzJwBQW01fm7J7J/preview`}
-                            className="w-full h-full border-0 px-2"
-                            title={`PDF Viewer - ${pdfFiles[currentPdfIndex]}`}
-                            key={pdfFiles[currentPdfIndex]}
-                        />
+                        {currentStudent ? (
+                            <iframe
+                                src={`https://drive.google.com/file/d/1PpmNJO4Ibol0gzjggzzJwBQW01fm7J7J/preview`}
+                                className="w-full h-full border-0 px-2"
+                                title={`PDF Viewer - ${currentStudent.student.user.first_name} ${currentStudent.student.user.last_name}`}
+                                key={currentStudent.interviewID}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                                No students in the queue.
+                            </div>
+                        )}
                     </Card>
                 </div>
 
-                {/* Right Section: Queue Card (spans 1 column on large screens) */}
+                {/* Right Section: Queue Card */}
                 <div className="lg:col-span-1 h-full overflow-y-auto">
                     <QueueCard
                         companyName="MAS Holdings"
                         stallNumber="Stall 1"
-                        students={queueStudents}
+                        prelistedStudents={filteredPrelisted}
+                        walkinStudents={filteredWalkin}
+                        onStudentClick={setCurrentInterviewID}
                     />
                 </div>
             </div>

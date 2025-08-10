@@ -26,10 +26,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const studentGroups = [
-    "ZL", "BT", "CH", "MT", "BMS", "ST", "GL", "CS", "DS",
-    "ML", "BL", "MB", "CM", "AS", "ES", "SOR",
-];
+// The studentGroups array is no longer needed for the input field.
+// It's still present in the interface, but we won't use it to render the input.
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -143,7 +141,7 @@ export default function StudentList() {
         }
     };
 
-    const handleSelectChange = (name: "group" | "level", value: string) => {
+    const handleSelectChange = (name: "level", value: string) => {
         try {
             if (!editingStudent) return;
 
@@ -275,7 +273,10 @@ export default function StudentList() {
                                 <InputField label="Contact" name="contact" value={editingStudent.student.contact} onChange={handleInputChange} section="student" />
                                 <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
                                 <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
-                                <SelectField label="Group" value={editingStudent.student.group} options={studentGroups} onChange={(val) => handleSelectChange("group", val)} />
+                                
+                                {/* New Input field for Student Group */}
+                                <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
+
                                 <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />
                             </div>
 
