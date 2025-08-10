@@ -125,7 +125,6 @@ export default function StudentProfileCard() {
     if (!data.regNo?.trim()) errors.push("Registration number is required");
     if (!data.nic?.trim()) errors.push("NIC is required");
     if (!data.contact?.trim()) errors.push("Contact number is required");
-    if (!data.group) errors.push("Group is required");
     if (!data.level) errors.push("Level is required");
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -165,7 +164,6 @@ export default function StudentProfileCard() {
     addIfValid(updatePayload, 'nic', editData.nic);
     addIfValid(updatePayload, 'linkedin', editData.linkedin);
     addIfValid(updatePayload, 'contact', editData.contact);
-    addIfValid(updatePayload, 'group', editData.group);
     addIfValid(updatePayload, 'level', editData.level);
 
     // Handle user data
@@ -222,9 +220,6 @@ export default function StudentProfileCard() {
             {profileData.user.first_name} {profileData.user.last_name}
           </CardTitle>
           <div className="flex items-center gap-2 m-auto">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              {profileData.group}
-            </Badge>
             <Badge variant="outline" className="border-gray-300">
               {profileData.level.replace('level_', 'Level ')}
             </Badge>
@@ -322,25 +317,6 @@ export default function StudentProfileCard() {
                     />
                   </div>
 
-                  {/* Email */}
-
-                  {/* Group Dropdown */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="group" className="text-right font-medium">Group</Label>
-                    <select
-                      id="group"
-                      value={editData.group}
-                      onChange={e => handleInputChange('group', e.target.value)}
-                      className="col-span-3 rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="" disabled>Select group</option>
-                      {Object.values(StudentGroup).map(group => (
-                        <option key={group} value={group}>{group}</option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Level Dropdown */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="level" className="text-right font-medium">Level</Label>
@@ -427,9 +403,8 @@ export default function StudentProfileCard() {
                   Cancel
                 </Button>
                 <Button 
-                  type="submit" 
-                  onClick={handleSave} 
-                  className="bg-blue-600 hover:bg-blue-700"
+                  variant="outline"
+                  onClick={handleSave}
                   disabled={saving}
                 >
                   {saving ? "Saving..." : "Save Changes"}

@@ -205,15 +205,9 @@ const RegisteredQueues = () => {
     const isUpdating = updatingPreference === i.interviewID;
 
     return (
-      <Card key={i.interviewID} className="mb-2 last:mb-0">
+      <Card key={i.companyID} className="mb-2 last:mb-0">
         <CardHeader>
           <CardTitle>{c.companyName}</CardTitle>
-          <CardDescription>
-            Stream:
-            <Badge className={`ml-1 ${streamColor(c.stream)}`}>
-              {c.stream}
-            </Badge>
-          </CardDescription>
         </CardHeader>
         <div className="p-6 pt-0 space-y-3">
           {/* Preference Selector */}
@@ -260,7 +254,7 @@ const RegisteredQueues = () => {
     const c = companyByID(i.companyID);
     const cfg = btnForStatus(i.status);
     return (
-      <Card key={i.interviewID} className="mb-2 last:mb-0">
+      <Card key={i.companyID} className="mb-2 last:mb-0">
         <CardHeader>
           <CardTitle>{c.companyName}</CardTitle>
           <CardDescription>

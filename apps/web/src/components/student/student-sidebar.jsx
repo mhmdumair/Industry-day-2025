@@ -35,7 +35,7 @@ const StudentSidebar = () => {
   }));
 
   return (
-    <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+    <Sidebar variant="sidebar" className="min-h-screen bg-black border-slate-700">
       <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
 
       <SidebarContent className="bg-slate-100">

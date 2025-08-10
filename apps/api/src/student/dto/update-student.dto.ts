@@ -1,6 +1,6 @@
 import { ValidateNested, IsOptional, IsString, IsEnum, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UpdateUserDto } from '../../user/dto/updateUser.dto'; // You should define this too
+import { UpdateUserDto } from '../../user/dto/updateUser.dto';
 import { StudentLevel } from '../entities/student.entity';
 
 export class UpdateStudentDto {
