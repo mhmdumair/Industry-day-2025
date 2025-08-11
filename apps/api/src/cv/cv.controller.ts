@@ -12,6 +12,7 @@ import {
 import { CvService } from './cv.service';
 import { CreateCvDto } from './dto/create-cv.dto';
 import { UpdateCvDto } from './dto/update-cv.dto';
+import { CreateCvByRegnoDto } from './dto/create-cv.dto'; 
 
 @Controller('cv')
 export class CvController {
@@ -25,6 +26,11 @@ export class CvController {
   @Post('bulk')
   async bulkCreate(@Body(ValidationPipe) createCvDtos: CreateCvDto[]) {
     return this.cvService.bulkCreate(createCvDtos);
+  }
+
+  @Post('bulk/by-regno') 
+  async bulkCreateByRegNo(@Body(ValidationPipe) createCvByRegnoDtos: CreateCvByRegnoDto[]) {
+    return this.cvService.bulkCreateByRegNo(createCvByRegnoDtos);
   }
 
   @Get()

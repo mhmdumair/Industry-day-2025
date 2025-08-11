@@ -150,6 +150,7 @@ export default function ResumePage() {
     const [stallNumber, setStallNumber] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
+    const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
@@ -166,7 +167,20 @@ export default function ResumePage() {
             setStallNumber(stallResponse.data.stallNumber);
         } catch (error) {
             console.error("Failed to fetch company or stall data:", error);
-            // Handle error, e.g., set default names or show an error message
+        }
+    };
+    
+    const fetchCvFileName = async (studentId: string) => {
+        try {
+            const { data } = await api.get(`/cv/student/${studentId}`);
+            if (data.length > 0) {
+                setCurrentCvFileName(data.fileName);
+            } else {
+                setCurrentCvFileName(null);
+            }
+        } catch (error) {
+            console.error(`Failed to fetch CV for student ${studentId}:`, error);
+            setCurrentCvFileName(null);
         }
     };
 
@@ -196,6 +210,12 @@ export default function ResumePage() {
 
             setPrelistedStudents(fetchedPrelisted);
             setWalkinStudents(fetchedWalkin);
+            
+            if (!currentInterviewID && fetchedPrelisted.length > 0) {
+                setCurrentInterviewID(fetchedPrelisted[0].interviewID);
+            } else if (!currentInterviewID && fetchedWalkin.length > 0) {
+                setCurrentInterviewID(fetchedWalkin[0].interviewID);
+            }
 
         } catch (error) {
             console.error("Failed to fetch queue:", error);
@@ -205,10 +225,17 @@ export default function ResumePage() {
             setLoading(false);
         }
     };
+        const handleStudentClick = (interviewId: string) => {
+        setCurrentInterviewID(interviewId);
+        const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
+        if (selectedStudent) {
+            fetchCvFileName(selectedStudent.studentID);
+        }
+    };
 
     useEffect(() => {
         if (companyID && stallID) {
-            fetchCompanyAndStallData(); // Fetch company and stall info once
+            fetchCompanyAndStallData();
             refreshQueue().then(() => {
                 fillEmptySlots();
             });
@@ -223,6 +250,12 @@ export default function ResumePage() {
         }
     }, [companyID, stallID]);
 
+    useEffect(() => {
+        if (currentStudent) {
+            fetchCvFileName(currentStudent.studentID);
+        }
+    }, [currentStudent]);
+
     const handleFinishInterview = async () => {
         if (!currentStudent) return;
         try {
@@ -233,8 +266,10 @@ export default function ResumePage() {
             const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
             if (nextStudentIndex < activeStudents.length) {
                 setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
+                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID); 
             } else {
                 setCurrentInterviewID(null);
+                setCurrentCvFileName(null);
             }
             
             await fillEmptySlots();
@@ -253,6 +288,10 @@ export default function ResumePage() {
         : walkinStudents.filter((student: StudentData) => student.student.group.toUpperCase().includes(selectedPreference));
 
     const currentStudentType = currentStudent?.type === 'walkin' ? 'Walk-in' : 'Pre-Listed';
+    
+    const pdfSource = currentCvFileName 
+        ? `https://drive.google.com/file/d/${currentCvFileName}/preview` 
+        : 'about:blank'; 
 
     return (
         <div className="bg-transparent w-full p-4 lg:p-6">
@@ -296,7 +335,7 @@ export default function ResumePage() {
                     <Card className="flex-1 w-full h-full">
                         {currentStudent ? (
                             <iframe
-                                src={`https://drive.google.com/file/d/1PpmNJO4Ibol0gzjggzzJwBQW01fm7J7J/preview`}
+                                src={pdfSource}
                                 className="w-full h-full border-0 px-2"
                                 title={`PDF Viewer - ${currentStudent.student.user.first_name} ${currentStudent.student.user.last_name}`}
                                 key={currentStudent.interviewID}
@@ -316,7 +355,7 @@ export default function ResumePage() {
                         stallNumber={stallNumber}
                         prelistedStudents={filteredPrelisted}
                         walkinStudents={filteredWalkin}
-                        onStudentClick={setCurrentInterviewID}
+                        onStudentClick={handleStudentClick} // Use the new handler
                     />
                 </div>
             </div>
