@@ -16,12 +16,12 @@ import Navbar from "@/components/home/home-navbar";
 import { Description } from '@radix-ui/react-dialog';
 
 const departmentData = [
-    { department: "Chemistry", location: "Auditorium, New Auditorium", companies: "A Baur & Co (Pvt) Ltd, Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#dc2626" }, // red
-    { department: "Science Education Unit", location: "On Site", companies: "Hemas Consumer Brands", buttonColor: "#e5d246ff" }, // yellow
-    { department: "Physics", location: "Lobby, Seminar Room", companies: "Federation for Environment Climate and Technology, MAS Holdings", buttonColor: "#003097ff" }, // blue
-    { department: "Mathematics", location: "M5", companies: "Aayu Technologies", buttonColor: "#a855f7" }, // purple
-    { department: "Molecular Biology", location: "Upper Theater", companies: "Sands Active Pvt Ltd", buttonColor: "#f97316" }, // orange
-    { department: "Qbits", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
+    { department: "Chemistry", location: "Auditorium; New Auditorium; Tutorial Room 1", companies: "A Baur & Co (Pvt) Ltd (Main); Noritake Lanka Porcelain (Pvt) Ltd; Avenir IT (Pvt) Ltd", buttonColor: "#dc2626" }, // red
+    { department: "Science Education Unit", location: "SEU 208; ELTU 210; SEU 309", companies: "Hemas Consumer Brands; Federation for Environment Climate and Technology; Aayu Technologies", buttonColor: "#e5d246ff" }, // yellow
+    { department: "Physics", location: "Smart Room; Seminar Room; 'Dumb' Room", companies: "MAS Holdings; Sands Active (Pvt) Ltd; OCTAVE", buttonColor: "#003097ff" }, // blue
+    { department: "Geology", location: "Seminar Room; Room 1; Room 2", companies: "LiveRoom Technologies; Creative Software; Hutch", buttonColor: "#a855f7" }, // purple
+    { department: "QBITS", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
+    { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeCodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
 ];
 
 export default function page() {
@@ -69,22 +69,22 @@ export default function page() {
                         code: "PHY"
                     },
                     {
-                        lat: 7.259932114279001,
-                        lng: 80.59834497379939,
-                        name: "Department of Mathematics",
-                        code: "MATH"
-                    },
-                    {
-                        lat: 7.258914631879946,
-                        lng: 80.59784414737696,
-                        name: "Department of Molecular Biology",
-                        code: "MB"
+                        lat: 7.259187320966107,
+                        lng: 80.5962341394956,
+                        name: "Department of Geology",
+                        code: "GEO"
                     },
                     {
                         lat: 7.259834952551038,
                         lng: 80.599024075498,
                         name: "QBITS",
                         code: "QB"
+                    },
+                    {
+                        lat: 7.258617903568317,
+                        lng: 80.59660186860907,
+                        name: "Postgraduate Institute of Science",
+                        code: "PGIS"
                     },
                 ];
 
@@ -180,8 +180,8 @@ export default function page() {
                                         <TableCell className="text-sm sm:text-base" colSpan={2}>
                                             <div className="space-y-1">
                                                 {(() => {
-                                                    const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
-                                                    const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                    const locations = item.location.split(';').map(loc => loc.trim()).filter(Boolean);
+                                                    const companies = item.companies.split(';').map(comp => comp.trim()).filter(Boolean);
                                                     const count = Math.max(locations.length, companies.length);
 
                                                     return Array.from({ length: count }).map((_, i) => {
@@ -240,8 +240,8 @@ export default function page() {
                                         <p className="text-sm text-gray-700 font-medium mb-1">Location & Company:</p>
                                         <div className="text-sm text-gray-600 leading-relaxed break-words space-y-1">
                                             {(() => {
-                                                const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
-                                                const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                const locations = item.location.split(';').map(loc => loc.trim()).filter(Boolean);
+                                                const companies = item.companies.split(';').map(comp => comp.trim()).filter(Boolean);
                                                 const count = Math.max(locations.length, companies.length);
 
                                                 return Array.from({ length: count }).map((_, i) => {
