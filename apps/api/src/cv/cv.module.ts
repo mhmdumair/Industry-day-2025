@@ -4,12 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CvController } from './cv.controller';
 import { CvService } from './cv.service';
 import { Student, StudentCv } from '../typeorm/entities';
-import { PDFStorageService } from '../lib/services/pdf-storage.service'; // Updated path
+import { StudentModule } from 'src/student/student.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([StudentCv,Student])],
+  imports: [TypeOrmModule.forFeature([StudentCv,Student]),StudentModule],
   controllers: [CvController],
-  providers: [CvService, PDFStorageService],
-  exports: [PDFStorageService],
+  providers: [CvService],
 })
 export class CvModule {}

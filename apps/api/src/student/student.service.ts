@@ -14,23 +14,35 @@ export class StudentService {
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
-    try {
-      const createdUser = await this.userService.createUser(createStudentDto.user);
+    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      // @ts-ignore
-      const student = this.studentRepository.create({
+    try {
+      const createdUser = await this.userService.createUserTransactional(
+        createStudentDto.user,
+        queryRunner.manager
+      );
+
+      const student = queryRunner.manager.create(Student, {
         ...createStudentDto.student,
         userID: createdUser.userID,
       });
 
-      // @ts-ignore
-      return await this.studentRepository.save(student);
+      const savedStudent = await queryRunner.manager.save(Student, student);
+      
+      await queryRunner.commitTransaction();
+      return savedStudent;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to create student');
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        `Failed to create student: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  // New method to create multiple students
   async createBulk(createStudentDtos: CreateStudentDto[]): Promise<{
     successful: Student[];
     failed: { index: number; dto: CreateStudentDto; error: string }[];
@@ -96,6 +108,17 @@ export class StudentService {
     }
   }
 
+  async findByRegNo(regNo: string): Promise<Student | null> {
+    try {
+      return await this.studentRepository.findOne({ 
+        where: { regNo: regNo },
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch student by registration number');
+    }
+  }
+
   async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
     try {
       const where: any = {};
@@ -111,11 +134,12 @@ export class StudentService {
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
-  try {
-    const student = await this.studentRepository.findOne({
-      where: { studentID: id },
-      relations: ['user'],
-    });
+    
+    try {
+      const student = await this.studentRepository.findOne({
+        where: { studentID: id },
+        relations: ['user'],
+      });
 
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);
@@ -131,7 +155,25 @@ export class StudentService {
   }
 }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const student = await this.studentRepository.findOne({ 
+        where: { studentID: id } 
+      });
+      
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${id} not found`);
+      }
+      
+      await this.studentRepository.remove(student);
+      return { message: `Student ${id} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove student');
+    }
   }
+
+  
 }

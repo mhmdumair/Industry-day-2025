@@ -1,28 +1,20 @@
-import { Controller, Get, UseGuards, Req, Res, NotFoundException } from '@nestjs/common';
+import {Controller, Get, UseGuards, Req, Res, UnauthorizedException, Post} from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/google-auth.guard';
-import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
-import { StudentService } from '../student/student.service';
-import { CompanyService } from 'src/company/company.service';
-import { AdminService } from 'src/admin/admin.service';
-import { RoomAdminService } from 'src/room-admin/room-admin.service';
+import { Response } from 'express';
+import {LocalAuthGuard} from "./utils/local-auth.gaurd";
 
+interface AuthenticatedRequest extends Request {
+  user: {
+    userID: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-      private readonly authService: AuthService,
-      private readonly usersService: UserService,
-      private readonly studentService: StudentService,
-      private readonly companyService:CompanyService,
-      private readonly adminService : AdminService,
-      private readonly roomAdminService :RoomAdminService,
-  ) {}
-
-  @Get('hello')
-  getHello() {
-    return this.authService.getHello();
-  }
+  // The controller no longer needs all the extra services for this flow
+  constructor() {}
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
@@ -32,41 +24,43 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req, @Res() res) {
-    const googleUser = req.user;
+  async handleRedirect(@Req() req: AuthenticatedRequest, @Res() res: Response) {
 
     try {
-      let user = await this.usersService.fetchUserByEmail(googleUser.email);
+      const user = req.user;
 
-      if (!user) {
-        throw new NotFoundException("User not found")
-        
-      }
-      
-      if(user.role.toLowerCase()==="student"){
-        return res.redirect(
-          `http://localhost:3000/home?id=${user.userID}`)
-      }
-      else if(user.role.toLowerCase()==="company"){
-        return res.redirect(
-          `http://localhost:3000/home?id=${user.userID}`)
-      }
-      else if(user.role.toLowerCase()==="admin"){
-        return res.redirect(
-          `http://localhost:3000/home?id=${user.userID}`)
-      }
-      else{
-        return res.redirect(
-          `http://localhost:3000/home?id=${user.userID}`)
-      }
-      
+      // The logic for redirecting based on role can stay the same
+      return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
+
     } catch (error) {
-      console.error('Authentication failed:', error.message);
+      console.error('Redirect failed:', error.message);
+
+      const message = (error instanceof UnauthorizedException)
+          ? error.message
+          : 'An unexpected error occurred during login.';
+
       return res.redirect(
-          `http://localhost:3000/auth/error?message=${encodeURIComponent(
-              error.message,
-          )}`,
+          `http://localhost:3000/login?error=${encodeURIComponent(message)}`,
       );
     }
   }
+
+  @Post('login')
+@UseGuards(LocalAuthGuard)
+async login(@Req() req: AuthenticatedRequest) {
+  const user = req.user;
+  
+  // Return JSON response instead of redirect
+  return {
+    success: true,
+    message: 'Login successful',
+    user: {
+      userID: user.userID,
+      email: user.email,
+      role: user.role
+    },
+    redirectUrl: `http://localhost:3000/home?id=${user.userID}`
+  };
+}
+
 }

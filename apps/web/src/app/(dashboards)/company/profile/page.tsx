@@ -14,13 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Phone, User, Building } from "lucide-react";
+import { MapPin, Globe, Phone, User, Building } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
 
-
-// Types: define interfaces according to your student data structure
+// Types
 export interface User {
   userID: string;
   email: string;
@@ -32,94 +32,140 @@ export interface User {
   updated_at: string;
 }
 
-export interface StudentProfile {
-  studentID: string;
+export interface CompanyProfile {
+  companyID: string;
   userID: string;
-  regNo: string;
-  nic: string;
-  linkedin: string | null;
-  contact: string;
-  group: string;
-  level: string;
-  created_at: string;
-  updated_at: string;
+  companyName: string;
+  description: string;
+  contactPersonName: string;
+  contactPersonDesignation: string;
+  contactNumber: string;
+  logo: string;
+  stream: string;
+  sponsership: string;
+  location: string;
+  companyWebsite: string;
   user: User;
 }
 
+export enum CompanyStream {
+  ZL = 'ZL',
+  BT = 'BT',
+  CH = 'CH',
+  MT = 'MT',
+  BMS = 'BMS',
+  ST = 'ST',
+  GL = 'GL',
+  CS = 'CS',
+  DS = 'DS',
+  ML = 'ML',
+  BL = 'BL',
+  MB = 'MB',
+  CM = 'CM',
+  AS = 'AS',
+  ES = 'ES',
+  SOR = 'SOR',
+}
 
-export default function StudentProfileCard() {
-  const searchParams = useSearchParams();
-  const studentId = searchParams.get("studentId"); // Adjust your query param name as needed
+// Helper function to ensure string values are never null
+const safeString = (value: string | null | undefined): string => {
+  return value || '';
+};
 
-  const [profileData, setProfileData] = useState<StudentProfile | null>(null);
-  const [editData, setEditData] = useState<StudentProfile | null>(null);
+export default function ProfileCard() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [profileData, setProfileData] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get("companyId");
 
-  // Fetch student data on mount or when studentId changes
+
+  // For editing—use a copy so user cancels don't affect display
+  const [editData, setEditData] = useState<CompanyProfile | null>(null);
+
   useEffect(() => {
-    if (!studentId) {
-      setError("No studentId provided in URL.");
-      setLoading(false);
-      return;
-    }
     setLoading(true);
-    api.get<StudentProfile>(`/student/${studentId}`)
-      .then((res) => {
-        setProfileData(res.data);
-        setEditData(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch student profile.");
-        setLoading(false);
-      });
-  }, [studentId]);
+    api
+        .get<CompanyProfile>(`/company/${companyId}`)
+        .then((res) => {
+          // Ensure all string fields are not null
+          const sanitizedData = {
+            ...res.data,
+            companyName: safeString(res.data.companyName),
+            description: safeString(res.data.description),
+            contactPersonName: safeString(res.data.contactPersonName),
+            contactPersonDesignation: safeString(res.data.contactPersonDesignation),
+            contactNumber: safeString(res.data.contactNumber),
+            logo: safeString(res.data.logo),
+            stream: safeString(res.data.stream),
+            location: safeString(res.data.location),
+            companyWebsite: safeString(res.data.companyWebsite),
+          };
+          setProfileData(sanitizedData);
+          setEditData(sanitizedData); // Set editing data as well for dialog
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError("Failed to fetch company profile.");
+          setLoading(false);
+        });
+  }, [companyId]);
 
-  // Update editData; supports nested user fields like 'user.first_name'
-  const handleInputChange = (field: string, value: string) => {
-    if (field.startsWith("user.")) {
-      const userField = field.split(".")[1];
-      setEditData(prev => prev ? { ...prev, user: { ...prev.user, [userField]: value } } : prev);
-    } else {
-      setEditData(prev => prev ? { ...prev, [field]: value } : prev);
-    }
+  // Update editData—not profileData!
+  const handleInputChange = <K extends keyof CompanyProfile>(
+      field: K,
+      value: CompanyProfile[K]
+  ) => {
+    setEditData((prev) =>
+        prev ? { ...prev, [field]: value } : prev
+    );
   };
 
-  // Open edit dialog and copy latest profileData to editData
+  // When opening dialog, copy latest data and ensure no null values
   const handleEditOpen = () => {
-    setEditData(profileData);
+    if (profileData) {
+      const sanitizedEditData = {
+        ...profileData,
+        companyName: safeString(profileData.companyName),
+        description: safeString(profileData.description),
+        contactPersonName: safeString(profileData.contactPersonName),
+        contactPersonDesignation: safeString(profileData.contactPersonDesignation),
+        contactNumber: safeString(profileData.contactNumber),
+        logo: safeString(profileData.logo),
+        stream: safeString(profileData.stream),
+        location: safeString(profileData.location),
+        companyWebsite: safeString(profileData.companyWebsite),
+      };
+      setEditData(sanitizedEditData);
+    }
     setIsDialogOpen(true);
   };
 
-  // Save updated student data to API (PATCH)
   const handleSave = async () => {
-    if (!editData || !studentId) return;
-
+    if (!editData) return;
     try {
       setLoading(true);
 
-      // Prepare the data payload, omit immutable IDs
       const updatePayload = {
-        regNo: editData.regNo,
-        nic: editData.nic,
-        linkedin: editData.linkedin,
-        contact: editData.contact,
-        group: editData.group,
-        level: editData.level,
-        user: {
-          email: editData.user.email,
-          role: editData.user.role,
-          first_name: editData.user.first_name,
-          last_name: editData.user.last_name,
-          profile_picture: editData.user.profile_picture,
-        },
-      };
+        companyName: editData.companyName,
+        description: editData.description,
+        contactPersonName: editData.contactPersonName,
+        contactPersonDesignation: editData.contactPersonDesignation,
+        contactNumber: editData.contactNumber,
+        logo: editData.logo,
+        stream: editData.stream,
+        location: editData.location,
+        companyWebsite: editData.companyWebsite,
+      }
 
-      await api.patch(`/student/${studentId}`, updatePayload);
+      console.log(updatePayload);
+      await api.patch(`/company/${companyId}`, updatePayload);
 
-      setProfileData(editData);
+      setProfileData((prev) =>
+          prev ? { ...prev, ...updatePayload } : prev
+      );
+
       setIsDialogOpen(false);
       setLoading(false);
     } catch (e) {
@@ -129,204 +175,333 @@ export default function StudentProfileCard() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
-  if (!profileData) return <div>No student data found.</div>;
+  if (loading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
+        </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-destructive text-center">
+            <h2 className="text-2xl font-semibold mb-2">Error</h2>
+            <p>{error}</p>
+          </div>
+        </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-muted-foreground text-center">
+            <h2 className="text-2xl font-semibold mb-2">No Data</h2>
+            <p>No company data found.</p>
+          </div>
+        </div>
+    );
+  }
 
   return (
-    <div className="mt-3 w-80% mx-auto p-4">
-      <Card className="bg-gray-50 shadow-lg mt-3">
-        <CardHeader className="text-center items-center justify-center pb-4">
-          <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData.user.profile_picture ?? undefined} alt="Student picture" />
-          </Avatar>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            {profileData.user.first_name} {profileData.user.last_name}
-          </CardTitle>
-          <div className="flex items-center gap-2 m-auto">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              {profileData.group}
-            </Badge>
-          </div>
-          <CardDescription className="text-gray-600 mt-2">Student Profile</CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Registration No:</span>
-                <span className="text-gray-600">{profileData.regNo}</span>
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto">
+          <Card className="shadow-xl border-0 bg-card">
+            <CardHeader className="text-center pb-6">
+              <div className="flex flex-col items-center space-y-4">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-primary/10">
+                  <AvatarImage
+                      src={profileData?.user?.profile_picture || profileData.logo || "/logo/c.png"}
+                      alt="Company Logo"
+                      className="object-cover"
+                  />
+                </Avatar>
+                <div className="space-y-2">
+                  <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
+                    {profileData.contactPersonName}
+                  </CardTitle>
+                  <CardDescription className="text-base sm:text-lg text-muted-foreground">
+                    {profileData.companyName}
+                  </CardDescription>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                    {profileData.stream}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Building className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">NIC:</span>
-                <span className="text-gray-600">{profileData.nic}</span>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* Description */}
+              <div className="bg-muted/50 rounded-lg p-4 sm:p-6">
+                <h3 className="font-semibold text-foreground mb-3">About Company</h3>
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                  {profileData.description}
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Contact:</span>
-                <span className="text-gray-600">{profileData.contact}</span>
-              </div>
-            </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Email:</span>
-                <span className="text-gray-600">{profileData.user.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Linkedin:</span>
-                <a
-                  href={profileData.linkedin ?? ""}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  {profileData.linkedin ?? "—"}
-                </a>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+              {/* Contact Information Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Contact Details */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-foreground mb-4 pb-2 border-b border-border">
+                    Contact Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <User className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Contact Person
+                        </div>
+                        <div className="text-sm font-medium text-foreground break-words">
+                          {profileData.contactPersonName}
+                        </div>
+                      </div>
+                    </div>
 
-        <CardFooter className="justify-center pt-6">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" onClick={handleEditOpen}>
-                Edit Profile
-              </Button>
-            </DialogTrigger>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Building className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Designation
+                        </div>
+                        <div className="text-sm font-medium text-foreground break-words">
+                          {profileData.contactPersonDesignation}
+                        </div>
+                      </div>
+                    </div>
 
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Edit Student Profile</DialogTitle>
-                <DialogDescription>
-                  Update your information. All fields are required unless marked optional.
-                </DialogDescription>
-              </DialogHeader>
-
-              {editData && (
-                <div className="grid gap-6 py-4">
-                  {/* First Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="first-name" className="text-right font-medium">First Name</Label>
-                    <Input
-                      id="first-name"
-                      value={editData.user.first_name}
-                      onChange={(e) => handleInputChange("user.first_name", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter first name"
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="last-name" className="text-right font-medium">Last Name</Label>
-                    <Input
-                      id="last-name"
-                      value={editData.user.last_name}
-                      onChange={(e) => handleInputChange("user.last_name", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter last name"
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right font-medium">Email</Label>
-                    <Input
-                      id="email"
-                      value={editData.user.email}
-                      onChange={(e) => handleInputChange("user.email", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter email"
-                    />
-                  </div>
-
-                  {/* Contact Number */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contact-number" className="text-right font-medium">Contact Number</Label>
-                    <Input
-                      id="contact-number"
-                      value={editData.contact}
-                      onChange={(e) => handleInputChange("contact", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter contact number"
-                      type="tel"
-                    />
-                  </div>
-
-                  {/* NIC */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nic" className="text-right font-medium">NIC</Label>
-                    <Input
-                      id="nic"
-                      value={editData.nic}
-                      onChange={(e) => handleInputChange("nic", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter NIC"
-                    />
-                  </div>
-
-                  {/* Registration Number */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="reg-number" className="text-right font-medium">Registration No</Label>
-                    <Input
-                      id="reg-number"
-                      value={editData.regNo}
-                      onChange={(e) => handleInputChange("regNo", e.target.value)}
-                      className="col-span-3"
-                      placeholder="S20000"
-                    />
-                  </div>
-
-                  {/* Linkedin */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="linkedin" className="text-right font-medium">Linkedin</Label>
-                    <Input
-                      id="linkedin"
-                      value={editData.linkedin ?? ""}
-                      onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                      className="col-span-3"
-                      placeholder="https://www.linkedin.com"
-                      type="url"
-                    />
-                  </div>
-
-                  {/* Profile Picture URL */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="profile-picture" className="text-right font-medium">
-                      Profile Picture
-                      <span className="text-xs text-gray-500 block">Optional</span>
-                    </Label>
-                    <Input
-                      id="profile-picture"
-                      value={editData.user.profile_picture ?? ""}
-                      onChange={(e) => handleInputChange("user.profile_picture", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter Profile Picture URL"
-                      type="url"
-                    />
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Phone className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Phone
+                        </div>
+                        <div className="text-sm font-medium text-foreground">
+                          <a href={`tel:${profileData.contactNumber}`} className="hover:text-primary transition-colors">
+                            {profileData.contactNumber}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                  Save Changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardFooter>
-      </Card>
-    </div>
+                {/* Company Details */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-foreground mb-4 pb-2 border-b border-border">
+                    Company Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Location
+                        </div>
+                        <div className="text-sm font-medium text-foreground break-words">
+                          {profileData.location}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Website
+                        </div>
+                        <div className="text-sm font-medium">
+                          <a
+                              href={profileData.companyWebsite}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary/80 transition-colors break-all"
+                          >
+                            {profileData.companyWebsite}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="justify-center pt-6 pb-8">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                      onClick={handleEditOpen}
+                      className="w-full sm:w-auto px-8"
+                  >
+                    Edit Profile
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto mx-4">
+                  <DialogHeader>
+                    <DialogTitle>Edit Company Profile</DialogTitle>
+                    <DialogDescription>
+                      Update your company information. All fields are required unless marked optional.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {editData && (
+                      <div className="grid gap-6 py-4">
+                        {/* Company Name */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-name" className="font-medium sm:text-right">
+                            Company Name
+                          </Label>
+                          <Input
+                              id="company-name"
+                              value={safeString(editData.companyName)}
+                              onChange={(e) => handleInputChange("companyName", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter company name"
+                          />
+                        </div>
+
+                        {/* Company Stream */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-stream" className="font-medium sm:text-right">
+                            Stream
+                          </Label>
+                          <select
+                              id="company-stream"
+                              value={safeString(editData.stream)}
+                              onChange={(e) => handleInputChange("stream", e.target.value as CompanyStream)}
+                              className="sm:col-span-3 rounded-md border border-input px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                          >
+                            <option value="" disabled>
+                              Select stream
+                            </option>
+                            {Object.entries(CompanyStream).map(([key, val]) => (
+                                <option key={key} value={val}>
+                                  {val}
+                                </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Contact Person Name */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="contact-person" className="font-medium sm:text-right">
+                            Contact Person
+                          </Label>
+                          <Input
+                              id="contact-person"
+                              value={safeString(editData.contactPersonName)}
+                              onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter contact person name"
+                          />
+                        </div>
+
+                        {/* Contact Person Designation */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="designation" className="font-medium sm:text-right">
+                            Designation
+                          </Label>
+                          <Input
+                              id="designation"
+                              value={safeString(editData.contactPersonDesignation)}
+                              onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter designation"
+                          />
+                        </div>
+
+                        {/* Contact Number */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="contact-number" className="font-medium sm:text-right">
+                            Contact Number
+                          </Label>
+                          <Input
+                              id="contact-number"
+                              value={safeString(editData.contactNumber)}
+                              onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter contact number"
+                              type="tel"
+                          />
+                        </div>
+
+                        {/* Location */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="location" className="font-medium sm:text-right">
+                            Location
+                          </Label>
+                          <Input
+                              id="location"
+                              value={safeString(editData.location)}
+                              onChange={(e) => handleInputChange("location", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter company location"
+                          />
+                        </div>
+
+                        {/* Company Website */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="website" className="font-medium sm:text-right">
+                            Website
+                          </Label>
+                          <Input
+                              id="website"
+                              value={safeString(editData.companyWebsite)}
+                              onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="https://www.company.com"
+                              type="url"
+                          />
+                        </div>
+
+                        {/* Logo URL */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                          <Label htmlFor="logo" className="font-medium sm:text-right">
+                            Logo URL
+                            <span className="block text-xs text-muted-foreground font-normal">Optional</span>
+                          </Label>
+                          <Input
+                              id="logo"
+                              value={safeString(editData.logo)}
+                              onChange={(e) => handleInputChange("logo", e.target.value)}
+                              className="sm:col-span-3"
+                              placeholder="Enter logo URL"
+                              type="url"
+                          />
+                        </div>
+
+                        {/* Description */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-4">
+                          <Label htmlFor="description" className="font-medium sm:text-right mt-2">
+                            Description
+                          </Label>
+                          <Textarea
+                              id="description"
+                              value={safeString(editData.description)}
+                              onChange={(e) => handleInputChange("description", e.target.value)}
+                              className="sm:col-span-3 min-h-[120px]"
+                              placeholder="Enter company description"
+                          />
+                        </div>
+                      </div>
+                  )}
+
+                  <DialogFooter className="flex-col sm:flex-row gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
+                      Cancel
+                    </Button>
+                    <Button type="submit" onClick={handleSave} className="w-full sm:w-auto">
+                      Save Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
   );
 }

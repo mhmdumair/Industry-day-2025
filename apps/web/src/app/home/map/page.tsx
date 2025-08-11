@@ -13,15 +13,15 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/home-navbar";
+import { Description } from '@radix-ui/react-dialog';
 
 const departmentData = [
-    { department: "Computer Science", companies: "Google, Microsoft", buttonColor: "#ef4444" },
-    { department: "Mathematics", companies: "Deloitte, PWC", buttonColor: "#3b82f6" },
-    { department: "Physics", companies: "Tesla, SpaceX", buttonColor: "#10b981" },
-    { department: "Chemistry", companies: "Pfizer, DuPont", buttonColor: "#f59e0b" },
-    { department: "Biology", companies: "Roche, Merck", buttonColor: "#8b5cf6" },
-    { department: "Statistics", companies: "Nielsen, Palantir", buttonColor: "#ec4899" },
-    { department: "Geology", companies: "ExxonMobil, Rio Tinto", buttonColor: "#14b8a6" },
+    { department: "Chemistry", location: "Auditorium, New Auditorium", companies: "A Baur & Co (Pvt) Ltd, Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#dc2626" }, // red
+    { department: "Science Education Unit", location: "On Site", companies: "Hemas Consumer Brands", buttonColor: "#e5d246ff" }, // yellow
+    { department: "Physics", location: "Lobby, Seminar Room", companies: "Federation for Environment Climate and Technology, MAS Holdings", buttonColor: "#003097ff" }, // blue
+    { department: "Mathematics", location: "M5", companies: "Aayu Technologies", buttonColor: "#a855f7" }, // purple
+    { department: "Molecular Biology", location: "Upper Theater", companies: "Sands Active Pvt Ltd", buttonColor: "#f97316" }, // orange
+    { department: "Qbits", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
 ];
 
 export default function page() {
@@ -49,33 +49,60 @@ export default function page() {
                 window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
 
                 // Department locations (approximate positions within the faculty)
-                const departments = [
+                const rawDepartments = [
                     {
-                        lat: 7.258993569138258,
-                        lng: 80.59856013481138,
+                        lat: 7.259110149863792,
+                        lng: 80.59855413180149,
                         name: "Department of Chemistry",
-                        description: "",
-                        color: departmentData.find(d => d.department === "Chemistry")?.buttonColor,
                         code: "CHEM"
                     },
                     {
-                        lat: 7.259639093821609,
-                        lng: 80.5985844623975,
-                        name: "Department of Physics",
-                        color: "#0284c7",
-                        code: "PHYS"
+                        lat: 7.258786107127077,
+                        lng: 80.59858899128251,
+                        name: "Science Education Unit",
+                        code: "SEU"
                     },
                     {
-                        lat: 7.261154599947815,
-                        lng: 80.60082147680663,
-                        name: "Department of Statistics and Computer Science",
-                        color: "#7c3aed",
-                        code: "STAT"
-                    }
+                        lat: 7.25966946285262,
+                        lng: 80.59831004155818,
+                        name: "Department of Physics",
+                        code: "PHY"
+                    },
+                    {
+                        lat: 7.259932114279001,
+                        lng: 80.59834497379939,
+                        name: "Department of Mathematics",
+                        code: "MATH"
+                    },
+                    {
+                        lat: 7.258914631879946,
+                        lng: 80.59784414737696,
+                        name: "Department of Molecular Biology",
+                        code: "MB"
+                    },
+                    {
+                        lat: 7.259834952551038,
+                        lng: 80.599024075498,
+                        name: "QBITS",
+                        code: "QB"
+                    },
                 ];
 
+                // Merge data from departmentData
+                const departments = rawDepartments.map(dep => {
+                    const match = departmentData.find(d =>
+                        dep.name.toLowerCase().includes(d.department.toLowerCase())
+                    );
+
+                    return {
+                        ...dep,
+                        color: match?.buttonColor || "#000000",
+                        description: match ? `Location: ${match.location}` : "Location: N/A",
+                    };
+                });
+
                 // Add department markers
-                departments.forEach(dept => {
+                 departments.forEach(dept => {
                     const marker = window.L.marker([dept.lat, dept.lng], {
                         icon: window.L.divIcon({
                             html: `<div style="background-color: ${dept.color}; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; font-size: 8px;">${dept.code}</div>`,
@@ -116,13 +143,13 @@ export default function page() {
                     <div className="hidden sm:block">
                         <Table>
                             <TableCaption className="text-xs sm:text-sm lg:text-base">
-                                Participating departments and their associated companies for Industry Day 2025.
+                                Participating companies and their associated locations for Industry Day 2025.
                             </TableCaption>
                             <TableHeader>
                                 <TableRow className='bg-slate-400'>
                                     <TableHead className="w-[40px] sm:w-[60px] text-black text-center"></TableHead>
                                     <TableHead className="w-[150px] sm:w-[200px] lg:w-[250px] text-black">Department</TableHead>
-                                    <TableHead className="text-black">Companies</TableHead>
+                                    <TableHead className="text-black">Location & Company</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -150,8 +177,24 @@ export default function page() {
                                         <TableCell className="font-medium text-sm sm:text-base">
                                             {item.department}
                                         </TableCell>
-                                        <TableCell className="text-sm sm:text-base">
-                                            {item.companies}
+                                        <TableCell className="text-sm sm:text-base" colSpan={2}>
+                                            <div className="space-y-1">
+                                                {(() => {
+                                                    const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
+                                                    const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                    const count = Math.max(locations.length, companies.length);
+
+                                                    return Array.from({ length: count }).map((_, i) => {
+                                                        const loc = locations[i] || "N/A";
+                                                        const comp = companies[i] || "N/A";
+                                                        return (
+                                                            <div key={i}>
+                                                                <span className="font-medium">{loc}:</span> {comp}
+                                                            </div>
+                                                        );
+                                                    });
+                                                })()}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -162,7 +205,7 @@ export default function page() {
                     {/* Mobile Card Layout */}
                     <div className="block sm:hidden space-y-3">
                         <div className="text-center text-sm text-gray-600 mb-4 p-2">
-                            Participating departments and their associated companies for Industry Day 2025.
+                            Participating companies and their associated locations for Industry Day 2025.
                         </div>
 
                         {departmentData.map((item) => (
@@ -192,12 +235,26 @@ export default function page() {
                                         </h3>
                                     </div>
 
-                                    {/* Companies */}
+                                    {/* Combined Location: Company */}
                                     <div className="pl-8">
-                                        <p className="text-sm text-gray-700 font-medium mb-1">Companies:</p>
-                                        <p className="text-sm text-gray-600 leading-relaxed break-words">
-                                            {item.companies}
-                                        </p>
+                                        <p className="text-sm text-gray-700 font-medium mb-1">Location & Company:</p>
+                                        <div className="text-sm text-gray-600 leading-relaxed break-words space-y-1">
+                                            {(() => {
+                                                const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
+                                                const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                const count = Math.max(locations.length, companies.length);
+
+                                                return Array.from({ length: count }).map((_, i) => {
+                                                    const loc = locations[i] || "N/A";
+                                                    const comp = companies[i] || "N/A";
+                                                    return (
+                                                        <p key={i}>
+                                                            {loc}: {comp}
+                                                        </p>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
                             </Card>

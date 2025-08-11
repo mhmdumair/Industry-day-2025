@@ -1,11 +1,9 @@
 import { ValidateNested, IsOptional, IsString, IsEnum, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UpdateUserDto } from '../../user/dto/updateUser.dto'; // You should define this too
-import { StudentGroup } from './create-student.dto';
+import { UpdateUserDto } from '../../user/dto/updateUser.dto';
 import { StudentLevel } from '../entities/student.entity';
 
 export class UpdateStudentDto {
-  // studentID and userID omitted intentionally
 
   @IsOptional()
   @IsString()
@@ -24,8 +22,8 @@ export class UpdateStudentDto {
   contact?: string;
 
   @IsOptional()
-  @IsEnum(StudentGroup)
-  group?: StudentGroup;
+  @IsString()
+  group?: string;
 
   @IsOptional()
   @IsEnum(StudentLevel)

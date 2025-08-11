@@ -10,7 +10,6 @@ export { StudentCv } from '../../cv/entities/student-cv.entity';
 // Company-related entities
 export { Company } from '../../company/entities/company.entity';
 export { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
-export { CompanyPrelist } from '../../pre-list/entities/company-prelist.entity';
 
 // Facility-related entities
 export { Room } from '../../room/entities/room.entity';
@@ -20,6 +19,7 @@ export { Interview } from '../../interview/entities/interview.entity';
 // Queue-related entities
 
 export { Announcement } from '../../announcement/entities/announcement.entity';
+export {Feedback} from "../../feedback/entities/feedback.entity"
 
 // Event-related entities
 

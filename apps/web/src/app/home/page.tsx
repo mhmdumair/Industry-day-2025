@@ -36,20 +36,17 @@ interface Sponsor {
     user: User;
 }
 
-// --- Component ---
 export default function AnnouncementsPage() {
     const [companies, setCompanies] = useState<Sponsor[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Filter companies based on sponsorship level
     const mainSponsor = companies.find(company => company.sponsership === "MAIN");
     const platinumSponsors = companies.filter(company => company.sponsership === "PLATINUM");
     const goldSponsors = companies.filter(company => company.sponsership === "GOLD");
     const silverSponsors = companies.filter(company => company.sponsership === "SILVER");
     const bronzeSponsors = companies.filter(company => company.sponsership === "BRONZE");
 
-    // Fetch companies data
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
@@ -74,7 +71,6 @@ export default function AnnouncementsPage() {
         fetchCompanies();
     }, []);
 
-    // Transform sponsor data to match dialog component expectations
     const transformSponsorData = (sponsor: Sponsor) => ({
         name: sponsor.companyName,
         description: sponsor.description,

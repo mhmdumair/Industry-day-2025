@@ -9,26 +9,9 @@ import {
 import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
 import { Stall } from '../../stall/entities/stall.entity';
 import { User } from '../../user/entities/user.entity';
-import { CompanyPrelist } from '../../pre-list/entities/company-prelist.entity';
+import { Interview } from 'src/typeorm/entities';
 
-export enum CompanyStream {
-  ZL = 'ZL',
-  BT = 'BT',
-  CH = 'CH',
-  MT = 'MT',
-  BMS = 'BMS',
-  ST = 'ST',
-  GL = 'GL',
-  CS = 'CS',
-  DS = 'DS',
-  ML = 'ML',
-  BL = 'BL',
-  MB = 'MB',
-  CM = 'CM',
-  AS = 'AS',
-  ES = 'ES',
-  SOR = 'SOR',
-}
+
 export enum CompanySponsership {
   MAIN = 'MAIN',
   GOLD = 'GOLD',
@@ -62,9 +45,6 @@ export class Company {
   @Column({ nullable: true })
   logo: string;
 
-  @Column({ type: 'enum', enum: CompanyStream })
-  stream: CompanyStream;
-
   @Column({ type: 'enum', enum: CompanySponsership })
   sponsership: CompanySponsership;
 
@@ -74,7 +54,6 @@ export class Company {
   @Column()
   companyWebsite: string;
 
-  // Relationships
   @OneToOne(() => User, (user) => user.company, { nullable: true })
   @JoinColumn({ name: 'userID' })
   user: User | null;
@@ -84,13 +63,13 @@ export class Company {
   })
   shortlist: CompanyShortlist | null;
 
-  // Fix: Change from OneToOne to OneToMany
-  @OneToMany(() => CompanyPrelist, (prelist) => prelist.company, {
-    nullable: true,
-  })
-  prelists: CompanyPrelist[] | null;
-
   @OneToMany(() => Stall, (stalls) => stalls.room, { nullable: true })
   stalls: Stall[];
+
+  @OneToMany(() => Interview, (interview) => interview.company)
+  interviews: Interview[];
+
 }
+
+
 

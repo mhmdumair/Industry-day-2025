@@ -13,18 +13,26 @@ import {Card} from "@/components/ui/card";
 const companies = ["A", "B", "C"];
 
 export default function CompanyFilter() {
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState<string | null>(null);
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
+    const [isClient, setIsClient] = useState(false);
+
+    // Set client-side flag after hydration
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     // Update time every second
     useEffect(() => {
+        if (!isClient) return;
+
         const timer = setInterval(() => {
             setCurrentDateTime(new Date());
         }, 1000);
 
         // Cleanup interval on component unmount
         return () => clearInterval(timer);
-    }, []);
+    }, [isClient]);
 
     // Format date function
     const formatDate = (date: Date) => {
@@ -70,7 +78,7 @@ export default function CompanyFilter() {
                     flex-1 text-center sm:text-left
                     font-semibold
                 ">
-                    {formatDate(currentDateTime)}
+                    {isClient ? formatDate(currentDateTime) : 'Loading...'}
                 </AlertTitle>
                 <AlertTitle className="
                     text-lg sm:text-xl lg:text-2xl
@@ -78,7 +86,7 @@ export default function CompanyFilter() {
                     font-semibold
                     tabular-nums
                 ">
-                    {formatTime(currentDateTime)}
+                    {isClient ? formatTime(currentDateTime) : 'Loading...'}
                 </AlertTitle>
             </Alert>
 
@@ -222,12 +230,13 @@ export default function CompanyFilter() {
 
                         {/* Queue */}
                         <div className="flex flex-col gap-2">
-                            <Button className="varient-outline' bg-green-200/80 text-green-700 w-full border hover:bg-green-200/80 hover:text-green-700 hover:border-green-950 border-green-950"
-                            >
+                            <Button className="variant-outline bg-green-200/80 text-green-700 w-full border hover:bg-green-200/80 hover:text-green-700 hover:border-green-950 border-green-950">
                                 S2000
                             </Button>
-                            {["S2001", "S2002", "S2003", "S2004", "S2005"].map((regNo, i) => (
-                                <Button className="varient-outline' bg-gray-200 text-gray-500 hover:bg-gray-200 w-full border border-slate-400"
+                            {["S2001", "S2002", "S2003", "S2004", "S2005"].map((regNo) => (
+                                <Button
+                                    key={regNo}
+                                    className="variant-outline bg-gray-200 text-gray-500 hover:bg-gray-200 w-full border border-slate-400"
                                 >
                                     {regNo}
                                 </Button>

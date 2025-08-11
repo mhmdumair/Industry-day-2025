@@ -12,6 +12,11 @@ export class RoomController {
     return this.roomService.create(createRoomDto);
   }
 
+  @Post('bulk')
+  bulkCreate(@Body() createRoomDtos: CreateRoomDto[]) {
+    return this.roomService.bulkCreate(createRoomDtos);
+  }
+
   @Get()
   findAll() {
     return this.roomService.findAll();

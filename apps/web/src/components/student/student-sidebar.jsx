@@ -2,6 +2,7 @@
 import {
   Home,
   Inbox,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,21 +20,22 @@ import Link from "next/link";
 
 const items = [
   { title: "Profile", url: "/student/profile", icon: Home },
-  { title: "Interviews", url: "/student/interviews", icon: Inbox },
+  { title: "Register for interviews", url: "/student/register", icon: Inbox },
+  { title: "Registered Interviews", url: "/student/interviews", icon: List },
+  { title: "Feedback", url: "/student/feedback", icon: Inbox }
 ];
 
 const StudentSidebar = () => {
   const searchParams = useSearchParams();
   const studentId = searchParams.get('studentId');
 
-  // Append studentId query parameter if present
   const itemsWithStudentId = items.map(item => ({
     ...item,
     url: studentId ? `${item.url}?studentId=${studentId}` : item.url,
   }));
 
   return (
-    <Sidebar collapsible="icon" className="min-h-screen bg-black border-slate-700">
+    <Sidebar variant="sidebar" className="min-h-screen bg-black border-slate-700">
       <SidebarHeader className="py-4 h-16 flex items-center justify-between bg-slate-100 px-3" />
 
       <SidebarContent className="bg-slate-100">

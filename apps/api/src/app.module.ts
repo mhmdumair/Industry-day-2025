@@ -17,11 +17,11 @@ import { RoomAdminModule } from './room-admin/room-admin.module';
 import { CompanyModule } from './company/company.module';
 import { RoomModule } from './room/room.module';
 import { StallModule } from './stall/stall.module';
-import { PreListModule } from './pre-list/pre-list.module';
 import { AnnouncementModule } from './announcement/announcement.module';
 import { CvModule } from './cv/cv.module';
 import { ShortlistModule } from './shortlist/shortlist.module';
 import { InterviewModule } from './interview/interview.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -55,11 +55,11 @@ import { InterviewModule } from './interview/interview.module';
     CompanyModule,
     RoomModule,
     StallModule,
-    PreListModule,
     AnnouncementModule,
     CvModule,
     ShortlistModule,
     InterviewModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],

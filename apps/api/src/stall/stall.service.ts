@@ -8,11 +8,13 @@ import { Repository } from 'typeorm';
 import { CreateStallDto } from './dto/create-stall.dto';
 import { UpdateStallDto } from './dto/update-stall.dto';
 import { Stall } from './entities/stall.entity';
+import { InterviewService } from 'src/interview/interview.service';
 
 @Injectable()
 export class StallService {
   constructor(
     @InjectRepository(Stall) private stallRepository: Repository<Stall>,
+    private interviewService : InterviewService,
   ) {}
 
   async create(createStallDto: CreateStallDto) {
@@ -95,6 +97,7 @@ export class StallService {
       });
       if (!stall) throw new NotFoundException(`Stall with ID ${id} not found`);
       await this.stallRepository.remove(stall);
+      await this.interviewService.clearWalkinsFromStall(id)
       return { message: `Stall with ID ${id} removed` };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
