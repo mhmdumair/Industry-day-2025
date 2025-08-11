@@ -14,24 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-// Enum for Preference Streams
-export enum Preference {
-    BT = "BT", //Botany
-    ZL = "ZL", //Zoology
-    CH = "CH", //Chemistry
-    MT = "MT", //Mathematics
-    BMS = "BMS", //Biomedical Science
-    ST = "ST", //Statistics
-    GL = "GL", // Geology
-    CS = "CS", //Computer Science
-    DS = "DS", //Data Science
-    ML = "ML", //Microbiology
-    CM = "CM", //Computation and Management
-    ES = "ES", //Environmental Science
-    MB = "MB", //Molecular Biology
-    PH = "PH", //Physics
-    ALL = "ALL"
-}
+
 
 // Interface for the fetched student data
 interface StudentData {
@@ -137,7 +120,6 @@ export default function ResumePage() {
     const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
     const [companyName, setCompanyName] = useState<string>('');
     const [stallNumber, setStallNumber] = useState<string>('');
-    const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
     const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
@@ -265,13 +247,6 @@ export default function ResumePage() {
         }
     };
 
-    const filteredPrelisted = selectedPreference === Preference.ALL
-        ? prelistedStudents
-        : prelistedStudents.filter((student: StudentData) => student.student.group.toUpperCase().includes(selectedPreference));
-
-    const filteredWalkin = selectedPreference === Preference.ALL
-        ? walkinStudents
-        : walkinStudents.filter((student: StudentData) => student.student.group.toUpperCase().includes(selectedPreference));
 
     const currentStudentType = currentStudent?.type === 'walkin' ? 'Walk-in' : 'Pre-Listed';
     
@@ -287,22 +262,7 @@ export default function ResumePage() {
                 <div className="lg:col-span-2 flex flex-col gap-4 h-full">
                     <Card className="flex flex-row justify-between items-center p-3 bg-white">
                         <div className="flex items-center gap-2">
-                            {/* Preference Stream Dropdown */}
-                            <Select
-                                value={selectedPreference}
-                                onValueChange={(value: Preference) => setSelectedPreference(value)}
-                            >
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter by Stream" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.values(Preference).map(pref => (
-                                        <SelectItem key={pref} value={pref}>
-                                            {pref}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                
                             {currentStudent && (
                                 <Badge className={`py-1 px-3 ${currentStudent.type === 'prelisted' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
                                     {currentStudentType} Student
@@ -339,8 +299,8 @@ export default function ResumePage() {
                     <QueueCard
                         companyName={companyName}
                         stallNumber={stallNumber}
-                        prelistedStudents={filteredPrelisted}
-                        walkinStudents={filteredWalkin}
+                        prelistedStudents={prelistedStudents}
+                        walkinStudents={walkinStudents}
                         onStudentClick={handleStudentClick}
                     />
                 </div>

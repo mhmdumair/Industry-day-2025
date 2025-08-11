@@ -56,8 +56,7 @@ const CvUploadPage = () => {
             const response = await api.post("/cv/by-regno", { regNo, fileName });
 
             if (response.status === 201) {
-                // Handle successful submission
-                setSuccessMessage(`CV for student ${response.data.student.regNo} has been created.`);
+                setSuccessMessage(`CV for student has been created.`);
                 setRegNo("");
                 setFileName("");
             }
@@ -105,7 +104,7 @@ const CvUploadPage = () => {
                             <Label htmlFor="regNo">Registration Number</Label>
                             <Input
                                 id="regNo"
-                                placeholder="e.g., s/20/534"
+                                placeholder="e.g., s/xx/xxx"
                                 value={regNo}
                                 onChange={(e) => {
                                     setRegNo(e.target.value);
@@ -118,7 +117,7 @@ const CvUploadPage = () => {
                             <Label htmlFor="fileName">File Name</Label>
                             <Input
                                 id="fileName"
-                                placeholder="e.g., student_cv.pdf"
+                                placeholder="xxxxxxxxxxxx"
                                 value={fileName}
                                 onChange={(e) => {
                                     setFileName(e.target.value);
