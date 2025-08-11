@@ -45,6 +45,15 @@ interface StudentDetails {
   regNo: string;
 }
 
+// New interfaces to match the API response for company and student details
+interface CompanyApiResponse {
+  companyName: string;
+}
+
+interface StudentApiResponse {
+  regNo: string;
+}
+
 interface Feedback {
   feedbackID: string;
   comment: string;
@@ -74,32 +83,41 @@ export default function FeedbackList() {
         } else {
           response = await api.get("/feedback");
         }
-        
+
         const initialFeedbacks: Feedback[] = response.data;
 
         const feedbacksWithDetails = await Promise.all(
           initialFeedbacks.map(async (feedback) => {
             if (feedback.user.role === "company") {
               try {
-                const companyRes = await api.get(`/company/by-user/${feedback.user.userID}`);
-                feedback.companyDetails = companyRes.data;
-              } catch (e) {
-                console.error(`Failed to fetch company details for user ${feedback.user.userID}`);
+                const companyRes = await api.get(
+                  `/company/by-user/${feedback.user.userID}`
+                );
+                // Explicitly cast the data to the correct interface
+                feedback.companyDetails = companyRes.data as CompanyApiResponse;
+              } catch {
+                console.error(
+                  `Failed to fetch company details for user ${feedback.user.userID}`
+                );
               }
             } else if (feedback.user.role === "student") {
               try {
-                const studentRes = await api.get(`/student/by-user/${feedback.user.userID}`);
-                feedback.studentDetails = studentRes.data;
-              } catch (e) {
-                console.error(`Failed to fetch student details for user ${feedback.user.userID}`);
+                const studentRes = await api.get(
+                  `/student/by-user/${feedback.user.userID}`
+                );
+                // Explicitly cast the data to the correct interface
+                feedback.studentDetails = studentRes.data as StudentApiResponse;
+              } catch {
+                console.error(
+                  `Failed to fetch student details for user ${feedback.user.userID}`
+                );
               }
             }
             return feedback;
           })
         );
-        
-        setFeedbacks(feedbacksWithDetails);
 
+        setFeedbacks(feedbacksWithDetails);
       } catch (err) {
         console.error("Failed to fetch feedback:", err);
         setError("Failed to load feedback data. Please try again.");
@@ -160,7 +178,13 @@ export default function FeedbackList() {
       </CardHeader>
       <CardContent>
         {filteredFeedbacks.length === 0 ? (
-          <div className="text-center text-gray-500 p-8">No feedback found.</div>
+          <div className="flex flex-col items-center justify-center p-16 text-gray-500">
+            <Star className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold">No Feedback Found</h3>
+            <p className="mt-2 text-center max-w-sm">
+              It seems there&apos;s no feedback to display for the selected filter.
+            </p>
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -176,15 +200,24 @@ export default function FeedbackList() {
               {filteredFeedbacks.map((feedback) => (
                 <TableRow key={feedback.feedbackID}>
                   <TableCell className="font-medium">
-                    <p>{feedback.user.first_name} {feedback.user.last_name}</p>
+                    <p>
+                      {feedback.user.first_name} {feedback.user.last_name}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {feedback.user.role === "company" && `Company: ${feedback.companyDetails?.companyName || 'N/A'}`}
-                      {feedback.user.role === "student" && `Index No: ${feedback.studentDetails?.regNo || 'N/A'}`}
-                      {feedback.user.role === "room_admin" && `Email: ${feedback.user.email}`}
+                      {feedback.user.role === "company" &&
+                        `Company: ${feedback.companyDetails?.companyName || "N/A"}`}
+                      {feedback.user.role === "student" &&
+                        `Index No: ${feedback.studentDetails?.regNo || "N/A"}`}
+                      {feedback.user.role === "room_admin" &&
+                        `Email: ${feedback.user.email}`}
                     </p>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={feedback.user.role === 'student' ? 'default' : 'secondary'}>
+                    <Badge
+                      variant={
+                        feedback.user.role === "student" ? "default" : "secondary"
+                      }
+                    >
                       {feedback.user.role}
                     </Badge>
                   </TableCell>
@@ -193,7 +226,9 @@ export default function FeedbackList() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-4 w-4 ${i < feedback.rating ? "text-yellow-400" : "text-gray-300"}`}
+                          className={`h-4 w-4 ${
+                            i < feedback.rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
                           fill={i < feedback.rating ? "currentColor" : "none"}
                         />
                       ))}
@@ -201,7 +236,7 @@ export default function FeedbackList() {
                   </TableCell>
                   <TableCell className="max-w-xs">{feedback.comment}</TableCell>
                   <TableCell className="text-right">
-                    {format(new Date(feedback.created_at), 'PPP')}
+                    {format(new Date(feedback.created_at), "PPP")}
                   </TableCell>
                 </TableRow>
               ))}

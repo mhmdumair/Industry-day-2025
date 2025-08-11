@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import api from "@/lib/axios";
 import { Card } from "@/components/ui/card";
@@ -47,17 +47,6 @@ interface StudentData {
             last_name: string;
         };
     };
-}
-
-// Interfaces for fetched company and stall data
-interface CompanyData {
-    companyName: string;
-    // other company properties
-}
-
-interface StallData {
-    stallNumber: string;
-    // other stall properties
 }
 
 interface QueueCardProps {
@@ -148,7 +137,6 @@ export default function ResumePage() {
     const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
     const [companyName, setCompanyName] = useState<string>('');
     const [stallNumber, setStallNumber] = useState<string>('');
-    const [loading, setLoading] = useState(true);
     const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
     const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
 
@@ -156,7 +144,7 @@ export default function ResumePage() {
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
     const maxSize = 15;
 
-    const fetchCompanyAndStallData = async () => {
+    const fetchCompanyAndStallData = useCallback(async () => {
         if (!companyID || !stallID) return;
 
         try {
@@ -168,42 +156,25 @@ export default function ResumePage() {
         } catch (error) {
             console.error("Failed to fetch company or stall data:", error);
         }
-    };
+    }, [companyID, stallID]);
     
-   const fetchCvFileName = async (studentId: string) => {
-    try {
-        const { data } = await api.get(`/cv/student/${studentId}`);
-        if (data && data.fileName) {
-            setCurrentCvFileName(data.fileName);
-        } else {
+    const fetchCvFileName = useCallback(async (studentId: string) => {
+        try {
+            const { data } = await api.get(`/cv/student/${studentId}`);
+            if (data && data.fileName) {
+                setCurrentCvFileName(data.fileName);
+            } else {
+                setCurrentCvFileName(null);
+            }
+        } catch (error) {
+            console.error(`Failed to fetch CV for student ${studentId}:`, error);
             setCurrentCvFileName(null);
         }
-    } catch (error) {
-        console.error(`Failed to fetch CV for student ${studentId}:`, error);
-        setCurrentCvFileName(null);
-    }
-};
+    }, []);
 
-    const fillEmptySlots = async () => {
-        if (!companyID || !stallID) return;
-        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
-
-        if (slotsToFill > 0) {
-            console.log(`Filling ${slotsToFill} empty slots...`);
-            try {
-                const { data: newWalkins } = await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
-                console.log("New walk-ins fetched:", newWalkins);
-                await refreshQueue();
-            } catch (error) {
-                console.error("Failed to fill empty slots:", error);
-            }
-        }
-    };
-    
-    const refreshQueue = async () => {
+    const refreshQueue = useCallback(async () => {
         if (!stallID || !companyID) return;
 
-        setLoading(true);
         try {
             const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyID}/prelisted/inqueue`);
             const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallID}/inqueue`);
@@ -221,17 +192,32 @@ export default function ResumePage() {
             console.error("Failed to fetch queue:", error);
             setPrelistedStudents([]);
             setWalkinStudents([]);
-        } finally {
-            setLoading(false);
         }
-    };
-        const handleStudentClick = (interviewId: string) => {
+    }, [stallID, companyID, currentInterviewID]);
+
+    const fillEmptySlots = useCallback(async () => {
+        if (!companyID || !stallID) return;
+        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
+
+        if (slotsToFill > 0) {
+            console.log(`Filling ${slotsToFill} empty slots...`);
+            try {
+                await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
+                console.log("New walk-ins requested");
+                await refreshQueue();
+            } catch (error) {
+                console.error("Failed to fill empty slots:", error);
+            }
+        }
+    }, [companyID, stallID, prelistedStudents.length, walkinStudents.length, refreshQueue]);
+        
+    const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
         const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
         if (selectedStudent) {
             fetchCvFileName(selectedStudent.studentID);
         }
-    };
+    }, [activeStudents, fetchCvFileName]);
 
     useEffect(() => {
         if (companyID && stallID) {
@@ -248,13 +234,13 @@ export default function ResumePage() {
             
             return () => clearInterval(interval);
         }
-    }, [companyID, stallID]);
+    }, [companyID, stallID, fetchCompanyAndStallData, refreshQueue, fillEmptySlots]);
 
     useEffect(() => {
         if (currentStudent) {
             fetchCvFileName(currentStudent.studentID);
         }
-    }, [currentStudent]);
+    }, [currentStudent, fetchCvFileName]);
 
     const handleFinishInterview = async () => {
         if (!currentStudent) return;
@@ -355,7 +341,7 @@ export default function ResumePage() {
                         stallNumber={stallNumber}
                         prelistedStudents={filteredPrelisted}
                         walkinStudents={filteredWalkin}
-                        onStudentClick={handleStudentClick} // Use the new handler
+                        onStudentClick={handleStudentClick}
                     />
                 </div>
             </div>
