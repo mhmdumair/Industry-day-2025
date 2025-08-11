@@ -248,7 +248,7 @@ export class InterviewService {
     try {
       return this.interviewRepository.find({
         relations: ['stall', 'student', 'student.user'],
-        order: { created_at: 'DESC' },
+        order: { created_at: 'ASC' },
       });
     } catch (err) {
       throw new InternalServerErrorException(
@@ -275,7 +275,7 @@ export class InterviewService {
       return this.interviewRepository.find({
         where: { studentID },
         relations: ['stall', 'student', 'student.user'],
-        order: { created_at: 'DESC' },
+        order: { created_at: 'ASC' },
       });
     } catch (err) {
       throw new InternalServerErrorException(
@@ -289,7 +289,7 @@ export class InterviewService {
       return this.interviewRepository.find({
         where: { stallID, status: InterviewStatus.INQUEUE },
         relations: ['stall', 'student', 'student.user'],
-        order: { created_at: 'DESC' },
+        order: { created_at: 'ASC' },
       });
     } catch (err) {
       throw new InternalServerErrorException(
@@ -303,7 +303,7 @@ export class InterviewService {
       return this.interviewRepository.find({
         where: { companyID },
         relations: ['stall', 'student', 'student.user'],
-        order: { created_at: 'DESC' },
+        order: { created_at: 'ASC' },
       });
     } catch (err) {
       throw new InternalServerErrorException(

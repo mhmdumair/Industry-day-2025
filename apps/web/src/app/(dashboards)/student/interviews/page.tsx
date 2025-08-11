@@ -253,30 +253,48 @@ const RegisteredQueues = () => {
   const renderWalkinCard = (i: Interview) => {
     const c = companyByID(i.companyID);
     const cfg = btnForStatus(i.status);
+
+    async function cancelInterview(interviewID: string) {
+      if (!confirm("Are you sure you want to cancel this interview?")) return;
+
+      try {
+        await api.delete(`/interview/${interviewID}`);
+      } catch (err: any) {
+        console.error(err);
+        alert(`Failed to remove interview: ${err.message || err}`);
+      }
+    }
+
     return (
-      <Card key={i.companyID} className="mb-2 last:mb-0">
-        <CardHeader>
-          <CardTitle>{c.companyName}</CardTitle>
-          <CardDescription>
-            Stream:
-            <Badge className={`ml-1 ${streamColor(c.stream)}`}>
-              {c.stream}
-            </Badge>
-          </CardDescription>
-        </CardHeader>
-        <div className="p-6 pt-0">
-          <Button
-            variant="secondary"
-            disabled
-            className={`w-full ${cfg.class}`}
-          >
-            {cfg.icon}
-            {cfg.text}
-          </Button>
-        </div>
-      </Card>
+        <Card key={i.companyID} className="mb-2 last:mb-0">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>{c.companyName}</CardTitle>
+              <CardDescription></CardDescription>
+            </div>
+            <Button
+                size="icon"
+                className="bg-red-500/80 border border-red-600"
+                onClick={() => cancelInterview(i.interviewID)}
+            >
+              ✕
+            </Button>
+          </CardHeader>
+          <div className="p-6 pt-0">
+            <Button
+                variant="secondary"
+                disabled
+                className={`w-full ${cfg.class}`}
+            >
+              {cfg.icon}
+              {cfg.text}
+            </Button>
+          </div>
+        </Card>
     );
   };
+
+
 
   /* ----------  render ---------- */
   return (

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent
+  CardContent, CardFooter
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,17 +101,11 @@ const InterviewRegistration = () => {
 
   /* ----------  render  ---------- */
   return (
-    <div className="mt-3 mx-auto p-4">
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-
-      <Card className="bg-slate-100/80 mb-2 last:mb-0 w-full max-w-2xl mx-auto">
+      <div className="flex mt-3 mx-auto p-4">
+        <Card className="bg-slate-100/80 mt-4 min-w-[85vw] md:min-w-[25vw]">
         <CardHeader>
           <CardTitle>Register for Interviews</CardTitle>
-          <CardDescription>Select a company to join its walk-in queue</CardDescription>
+          <CardDescription>Select a company, join its walk-in queue</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -127,14 +121,6 @@ const InterviewRegistration = () => {
                 <Card key={c.companyID} className="mb-2 last:mb-0">
                   <CardHeader>
                     <CardTitle>{c.companyName}</CardTitle>
-                    <CardDescription>
-                      Stream:{" "}
-                      <Badge
-                        className={`ml-1 ${streamColor(c.stream)}`}
-                      >
-                        {c.stream}
-                      </Badge>
-                    </CardDescription>
                   </CardHeader>
 
                   <div className="p-6 pt-0">
