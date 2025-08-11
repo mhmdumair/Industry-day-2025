@@ -85,7 +85,6 @@ export default function AnnouncementsPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">            
-                <HomeNavbarWrapper />
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg">Loading companies...</div>
                 </div>
@@ -96,7 +95,6 @@ export default function AnnouncementsPage() {
     if (error) {
         return (
             <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-                <HomeNavbarWrapper />
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg text-red-500">Error: {error}</div>
                 </div>
@@ -106,7 +104,6 @@ export default function AnnouncementsPage() {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-                <HomeNavbarWrapper />
             <div className="h-6 sm:h-10" />
 
             <div className="w-full max-w-6xl px-2 sm:px-0 h-fit">
