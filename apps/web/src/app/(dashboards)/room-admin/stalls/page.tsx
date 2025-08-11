@@ -3,6 +3,18 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
+  import { Input } from "@/components/ui/input"
+  import { Label } from "@/components/ui/label"
 
 export default function StallsGroupCard() {
     const [stalls, setStalls] = useState([
@@ -62,14 +74,32 @@ export default function StallsGroupCard() {
                     <CardDescription>
                         To add more interview stalls, contact the respective room admin
                     </CardDescription>
-                    <Button
-                        onClick={handleAddStall}
-                        variant="secondary"
-                        className="ml-auto w-full mt-3"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Stall
-                    </Button>
+                    <Dialog>
+                        <form>
+                            <DialogTrigger asChild>
+                                <Button variant="outline">Add Stall</Button>
+                            </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                        <DialogTitle>Edit Stall</DialogTitle>
+                    
+                         </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-3">
+              <Label htmlFor="name-1">Stall Name</Label>
+              <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
+            </div>
+            
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit">Add Stall</Button>
+          </DialogFooter>
+        </DialogContent>
+      </form>
+    </Dialog>
                 </CardFooter>
             </Card>
         </div>
