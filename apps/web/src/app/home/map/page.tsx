@@ -127,9 +127,7 @@ function MapPageContent() {
 
     return (
         <div className='flex flex-col justify-center items-center w-full bg-transparent p-2'>
-            <Suspense fallback={<div>Loading navigation...</div>}>
-                <Navbar />
-            </Suspense>
+
             <Card className="bg-slate-100/80 w-full flex justify-center items-center shadow-sm mt-6 sm:mt-10 mx-2 sm:mx-0 text-black p-3">
                 {/* Map Section */}
                 <div
