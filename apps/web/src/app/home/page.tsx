@@ -30,7 +30,7 @@ interface Sponsor {
     contactNumber: string;
     logo: string
     stream: string;
-    sponsership: "MAIN" | "PLATINUM" | "GOLD" | "SILVER" | "BRONZE";
+    sponsership: "MAIN" | "GOLD" | "SILVER" | "BRONZE";
     location: string;
     companyWebsite: string;
     user: User;
@@ -42,7 +42,6 @@ export default function AnnouncementsPage() {
     const [error, setError] = useState<string | null>(null);
 
     const mainSponsor = companies.find(company => company.sponsership === "MAIN");
-    const platinumSponsors = companies.filter(company => company.sponsership === "PLATINUM");
     const goldSponsors = companies.filter(company => company.sponsership === "GOLD");
     const silverSponsors = companies.filter(company => company.sponsership === "SILVER");
     const bronzeSponsors = companies.filter(company => company.sponsership === "BRONZE");

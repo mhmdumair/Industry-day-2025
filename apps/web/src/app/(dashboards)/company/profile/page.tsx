@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Globe, Phone, User, Building } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
+import { AxiosError } from "axios";
 
 // Types
 export interface User {
@@ -41,30 +42,10 @@ export interface CompanyProfile {
   contactPersonDesignation: string;
   contactNumber: string;
   logo: string;
-  stream: string;
   sponsership: string;
   location: string;
   companyWebsite: string;
   user: User;
-}
-
-export enum CompanyStream {
-  ZL = 'ZL',
-  BT = 'BT',
-  CH = 'CH',
-  MT = 'MT',
-  BMS = 'BMS',
-  ST = 'ST',
-  GL = 'GL',
-  CS = 'CS',
-  DS = 'DS',
-  ML = 'ML',
-  BL = 'BL',
-  MB = 'MB',
-  CM = 'CM',
-  AS = 'AS',
-  ES = 'ES',
-  SOR = 'SOR',
 }
 
 // Helper function to ensure string values are never null
@@ -72,60 +53,76 @@ const safeString = (value: string | null | undefined): string => {
   return value || '';
 };
 
+// Helper function for URL validation
+const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 export default function ProfileCard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const companyId = searchParams.get("companyId");
-
 
   // For editing—use a copy so user cancels don't affect display
   const [editData, setEditData] = useState<CompanyProfile | null>(null);
 
   useEffect(() => {
+    if (!companyId) {
+      setError("Company ID is missing from URL.");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     api
-        .get<CompanyProfile>(`/company/${companyId}`)
-        .then((res) => {
-          // Ensure all string fields are not null
-          const sanitizedData = {
-            ...res.data,
-            companyName: safeString(res.data.companyName),
-            description: safeString(res.data.description),
-            contactPersonName: safeString(res.data.contactPersonName),
-            contactPersonDesignation: safeString(res.data.contactPersonDesignation),
-            contactNumber: safeString(res.data.contactNumber),
-            logo: safeString(res.data.logo),
-            stream: safeString(res.data.stream),
-            location: safeString(res.data.location),
-            companyWebsite: safeString(res.data.companyWebsite),
-          };
-          setProfileData(sanitizedData);
-          setEditData(sanitizedData); // Set editing data as well for dialog
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError("Failed to fetch company profile.");
-          setLoading(false);
-        });
+      .get<CompanyProfile>(`/company/${companyId}`)
+      .then((res) => {
+        // Ensure all string fields are not null
+        const sanitizedData = {
+          ...res.data,
+          companyName: safeString(res.data.companyName),
+          description: safeString(res.data.description),
+          contactPersonName: safeString(res.data.contactPersonName),
+          contactPersonDesignation: safeString(res.data.contactPersonDesignation),
+          contactNumber: safeString(res.data.contactNumber),
+          logo: safeString(res.data.logo),
+          location: safeString(res.data.location),
+          companyWebsite: safeString(res.data.companyWebsite),
+        };
+        setProfileData(sanitizedData);
+        setEditData(sanitizedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setError("Failed to fetch company profile.");
+        setLoading(false);
+      });
   }, [companyId]);
 
   // Update editData—not profileData!
   const handleInputChange = <K extends keyof CompanyProfile>(
-      field: K,
-      value: CompanyProfile[K]
+    field: K,
+    value: CompanyProfile[K]
   ) => {
     setEditData((prev) =>
-        prev ? { ...prev, [field]: value } : prev
+      prev ? { ...prev, [field]: value } : prev
     );
   };
 
   // When opening dialog, copy latest data and ensure no null values
   const handleEditOpen = () => {
     if (profileData) {
-      const sanitizedEditData = {
+      setEditData({
         ...profileData,
         companyName: safeString(profileData.companyName),
         description: safeString(profileData.description),
@@ -133,20 +130,35 @@ export default function ProfileCard() {
         contactPersonDesignation: safeString(profileData.contactPersonDesignation),
         contactNumber: safeString(profileData.contactNumber),
         logo: safeString(profileData.logo),
-        stream: safeString(profileData.stream),
         location: safeString(profileData.location),
         companyWebsite: safeString(profileData.companyWebsite),
-      };
-      setEditData(sanitizedEditData);
+      });
     }
+    setSaveError(null);
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!editData) return;
-    try {
-      setLoading(true);
 
+    // Front-end validation before sending to API
+    if (!editData.companyName.trim()) {
+      setSaveError("Company Name is required.");
+      return;
+    }
+    if (!editData.contactPersonName.trim()) {
+      setSaveError("Contact Person Name is required.");
+      return;
+    }
+    if (editData.companyWebsite.trim() && !isValidUrl(editData.companyWebsite.trim())) {
+      setSaveError("Please enter a valid website URL.");
+      return;
+    }
+
+    setSaveError(null);
+    setLoading(true);
+
+    try {
       const updatePayload = {
         companyName: editData.companyName,
         description: editData.description,
@@ -154,68 +166,72 @@ export default function ProfileCard() {
         contactPersonDesignation: editData.contactPersonDesignation,
         contactNumber: editData.contactNumber,
         logo: editData.logo,
-        stream: editData.stream,
         location: editData.location,
         companyWebsite: editData.companyWebsite,
-      }
+      };
 
-      console.log(updatePayload);
+      console.log("Sending payload:", updatePayload);
       await api.patch(`/company/${companyId}`, updatePayload);
 
       setProfileData((prev) =>
-          prev ? { ...prev, ...updatePayload } : prev
+        prev ? { ...prev, ...updatePayload } : prev
       );
 
       setIsDialogOpen(false);
       setLoading(false);
     } catch (e) {
       setLoading(false);
-      alert("Failed to save. Please try again.");
       console.error("Save error:", e);
+      if (e instanceof AxiosError && e.response?.data?.message) {
+        setSaveError(`Failed to save: ${e.response.data.message}`);
+      } else {
+        setSaveError("Failed to save due to an unexpected error. Please try again.");
+      }
     }
   };
 
-  if (loading) {
-    return (
+  const renderContent = () => {
+    if (loading) {
+      return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
         </div>
-    );
-  }
+      );
+    }
 
-  if (error) {
-    return (
+    if (error) {
+      return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-destructive text-center">
             <h2 className="text-2xl font-semibold mb-2">Error</h2>
             <p>{error}</p>
           </div>
         </div>
-    );
-  }
+      );
+    }
 
-  if (!profileData) {
-    return (
+    if (!profileData) {
+      return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-muted-foreground text-center">
             <h2 className="text-2xl font-semibold mb-2">No Data</h2>
             <p>No company data found.</p>
           </div>
         </div>
-    );
-  }
+      );
+    }
 
-  return (
+    return (
       <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-      <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <Card className="shadow-xl border-0 bg-card">
             <CardHeader className="text-center pb-6">
               <div className="flex flex-col items-center space-y-4">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-primary/10">
                   <AvatarImage
-                      src={profileData?.user?.profile_picture || profileData.logo || "/logo/c.png"}
-                      alt="Company Logo"
-                      className="object-cover"
+                    src={profileData?.user?.profile_picture || profileData.logo || "/logo/c.png"}
+                    alt="Company Logo"
+                    className="object-cover"
                   />
                 </Avatar>
                 <div className="space-y-2">
@@ -225,9 +241,6 @@ export default function ProfileCard() {
                   <CardDescription className="text-base sm:text-lg text-muted-foreground">
                     {profileData.companyName}
                   </CardDescription>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                    {profileData.stream}
-                  </Badge>
                 </div>
               </div>
             </CardHeader>
@@ -315,10 +328,10 @@ export default function ProfileCard() {
                         </div>
                         <div className="text-sm font-medium">
                           <a
-                              href={profileData.companyWebsite}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:text-primary/80 transition-colors break-all"
+                            href={profileData.companyWebsite}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 transition-colors break-all"
                           >
                             {profileData.companyWebsite}
                           </a>
@@ -334,8 +347,8 @@ export default function ProfileCard() {
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
-                      onClick={handleEditOpen}
-                      className="w-full sm:w-auto px-8"
+                    onClick={handleEditOpen}
+                    className="w-full sm:w-auto px-8"
                   >
                     Edit Profile
                   </Button>
@@ -348,145 +361,113 @@ export default function ProfileCard() {
                     </DialogDescription>
                   </DialogHeader>
                   {editData && (
-                      <div className="grid gap-6 py-4">
-                        {/* Company Name */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-name" className="font-medium sm:text-right">
-                            Company Name
-                          </Label>
-                          <Input
-                              id="company-name"
-                              value={safeString(editData.companyName)}
-                              onChange={(e) => handleInputChange("companyName", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter company name"
-                          />
+                    <div className="grid gap-6 py-4">
+                      {saveError && (
+                        <div className="text-sm font-medium text-destructive text-center mb-4">
+                          {saveError}
                         </div>
+                      )}
 
-                        {/* Company Stream */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-stream" className="font-medium sm:text-right">
-                            Stream
-                          </Label>
-                          <select
-                              id="company-stream"
-                              value={safeString(editData.stream)}
-                              onChange={(e) => handleInputChange("stream", e.target.value as CompanyStream)}
-                              className="sm:col-span-3 rounded-md border border-input px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                          >
-                            <option value="" disabled>
-                              Select stream
-                            </option>
-                            {Object.entries(CompanyStream).map(([key, val]) => (
-                                <option key={key} value={val}>
-                                  {val}
-                                </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Contact Person Name */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="contact-person" className="font-medium sm:text-right">
-                            Contact Person
-                          </Label>
-                          <Input
-                              id="contact-person"
-                              value={safeString(editData.contactPersonName)}
-                              onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter contact person name"
-                          />
-                        </div>
-
-                        {/* Contact Person Designation */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="designation" className="font-medium sm:text-right">
-                            Designation
-                          </Label>
-                          <Input
-                              id="designation"
-                              value={safeString(editData.contactPersonDesignation)}
-                              onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter designation"
-                          />
-                        </div>
-
-                        {/* Contact Number */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="contact-number" className="font-medium sm:text-right">
-                            Contact Number
-                          </Label>
-                          <Input
-                              id="contact-number"
-                              value={safeString(editData.contactNumber)}
-                              onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter contact number"
-                              type="tel"
-                          />
-                        </div>
-
-                        {/* Location */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="location" className="font-medium sm:text-right">
-                            Location
-                          </Label>
-                          <Input
-                              id="location"
-                              value={safeString(editData.location)}
-                              onChange={(e) => handleInputChange("location", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter company location"
-                          />
-                        </div>
-
-                        {/* Company Website */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="website" className="font-medium sm:text-right">
-                            Website
-                          </Label>
-                          <Input
-                              id="website"
-                              value={safeString(editData.companyWebsite)}
-                              onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="https://www.company.com"
-                              type="url"
-                          />
-                        </div>
-
-                        {/* Logo URL */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                          <Label htmlFor="logo" className="font-medium sm:text-right">
-                            Logo URL
-                            <span className="block text-xs text-muted-foreground font-normal">Optional</span>
-                          </Label>
-                          <Input
-                              id="logo"
-                              value={safeString(editData.logo)}
-                              onChange={(e) => handleInputChange("logo", e.target.value)}
-                              className="sm:col-span-3"
-                              placeholder="Enter logo URL"
-                              type="url"
-                          />
-                        </div>
-
-                        {/* Description */}
-                        <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-4">
-                          <Label htmlFor="description" className="font-medium sm:text-right mt-2">
-                            Description
-                          </Label>
-                          <Textarea
-                              id="description"
-                              value={safeString(editData.description)}
-                              onChange={(e) => handleInputChange("description", e.target.value)}
-                              className="sm:col-span-3 min-h-[120px]"
-                              placeholder="Enter company description"
-                          />
-                        </div>
+                      {/* Company Name */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="company-name" className="font-medium sm:text-right">
+                          Company Name
+                        </Label>
+                        <Input
+                          id="company-name"
+                          value={safeString(editData.companyName)}
+                          onChange={(e) => handleInputChange("companyName", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="Enter company name"
+                        />
                       </div>
+
+                      {/* Contact Person Name */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="contact-person" className="font-medium sm:text-right">
+                          Contact Person
+                        </Label>
+                        <Input
+                          id="contact-person"
+                          value={safeString(editData.contactPersonName)}
+                          onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="Enter contact person name"
+                        />
+                      </div>
+
+                      {/* Contact Person Designation */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="designation" className="font-medium sm:text-right">
+                          Designation
+                        </Label>
+                        <Input
+                          id="designation"
+                          value={safeString(editData.contactPersonDesignation)}
+                          onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="Enter designation"
+                        />
+                      </div>
+
+                      {/* Contact Number */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="contact-number" className="font-medium sm:text-right">
+                          Contact Number
+                        </Label>
+                        <Input
+                          id="contact-number"
+                          value={safeString(editData.contactNumber)}
+                          onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="Enter contact number"
+                          type="tel"
+                        />
+                      </div>
+
+                      {/* Location */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="location" className="font-medium sm:text-right">
+                          Location
+                        </Label>
+                        <Input
+                          id="location"
+                          value={safeString(editData.location)}
+                          onChange={(e) => handleInputChange("location", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="Enter company location"
+                        />
+                      </div>
+
+                      {/* Company Website */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="website" className="font-medium sm:text-right">
+                          Website
+                        </Label>
+                        <Input
+                          id="website"
+                          value={safeString(editData.companyWebsite)}
+                          onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
+                          className="sm:col-span-3"
+                          placeholder="https://www.company.com"
+                          type="url"
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-4">
+                        <Label htmlFor="description" className="font-medium sm:text-right mt-2">
+                          Description
+                        </Label>
+                        <Textarea
+                          id="description"
+                          value={safeString(editData.description)}
+                          onChange={(e) => handleInputChange("description", e.target.value)}
+                          className="sm:col-span-3 min-h-[120px]"
+                          placeholder="Enter company description"
+                        />
+                      </div>
+                    </div>
                   )}
 
                   <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -503,5 +484,8 @@ export default function ProfileCard() {
           </Card>
         </div>
       </div>
-  );
+    );
+  };
+
+  return <>{renderContent()}</>;
 }
