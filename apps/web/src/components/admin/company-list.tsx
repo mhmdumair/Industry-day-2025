@@ -18,6 +18,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import type { ComponentProps } from 'react';
 
 interface User {
   email: string;
@@ -233,10 +234,10 @@ export default function CompanyList() {
   );
 }
 
-const Td = ({ children, ...rest }: any) => (
-  <td className="border px-2 py-1" {...rest}>
-    {children}
-  </td>
+const Td = ({ children, ...rest }: ComponentProps<'td'>) => (
+    <td className="border px-2 py-1" {...rest}>
+      {children}
+    </td>
 );
 
 function InputField({

@@ -6,9 +6,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent, CardFooter
+  CardContent,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Check } from "lucide-react";
 import api from "@/lib/axios";
@@ -23,20 +22,6 @@ interface Company {
 interface Interview {
   companyID: string;
 }
-
-/* ----------  helpers  ---------- */
-const colorMap: Record<string, string> = {
-  CS: "bg-red-200 border-red-400 text-black",
-  DS: "bg-indigo-200 border-indigo-400 text-black",
-  ST: "bg-orange-200 border-orange-400 text-black",
-  BT: "bg-cyan-200 border-cyan-400 text-black",
-  ZL: "bg-lime-200 border-lime-400 text-black",
-  CM: "bg-rose-200 border-rose-400 text-black"
-};
-
-// helper
-const streamColor = (stream: string): string =>
-  colorMap[stream] ?? "bg-gray-200 border-gray-400 text-black";
 
 /* ----------  component  ---------- */
 const InterviewRegistration = () => {
@@ -64,13 +49,25 @@ const InterviewRegistration = () => {
       try {
         const [cRes, iRes] = await Promise.all([
           api.get("/company"),
-          api.get(`/interview/student/${studentID}`)
+          api.get(`/interview/student/${studentID}`),
         ]);
         setCompanies(cRes.data);
         setMyInterviews(iRes.data);
-      } catch (e: any) {
-        setError(e.response?.data?.message || "Failed to load data");
+      } catch (e: unknown) {
+        if (
+            typeof e === "object" &&
+            e !== null &&
+            "response" in e &&
+            typeof (e as any).response?.data?.message === "string"
+        ) {
+          setError((e as any).response.data.message);
+        } else if (e instanceof Error) {
+          setError(e.message);
+        } else {
+          setError("Failed to load data");
+        }
       }
+
     };
     load();
   }, [studentID]);
@@ -88,16 +85,28 @@ const InterviewRegistration = () => {
         companyID,
         studentID,
         type: "walk-in",
-        status: "scheduled"
+        status: "scheduled",
       });
       const iRes = await api.get(`/interview/student/${studentID}`);
       setMyInterviews(iRes.data);
-    } catch (e: any) {
-      setError(e.response?.data?.message || "Registration failed");
+    } catch (e: unknown) {
+      if (
+          typeof e === "object" &&
+          e !== null &&
+          "response" in e &&
+          typeof (e as any).response?.data?.message === "string"
+      ) {
+        setError((e as any).response.data.message);
+      } else if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Registration failed");
+      }
     } finally {
       setRegistering(null);
     }
   };
+
 
   /* ----------  render  ---------- */
   return (

@@ -39,7 +39,6 @@ export default function InterviewReportGenerator() {
     // Extract company ID from URL
     useEffect(() => {
         const extractCompanyId = () => {
-            const url = window.location.href;
             const urlParams = new URLSearchParams(window.location.search);
 
             // Try different URL patterns

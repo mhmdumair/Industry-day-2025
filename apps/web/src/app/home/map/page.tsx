@@ -6,14 +6,13 @@ import {
     TableBody,
     TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/home-navbar";
-import { Description } from '@radix-ui/react-dialog';
+import L from 'leaflet';
 
 const departmentData = [
     { department: "Chemistry", location: "Auditorium; New Auditorium; Tutorial Room 1", companies: "A Baur & Co (Pvt) Ltd (Main); Noritake Lanka Porcelain (Pvt) Ltd; Avenir IT (Pvt) Ltd", buttonColor: "#dc2626" }, // red
@@ -24,7 +23,7 @@ const departmentData = [
     { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeCodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
 ];
 
-export default function page() {
+export default function Page() {
     const mapRef = useRef(null);
 
     useEffect(() => {

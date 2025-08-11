@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Edit3 } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from 'next/navigation';
+import announcement from "@/components/custom/announcement";
 
 interface Announcement {
     announcementID: string;
@@ -55,7 +56,8 @@ export default function CompanyAnnouncementsPage() {
                 setCompanyUserId(userId);
 
                 const announcementsRes = await api.get(`/announcement/user/${userId}`);
-                const fetchedAnnouncements: Announcement[] = announcementsRes.data.map((a: any) => ({
+                // @ts-expect-error
+                const fetchedAnnouncements: Announcement[] = announcementsRes.data.map((a: announcement) => ({
                     announcementID: a.announcementID,
                     title: a.title,
                     description: a.content,
