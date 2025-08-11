@@ -170,19 +170,19 @@ export default function ResumePage() {
         }
     };
     
-    const fetchCvFileName = async (studentId: string) => {
-        try {
-            const { data } = await api.get(`/cv/student/${studentId}`);
-            if (data.length > 0) {
-                setCurrentCvFileName(data.fileName);
-            } else {
-                setCurrentCvFileName(null);
-            }
-        } catch (error) {
-            console.error(`Failed to fetch CV for student ${studentId}:`, error);
+   const fetchCvFileName = async (studentId: string) => {
+    try {
+        const { data } = await api.get(`/cv/student/${studentId}`);
+        if (data && data.fileName) {
+            setCurrentCvFileName(data.fileName);
+        } else {
             setCurrentCvFileName(null);
         }
-    };
+    } catch (error) {
+        console.error(`Failed to fetch CV for student ${studentId}:`, error);
+        setCurrentCvFileName(null);
+    }
+};
 
     const fillEmptySlots = async () => {
         if (!companyID || !stallID) return;
