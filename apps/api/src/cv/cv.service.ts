@@ -12,6 +12,8 @@ import { StudentCv } from './entities/student-cv.entity';
 import { Student } from '../student/entities/student.entity';
 import { CreateCvDto } from './dto/create-cv.dto';
 import { UpdateCvDto } from './dto/update-cv.dto';
+import { CreateCvByRegnoDto } from './dto/create-cv.dto'
+import { StudentService } from '../student/student.service'; 
 
 @Injectable()
 export class CvService {
@@ -20,6 +22,7 @@ export class CvService {
     private cvRepository: Repository<StudentCv>,
     @InjectRepository(Student)
     private studentRepository: Repository<Student>,
+    private readonly studentService: StudentService, 
   ) {}
 
   async create(createCvDto: CreateCvDto): Promise<StudentCv> {
@@ -31,15 +34,6 @@ export class CvService {
       if (!student) {
         throw new NotFoundException(`Student with ID ${createCvDto.studentID} does not exist`);
       }
-
-      // Check if student already has a CV (optional - remove if multiple CVs allowed)
-      // const existingCv = await this.cvRepository.findOne({
-      //   where: { studentID: createCvDto.studentID }
-      // });
-
-      // if (existingCv) {
-      //   throw new ConflictException(`Student with ID ${createCvDto.studentID} already has a CV`);
-      // }
 
       const cv = this.cvRepository.create(createCvDto);
       return await this.cvRepository.save(cv);
@@ -73,19 +67,6 @@ export class CvService {
           continue;
         }
 
-        // Check if student already has a CV
-        // const existingCv = await this.cvRepository.findOne({
-        //   where: { studentID: dto.studentID }
-        // });
-
-        // if (existingCv) {
-        //   failed.push({
-        //     dto,
-        //     error: `Student with ID ${dto.studentID} already has a CV`
-        //   });
-        //   continue;
-        // }
-
         const cv = this.cvRepository.create(dto);
         const saved = await this.cvRepository.save(cv);
         successful.push(saved);
@@ -102,6 +83,50 @@ export class CvService {
       failed,
       summary: {
         total: createCvDtos.length,
+        successful: successful.length,
+        failed: failed.length
+      }
+    };
+  }
+
+  async bulkCreateByRegNo(createCvByRegnoDtos: CreateCvByRegnoDto[]) {
+    const successful: StudentCv[] = [];
+    const failed: { dto: CreateCvByRegnoDto; error: string }[] = [];
+  
+    for (const dto of createCvByRegnoDtos) {
+      const { regNo, fileName } = dto; // Removed filePath
+      
+      try {
+        const student = await this.studentService.findByRegNo(regNo);
+  
+        if (!student) {
+          failed.push({
+            dto,
+            error: `Student with registration number ${regNo} does not exist`
+          });
+          continue;
+        }
+  
+        const cv = this.cvRepository.create({
+          studentID: student.studentID,
+          fileName,
+        });
+  
+        const saved = await this.cvRepository.save(cv);
+        successful.push(saved);
+      } catch (error) {
+        failed.push({
+          dto,
+          error: error.message || 'Failed to create CV'
+        });
+      }
+    }
+  
+    return {
+      successful,
+      failed,
+      summary: {
+        total: createCvByRegnoDtos.length,
         successful: successful.length,
         failed: failed.length
       }
