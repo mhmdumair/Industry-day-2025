@@ -137,16 +137,6 @@ export default function AdminProfileCard() {
         }
 
         setLoading(true);
-        
-        // Corrected payloads: Removed `role` and added `roomID`.
-        const flattenedPayload = {
-            designation: editData.designation,
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-            profile_picture: editData.user.profile_picture,
-            roomID: editData.roomID // Added this field to fix the other error
-        };
 
         const nestedPayload = {
             roomAdmin: {
@@ -163,37 +153,54 @@ export default function AdminProfileCard() {
         };
 
         try {
-            let response;
             try {
                 console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
-                response = await api.patch(`/room-admin/${adminId}`, nestedPayload);
-            } catch (e: any) {
-                console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
+            } catch (innerError: unknown) {
+                if (innerError instanceof Error) {
+                    console.log("Flattened payload failed, trying nested payload instead:", nestedPayload, innerError.message);
+                } else {
+                    console.log("Flattened payload failed, trying nested payload instead:", nestedPayload, innerError);
+                }
             }
 
             setProfileData((prev) =>
-                prev ? {
-                    ...prev,
-                    designation: editData.designation,
-                    user: {
-                        ...prev.user,
-                        first_name: editData.user.first_name,
-                        last_name: editData.user.last_name,
-                        email: editData.user.email,
-                        profile_picture: editData.user.profile_picture,
-                    },
-                } : prev
+                prev
+                    ? {
+                        ...prev,
+                        designation: editData.designation,
+                        user: {
+                            ...prev.user,
+                            first_name: editData.user.first_name,
+                            last_name: editData.user.last_name,
+                            email: editData.user.email,
+                            profile_picture: editData.user.profile_picture,
+                        },
+                    }
+                    : prev
             );
 
             setIsDialogOpen(false);
             alert("Profile updated successfully!");
-
-        } catch (error: any) {
-            console.error("Save error:", error.response?.data || error.message);
-            alert(`Failed to save: ${error.response?.data?.message || error.message || "An unknown error occurred."}`);
+        } catch (error: unknown) {
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "response" in error &&
+                typeof (error as any).response?.data?.message === "string"
+            ) {
+                console.error("Save error:", (error as any).response.data);
+                alert(`Failed to save: ${(error as any).response.data.message}`);
+            } else if (error instanceof Error) {
+                console.error("Save error:", error.message);
+                alert(`Failed to save: ${error.message || "An unknown error occurred."}`);
+            } else {
+                console.error("Save error: Unknown type", error);
+                alert("An unknown error occurred.");
+            }
         } finally {
             setLoading(false);
         }
+
     };
 
 

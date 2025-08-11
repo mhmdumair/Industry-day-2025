@@ -76,7 +76,7 @@ export default function AdminProfileCard() {
                 setEditData(sanitizedData); 
                 setLoading(false);
             })
-            .catch((err) => {
+            .catch(() => {
                 setError("Failed to fetch admin profile.");
                 setLoading(false);
             });
@@ -151,16 +151,22 @@ export default function AdminProfileCard() {
         };
 
         try {
-            let response;
             try {
                 console.log("Attempting to save with flattened payload:", flattenedPayload);
-                response = await api.patch(`/admin/${adminId}`, flattenedPayload);
-            } catch (e: any) {
-                if (e.response?.status === 400) {
-                    console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
-                    response = await api.patch(`/admin/${adminId}`, nestedPayload);
+            } catch (e: unknown) {
+                // Narrowing: check if it's an object with a `response` property
+                if (
+                    typeof e === "object" &&
+                    e !== null &&
+                    "response" in e &&
+                    (e as any).response?.status === 400
+                ) {
+                    console.log(
+                        "Flattened payload failed, trying nested payload instead:",
+                        nestedPayload
+                    );
                 } else {
-                    throw e;
+                    throw e; // rethrow if not the handled case
                 }
             }
 
@@ -181,12 +187,19 @@ export default function AdminProfileCard() {
             setIsDialogOpen(false);
             alert("Profile updated successfully!");
 
-        } catch (error: any) {
-            console.error("Save error:", error.response?.data || error.message);
-            alert(`Failed to save: ${error.response?.data?.message || error.message || "An unknown error occurred."}`);
+        } catch (error: unknown) {
+            if (typeof error === "object" && error !== null) {
+                const errObj = error as { response?: { data?: { message?: string } }, message?: string };
+                console.error("Save error:", errObj.response?.data || errObj.message);
+                alert(`Failed to save: ${errObj.response?.data?.message || errObj.message || "An unknown error occurred."}`);
+            } else {
+                console.error("Save error:", error);
+                alert("An unknown error occurred.");
+            }
         } finally {
             setLoading(false);
         }
+
     };
 
 
@@ -198,7 +211,7 @@ export default function AdminProfileCard() {
 
     return (
         <div className="mt-3 w-4/5 mx-auto p-4">
-            <Card className="bg-gray-50 shadow-lg mt-3">
+            <Card className="bg-gray-50 shadow-lg mt-3" id="admin-profile-card">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
                         <AvatarImage src={profileData?.user?.profile_picture || "/logo/admin.png"} alt="Admin Profile" />

@@ -9,7 +9,6 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -68,18 +67,6 @@ const btnForStatus = (s: string) =>
     text: "Unknown",
     icon: null,
   };
-
-const colorMap: Record<string, string> = {
-  CS: "bg-red-200 border-red-400 text-black",
-  DS: "bg-indigo-200 border-indigo-400 text-black",
-  ST: "bg-orange-200 border-orange-400 text-black",
-  BT: "bg-cyan-200 border-cyan-400 text-black",
-  ZL: "bg-lime-200 border-lime-400 text-black",
-  CM: "bg-rose-200 border-rose-400 text-black",
-};
-
-const streamColor = (s: string) =>
-  colorMap[s] ?? "bg-gray-200 border-gray-400 text-black";
 
 /* ----------  component ---------- */
 const RegisteredQueues = () => {
@@ -259,10 +246,16 @@ const RegisteredQueues = () => {
 
       try {
         await api.delete(`/interview/${interviewID}`);
-      } catch (err: any) {
-        console.error(err);
-        alert(`Failed to remove interview: ${err.message || err}`);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err);
+          alert(`Failed to remove interview: ${err.message}`);
+        } else {
+          console.error("Unknown error:", err);
+          alert("Failed to remove interview: An unknown error occurred.");
+        }
       }
+
     }
 
     return (

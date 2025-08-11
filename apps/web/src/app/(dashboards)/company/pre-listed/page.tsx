@@ -71,11 +71,21 @@ export default function CompanyFilter() {
   /* ----------------  fetchers  ---------------- */
   const fetchStudentsData = async () => {
     try {
-      setLoading(true); setError(null);
-      setTempStudents((await api.get('/student')).data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch students');
-    } finally { setLoading(false); }
+      setLoading(true);
+      setError(null);
+
+      const res = await api.get('/student');
+      setTempStudents(res.data);
+
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch students');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchExistingPreListedStudents = async () => {
@@ -141,10 +151,17 @@ export default function CompanyFilter() {
       await api.post('/interview/prelist/bulk', payload);
       setPreListedStudents([]);
       await fetchExistingPreListedStudents();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create pre-list');
-    } finally { setLoading(false); }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to create pre-list');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   /* ----------------  render  ---------------- */
   if (loading) return (
@@ -212,7 +229,7 @@ export default function CompanyFilter() {
             <h3 className="font-semibold mb-2">Pending ({preListedStudents.length})</h3>
             {preListedStudents.length === 0 ? (
               <p className="text-sm text-gray-500 text-center">Nothing added yet</p>
-            ) : preListedStudents.map((stu, idx) => (
+            ) : preListedStudents.map((stu) => (
               <div key={stu.studentID} className="flex justify-between items-center border p-2 mb-1 rounded">
                 <div>
                   <span className="font-medium">{stu.user.first_name} {stu.user.last_name}</span>

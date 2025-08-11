@@ -6,14 +6,13 @@ import {
     TableBody,
     TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/home-navbar";
-import { Description } from '@radix-ui/react-dialog';
+import L from 'leaflet';
 
 const departmentData = [
     { department: "Chemistry", location: "Auditorium, New Auditorium", companies: "A Baur & Co (Pvt) Ltd, Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#dc2626" }, // red
@@ -24,7 +23,7 @@ const departmentData = [
     { department: "Qbits", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
 ];
 
-export default function page() {
+export default function Page() {
     const mapRef = useRef(null);
 
     useEffect(() => {

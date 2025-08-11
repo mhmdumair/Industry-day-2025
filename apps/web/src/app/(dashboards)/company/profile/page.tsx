@@ -106,7 +106,7 @@ export default function ProfileCard() {
           setEditData(sanitizedData); // Set editing data as well for dialog
           setLoading(false);
         })
-        .catch((err) => {
+        .catch(() => {
           setError("Failed to fetch company profile.");
           setLoading(false);
         });

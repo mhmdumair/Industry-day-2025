@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { isAxiosError } from "axios";
 
 const companySponsorships = ["GOLD", "SILVER", "BRONZE"];
 
@@ -107,12 +108,20 @@ export default function CreateCompany() {
           logo: "",
         },
       });
-    } catch (err: any) {
-      console.error("Error details:", err.response?.data ?? err);
-      setError(err.response?.data?.message || "Failed to create company.");
-    } finally {
-      setIsLoading(false);
+    } catch (err) { // err is now type 'unknown'
+    if (isAxiosError(err)) {
+      // Inside this block, TypeScript knows `err` is an AxiosError
+      console.error("Error details:", err.response?.data);
+      const message = err.response?.data?.message || "An API error occurred.";
+      setError(message);
+    } else {
+      // Handle cases where the error is not from axios (e.g., network error)
+      console.error("An unexpected error occurred:", err);
+      setError("An unexpected error occurred.");
     }
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   return (
