@@ -173,7 +173,7 @@ export default function ResumePage() {
    const fetchCvFileName = async (studentId: string) => {
     try {
         const { data } = await api.get(`/cv/student/${studentId}`);
-                if (data && data.fileName) {
+        if (data && data.fileName) {
             setCurrentCvFileName(data.fileName);
         } else {
             setCurrentCvFileName(null);
