@@ -1,30 +1,30 @@
 "use client";
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, Suspense } from 'react'
 import {Card} from "@/components/ui/card";
 import {
     Table,
     TableBody,
     TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/home/home-navbar";
-import { Description } from '@radix-ui/react-dialog';
+import L from 'leaflet';
 
 const departmentData = [
-    { department: "Chemistry", location: "Auditorium, New Auditorium", companies: "A Baur & Co (Pvt) Ltd, Noritake Lanka Porcelain (Pvt) Ltd", buttonColor: "#dc2626" }, // red
-    { department: "Science Education Unit", location: "On Site", companies: "Hemas Consumer Brands", buttonColor: "#e5d246ff" }, // yellow
-    { department: "Physics", location: "Lobby, Seminar Room", companies: "Federation for Environment Climate and Technology, MAS Holdings", buttonColor: "#003097ff" }, // blue
-    { department: "Mathematics", location: "M5", companies: "Aayu Technologies", buttonColor: "#a855f7" }, // purple
-    { department: "Molecular Biology", location: "Upper Theater", companies: "Sands Active Pvt Ltd", buttonColor: "#f97316" }, // orange
-    { department: "Qbits", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
+    { department: "Chemistry", location: "Auditorium; New Auditorium; Tutorial Room 1", companies: "A Baur & Co (Pvt) Ltd (Main); Noritake Lanka Porcelain (Pvt) Ltd; Avenir IT (Pvt) Ltd", buttonColor: "#dc2626" }, // red
+    { department: "Science Education Unit", location: "SEU 208; ELTU 210; SEU 309", companies: "Hemas Consumer Brands; Federation for Environment Climate and Technology; Aayu Technologies", buttonColor: "#e5d246ff" }, // yellow
+    { department: "Physics", location: "Smart Room; Seminar Room; 'Dumb' Room", companies: "MAS Holdings; Sands Active (Pvt) Ltd; OCTAVE", buttonColor: "#003097ff" }, // blue
+    { department: "Geology", location: "Seminar Room; Room 1; Room 2", companies: "LiveRoom Technologies; Creative Software; Hutch", buttonColor: "#a855f7" }, // purple
+    { department: "QBITS", location: "On Site", companies: "CodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
+    { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeCodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
 ];
 
-export default function page() {
+// Create a separate component for the content that might use useSearchParams
+function MapPageContent() {
     const mapRef = useRef(null);
 
     useEffect(() => {
@@ -69,22 +69,22 @@ export default function page() {
                         code: "PHY"
                     },
                     {
-                        lat: 7.259932114279001,
-                        lng: 80.59834497379939,
-                        name: "Department of Mathematics",
-                        code: "MATH"
-                    },
-                    {
-                        lat: 7.258914631879946,
-                        lng: 80.59784414737696,
-                        name: "Department of Molecular Biology",
-                        code: "MB"
+                        lat: 7.259187320966107,
+                        lng: 80.5962341394956,
+                        name: "Department of Geology",
+                        code: "GEO"
                     },
                     {
                         lat: 7.259834952551038,
                         lng: 80.599024075498,
                         name: "QBITS",
                         code: "QB"
+                    },
+                    {
+                        lat: 7.258617903568317,
+                        lng: 80.59660186860907,
+                        name: "Postgraduate Institute of Science",
+                        code: "PGIS"
                     },
                 ];
 
@@ -102,7 +102,7 @@ export default function page() {
                 });
 
                 // Add department markers
-                 departments.forEach(dept => {
+                departments.forEach(dept => {
                     const marker = window.L.marker([dept.lat, dept.lng], {
                         icon: window.L.divIcon({
                             html: `<div style="background-color: ${dept.color}; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; font-size: 8px;">${dept.code}</div>`,
@@ -127,7 +127,9 @@ export default function page() {
 
     return (
         <div className='flex flex-col justify-center items-center w-full bg-transparent p-2'>
-            <Navbar />
+            <Suspense fallback={<div>Loading navigation...</div>}>
+                <Navbar />
+            </Suspense>
             <Card className="bg-slate-100/80 w-full flex justify-center items-center shadow-sm mt-6 sm:mt-10 mx-2 sm:mx-0 text-black p-3">
                 {/* Map Section */}
                 <div
@@ -135,7 +137,6 @@ export default function page() {
                     className="w-full sm:w-1/2 aspect-video border border-gray-400 rounded-md shadow-sm z-[0]"
                     style={{ minHeight: '250px' }}
                 />
-
 
                 {/* Table Section */}
                 <div className='space-y-2 text-black'>
@@ -180,8 +181,8 @@ export default function page() {
                                         <TableCell className="text-sm sm:text-base" colSpan={2}>
                                             <div className="space-y-1">
                                                 {(() => {
-                                                    const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
-                                                    const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                    const locations = item.location.split(';').map(loc => loc.trim()).filter(Boolean);
+                                                    const companies = item.companies.split(';').map(comp => comp.trim()).filter(Boolean);
                                                     const count = Math.max(locations.length, companies.length);
 
                                                     return Array.from({ length: count }).map((_, i) => {
@@ -240,8 +241,8 @@ export default function page() {
                                         <p className="text-sm text-gray-700 font-medium mb-1">Location & Company:</p>
                                         <div className="text-sm text-gray-600 leading-relaxed break-words space-y-1">
                                             {(() => {
-                                                const locations = item.location.split(',').map(loc => loc.trim()).filter(Boolean);
-                                                const companies = item.companies.split(',').map(comp => comp.trim()).filter(Boolean);
+                                                const locations = item.location.split(';').map(loc => loc.trim()).filter(Boolean);
+                                                const companies = item.companies.split(';').map(comp => comp.trim()).filter(Boolean);
                                                 const count = Math.max(locations.length, companies.length);
 
                                                 return Array.from({ length: count }).map((_, i) => {
@@ -263,6 +264,13 @@ export default function page() {
                 </div>
             </Card>
         </div>
+    );
+}
 
-    )
+export default function Page() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <MapPageContent />
+        </Suspense>
+    );
 }
