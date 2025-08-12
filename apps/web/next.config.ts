@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import * as process from "node:process";
 
 const nextConfig: NextConfig = {
   images: {
@@ -8,7 +9,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3001/api/:path*",
+        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/:path*`,
       },
     ];
   },
