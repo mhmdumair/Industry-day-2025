@@ -9,7 +9,6 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -68,18 +67,6 @@ const btnForStatus = (s: string) =>
     text: "Unknown",
     icon: null,
   };
-
-const colorMap: Record<string, string> = {
-  CS: "bg-red-200 border-red-400 text-black",
-  DS: "bg-indigo-200 border-indigo-400 text-black",
-  ST: "bg-orange-200 border-orange-400 text-black",
-  BT: "bg-cyan-200 border-cyan-400 text-black",
-  ZL: "bg-lime-200 border-lime-400 text-black",
-  CM: "bg-rose-200 border-rose-400 text-black",
-};
-
-const streamColor = (s: string) =>
-  colorMap[s] ?? "bg-gray-200 border-gray-400 text-black";
 
 /* ----------  component ---------- */
 const RegisteredQueues = () => {
@@ -253,30 +240,54 @@ const RegisteredQueues = () => {
   const renderWalkinCard = (i: Interview) => {
     const c = companyByID(i.companyID);
     const cfg = btnForStatus(i.status);
+
+    async function cancelInterview(interviewID: string) {
+      if (!confirm("Are you sure you want to cancel this interview?")) return;
+
+      try {
+        await api.delete(`/interview/${interviewID}`);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err);
+          alert(`Failed to remove interview: ${err.message}`);
+        } else {
+          console.error("Unknown error:", err);
+          alert("Failed to remove interview: An unknown error occurred.");
+        }
+      }
+
+    }
+
     return (
-      <Card key={i.companyID} className="mb-2 last:mb-0">
-        <CardHeader>
-          <CardTitle>{c.companyName}</CardTitle>
-          <CardDescription>
-            Stream:
-            <Badge className={`ml-1 ${streamColor(c.stream)}`}>
-              {c.stream}
-            </Badge>
-          </CardDescription>
-        </CardHeader>
-        <div className="p-6 pt-0">
-          <Button
-            variant="secondary"
-            disabled
-            className={`w-full ${cfg.class}`}
-          >
-            {cfg.icon}
-            {cfg.text}
-          </Button>
-        </div>
-      </Card>
+        <Card key={i.companyID} className="mb-2 last:mb-0">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>{c.companyName}</CardTitle>
+              <CardDescription></CardDescription>
+            </div>
+            <Button
+                size="icon"
+                className="bg-red-500/80 border border-red-600"
+                onClick={() => cancelInterview(i.interviewID)}
+            >
+              ✕
+            </Button>
+          </CardHeader>
+          <div className="p-6 pt-0">
+            <Button
+                variant="secondary"
+                disabled
+                className={`w-full ${cfg.class}`}
+            >
+              {cfg.icon}
+              {cfg.text}
+            </Button>
+          </div>
+        </Card>
     );
   };
+
+
 
   /* ----------  render ---------- */
   return (

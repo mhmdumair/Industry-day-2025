@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCw, Building, Users, Clock, MapPin } from 'lucide-react';
 import api from '../../../lib/axios';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -200,22 +200,22 @@ const LiveQueueDisplay = () => {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Live Interview Queue</h1>
-        <p className="text-muted-foreground">Real-time interview status and queue management</p>
+      <Card className="text-center space-y-2 bg-slate-100/80">
+        <CardHeader>
+        <CardTitle className="text-2xl font-bold">Live Queue Dashboard</CardTitle>
         {lastUpdated && (
           <p className="text-sm text-muted-foreground">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         )}
-      </div>
+        </CardHeader>
 
+        <CardContent>
       {/* Company Selection */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
               Select Company
             </div>
             {selectedCompany && (
@@ -233,18 +233,26 @@ const LiveQueueDisplay = () => {
               Loading companies...
             </div>
           ) : (
-            <Select value={selectedCompany} onValueChange={handleCompanyChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a company" />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map((company) => (
-                  <SelectItem key={company.companyID} value={company.companyID}>
-                    {company.companyName} ({company.sponsership})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={selectedCompany} onValueChange={handleCompanyChange}>
+                <SelectTrigger className="max-w-full truncate">
+                  <SelectValue
+                      placeholder="Choose a company"
+                      className="truncate"
+                  />
+                </SelectTrigger>
+                <SelectContent className="selected">
+                  {companies.map((company) => (
+                      <SelectItem
+                          key={company.companyID}
+                          value={company.companyID}
+                          className="max-w-full truncate"
+                      >
+                        {company.companyName} ({company.sponsership})
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
           )}
           
           {companies.length === 0 && !loadingCompanies && (
@@ -259,21 +267,16 @@ const LiveQueueDisplay = () => {
 
       {/* Company Information */}
       {selectedCompanyData && (
-        <Card>
+        <Card className="mt-2 mb-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {selectedCompanyData.companyName}
-              <Badge variant={getSponsorshipVariant(selectedCompanyData.sponsership)}>
-                {selectedCompanyData.sponsership}
-              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-4">{selectedCompanyData.description}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>Contact: {selectedCompanyData.contactPersonName} ({selectedCompanyData.contactPersonDesignation})</div>
               <div>Phone: {selectedCompanyData.contactNumber}</div>
-              <div>Location: {selectedCompanyData.location}</div>
               <div>Email: {selectedCompanyData.user.email}</div>
             </div>
           </CardContent>
@@ -297,34 +300,21 @@ const LiveQueueDisplay = () => {
 
       {/* Statistics */}
       {selectedCompany && !loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+        <div className="flex ">
+          <Card className="mt-2 mb-2 flex flex-col gap-4 items-center justify-center w-full">
             <CardContent className="flex items-center gap-4 p-6">
-              <Users className="h-8 w-8 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Queue</p>
+                <p className="text-sm text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold">{totalInterviews}</p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="flex items-center gap-4 p-6">
-              <Clock className="h-8 w-8 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Pre-listed</p>
-                <p className="text-2xl font-bold">{prelistedInterviews.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="flex items-center gap-4 p-6">
-              <MapPin className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Pre-listed</p>
+              <p className="text-2xl font-bold">{prelistedInterviews.length}</p>
+            </div>
               <div>
-                <p className="text-sm text-muted-foreground">Walk-in</p>
-                <p className="text-2xl font-bold">{totalWalkinInterviews}</p>
-              </div>
+              <p className="text-sm text-muted-foreground">Walk-in</p>
+              <p className="text-2xl font-bold">{totalWalkinInterviews}</p>
+            </div>
             </CardContent>
           </Card>
         </div>
@@ -332,7 +322,7 @@ const LiveQueueDisplay = () => {
 
       {/* Pre-listed Interviews */}
       {selectedCompany && !loading && !error && (
-        <Card>
+        <Card className="mt-2 mb-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
@@ -396,10 +386,9 @@ const LiveQueueDisplay = () => {
 
       {/* Walk-in Interviews */}
       {selectedCompany && !loading && !error && (
-        <Card>
+        <Card className="mt-2 mb-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
+            <CardTitle className="flex items-center">
               Walk-in Interviews ({totalWalkinInterviews})
             </CardTitle>
           </CardHeader>
@@ -475,15 +464,16 @@ const LiveQueueDisplay = () => {
       )}
 
       {/* Empty State */}
-      {selectedCompany && !loading && !error && totalInterviews === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-xl font-medium text-muted-foreground mb-2">No interviews scheduled</p>
-            <p className="text-muted-foreground">This company currently has no interviews in their queue</p>
-          </CardContent>
-        </Card>
-      )}
+        {selectedCompany && !loading && !error && totalInterviews === 0 && (
+          <Card>
+            <CardDescription className="text-center py-12 px-2">
+              <CardTitle className="text-lg text-black mb-2">No interviews scheduled</CardTitle>
+              <p className="text-muted-foreground">This company currently has no interviews in their queue</p>
+            </CardDescription>
+          </Card>
+        )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

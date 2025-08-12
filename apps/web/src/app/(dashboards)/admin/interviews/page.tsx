@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import api from "@/lib/axios";
-import CreateInterview from "../../../../components/admin/CreateInterview";
-import CancelInterview from "../../../../components/admin/CancelInterview";
+import CreateInterview from "../../../../components/admin/create-interview";
+import CancelInterview from "../../../../components/admin/cancel-interview";
 import { Loader2 } from "lucide-react";
 
 interface Company {
