@@ -1,24 +1,80 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import api from "@/lib/axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
-// This component is now more dynamic and uses conditional styling for different student statuses.
-const QueueCard = ({ companyName, stallNumber, students }) => {
 
-    const getStatusStyles = (status) => {
-        switch (status) {
-            case 'interviewing':
-                return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
-            case 'waiting':
-                return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
-            case 'missed':
-                return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
-            default: // 'queued'
-                return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
+
+// Interface for the fetched student data
+interface StudentData {
+    interviewID: string;
+    studentID: string;
+    status: string;
+    type: 'prelisted' | 'walkin';
+    student: {
+        regNo: string;
+        group: string;
+        user: {
+            first_name: string;
+            last_name: string;
+        };
+    };
+}
+
+interface QueueCardProps {
+    companyName: string;
+    stallNumber: string;
+    prelistedStudents: StudentData[];
+    walkinStudents: StudentData[];
+    onStudentClick: (studentId: string) => void;
+}
+
+const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents, onStudentClick }: QueueCardProps) => {
+    const getStatusStyles = (status: string, type: string) => {
+        if (type === 'prelisted') {
+            switch (status) {
+                case 'interviewing':
+                    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+                default:
+                    return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200";
+            }
+        } else { // 'walkin'
+            switch (status) {
+                case 'interviewing':
+                    return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+                case 'waiting':
+                    return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
+                case 'missed':
+                    return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
+                default: 
+                    return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
+            }
         }
     };
+
+    const renderStudentList = (students: StudentData[]) => (
+        students.map((student) => (
+            <Button
+                key={student.interviewID}
+                onClick={() => onStudentClick(student.interviewID)}
+                className={`w-full justify-start p-3 h-auto border ${getStatusStyles(student.status, student.type)}`}
+            >
+                <span className="font-semibold mr-3">{student.student.regNo}</span>
+                <span className="truncate">{student.student.user.first_name} {student.student.user.last_name}</span>
+            </Button>
+        ))
+    );
 
     return (
         <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full">
@@ -31,96 +87,221 @@ const QueueCard = ({ companyName, stallNumber, students }) => {
             {/* Divider Line */}
             <hr className="border-gray-200" />
 
-            {/* Queue List */}
+            {/* Pre-listed Queue */}
             <div className="flex flex-col gap-3">
-                <h3 className="font-semibold text-gray-700">Interview Queue</h3>
-                {students.map((student, i) => (
-                    <Button
-                        key={i}
-                        className={`w-full justify-start p-3 h-auto border ${getStatusStyles(student.status)}`}
-                    >
-                        <span className="font-semibold mr-3">{student.id}</span>
-                        <span className="truncate">{student.name}</span>
-                    </Button>
-                ))}
+                <h3 className="font-semibold text-blue-700">Pre-listed Queue</h3>
+                {prelistedStudents.length > 0 ? (
+                    renderStudentList(prelistedStudents)
+                ) : (
+                    <p className="text-sm text-gray-500">No pre-listed students in the queue.</p>
+                )}
+            </div>
+
+            {/* Walk-in Queue */}
+            <div className="flex flex-col gap-3">
+                <h3 className="font-semibold text-amber-700">Walk-in Queue</h3>
+                {walkinStudents.length > 0 ? (
+                    renderStudentList(walkinStudents)
+                ) : (
+                    <p className="text-sm text-gray-500">No walk-in students in the queue.</p>
+                )}
             </div>
         </Card>
     );
 };
 
-
-// --- Main Page Component ---
 export default function ResumePage() {
-    const [currentPdfIndex, setCurrentPdfIndex] = useState(0);
-    // The user's code didn't use this array to change the iframe, but the logic is here if needed.
-    const pdfFiles = ['1.pdf', '2.pdf', '3.pdf'];
+    const searchParams = useSearchParams();
+    const companyID = searchParams.get('companyId');
+    const stallID = searchParams.get('stallId');
 
-    // Sample data for the queue
-    const queueStudents = [
-        { id: "S2010", name: "Mohommad Umair", status: "interviewing" },
-        { id: "S2011", name: "Alia Hassan", status: "waiting" },
-        { id: "S2012", name: "Kenji Tanaka", status: "missed" },
-        { id: "S2013", name: "Fatima Al-Sayed", status: "waiting" },
-        { id: "S2014", name: "Johnathan Smith", status: "queued" },
-        { id: "S2015", name: "Priya Sharma", status: "queued" },
-        { id: "S2016", name: "Carlos Rodriguez", status: "queued" },
-    ];
+    const [currentInterviewID, setCurrentInterviewID] = useState<string | null>(null);
+    const [prelistedStudents, setPrelistedStudents] = useState<StudentData[]>([]);
+    const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
+    const [companyName, setCompanyName] = useState<string>('');
+    const [stallNumber, setStallNumber] = useState<string>('');
+    const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
 
+    const activeStudents = [...prelistedStudents, ...walkinStudents];
+    const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
+    const maxSize = 15;
 
-    const handleNext = () => {
-        setCurrentPdfIndex((prev) => (prev + 1) % pdfFiles.length);
+    const fetchCompanyAndStallData = useCallback(async () => {
+        if (!companyID || !stallID) return;
+
+        try {
+            const companyResponse = await api.get(`/company/${companyID}`);
+            setCompanyName(companyResponse.data.companyName);
+
+            const stallResponse = await api.get(`/stall/${stallID}`);
+            setStallNumber(stallResponse.data.stallNumber);
+        } catch (error) {
+            console.error("Failed to fetch company or stall data:", error);
+        }
+    }, [companyID, stallID]);
+    
+    const fetchCvFileName = useCallback(async (studentId: string) => {
+        try {
+            const { data } = await api.get(`/cv/student/${studentId}`);
+            if (data && data.fileName) {
+                setCurrentCvFileName(data.fileName);
+            } else {
+                setCurrentCvFileName(null);
+            }
+        } catch (error) {
+            console.error(`Failed to fetch CV for student ${studentId}:`, error);
+            setCurrentCvFileName(null);
+        }
+    }, []);
+
+    const refreshQueue = useCallback(async () => {
+        if (!stallID || !companyID) return;
+
+        try {
+            const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyID}/prelisted/inqueue`);
+            const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallID}/inqueue`);
+
+            setPrelistedStudents(fetchedPrelisted);
+            setWalkinStudents(fetchedWalkin);
+            
+            if (!currentInterviewID && fetchedPrelisted.length > 0) {
+                setCurrentInterviewID(fetchedPrelisted[0].interviewID);
+            } else if (!currentInterviewID && fetchedWalkin.length > 0) {
+                setCurrentInterviewID(fetchedWalkin[0].interviewID);
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch queue:", error);
+            setPrelistedStudents([]);
+            setWalkinStudents([]);
+        }
+    }, [stallID, companyID, currentInterviewID]);
+
+    const fillEmptySlots = useCallback(async () => {
+        if (!companyID || !stallID) return;
+        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
+
+        if (slotsToFill > 0) {
+            console.log(`Filling ${slotsToFill} empty slots...`);
+            try {
+                await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
+                console.log("New walk-ins requested");
+                await refreshQueue();
+            } catch (error) {
+                console.error("Failed to fill empty slots:", error);
+            }
+        }
+    }, [companyID, stallID, prelistedStudents.length, walkinStudents.length, refreshQueue]);
+        
+    const handleStudentClick = useCallback((interviewId: string) => {
+        setCurrentInterviewID(interviewId);
+        const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
+        if (selectedStudent) {
+            fetchCvFileName(selectedStudent.studentID);
+        }
+    }, [activeStudents, fetchCvFileName]);
+
+    useEffect(() => {
+        if (companyID && stallID) {
+            fetchCompanyAndStallData();
+            refreshQueue().then(() => {
+                fillEmptySlots();
+            });
+
+            const interval = setInterval(() => {
+                refreshQueue().then(() => {
+                    fillEmptySlots();
+                });
+            }, 10000);
+            
+            return () => clearInterval(interval);
+        }
+    }, [companyID, stallID, fetchCompanyAndStallData, refreshQueue, fillEmptySlots]);
+
+    useEffect(() => {
+        if (currentStudent) {
+            fetchCvFileName(currentStudent.studentID);
+        }
+    }, [currentStudent, fetchCvFileName]);
+
+    const handleFinishInterview = async () => {
+        if (!currentStudent) return;
+        try {
+            await api.patch(`/interview/${currentStudent.interviewID}/complete`);
+            
+            await refreshQueue();
+            
+            const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
+            if (nextStudentIndex < activeStudents.length) {
+                setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
+                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID); 
+            } else {
+                setCurrentInterviewID(null);
+                setCurrentCvFileName(null);
+            }
+            
+            await fillEmptySlots();
+
+        } catch (error) {
+            console.error("Failed to finish interview:", error);
+        }
     };
 
-    const handlePrev = () => {
-        setCurrentPdfIndex((prev) => (prev - 1 + pdfFiles.length) % pdfFiles.length);
-    };
+
+    const currentStudentType = currentStudent?.type === 'walkin' ? 'Walk-in' : 'Pre-Listed';
+    
+    const pdfSource = currentCvFileName 
+        ? `https://drive.google.com/file/d/${currentCvFileName}/preview` 
+        : 'about:blank'; 
 
     return (
         <div className="bg-transparent w-full p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">
 
-                {/* Left Section: PDF Viewer (spans 2 columns on large screens) */}
+                {/* Left Section: PDF Viewer */}
                 <div className="lg:col-span-2 flex flex-col gap-4 h-full">
-
-                    {/* Navigation Bar */}
                     <Card className="flex flex-row justify-between items-center p-3 bg-white">
-                        <Button onClick={handlePrev} variant="outline" className="hidden">
-                            ← Previous
-                        </Button>
-
-                        {/* Student Status Badge */}
                         <div className="flex items-center gap-2">
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300 py-1 px-3">
-                                Pre-Listed Student
-                            </Badge>
+                
+                            {currentStudent && (
+                                <Badge className={`py-1 px-3 ${currentStudent.type === 'prelisted' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    {currentStudentType} Student
+                                </Badge>
+                            )}
                             <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 py-1 px-3">
-                                Position: 2
+                                Position: {currentStudent ? activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1 : 'N/A'}
                             </Badge>
                         </div>
-
-                        <Button onClick={handleNext} className='border bg-blue-600 text-white hover:bg-blue-700'>
+                        <Button onClick={handleFinishInterview} className='border bg-blue-600 text-white hover:bg-blue-700'>
                             Finish Interview
                         </Button>
                     </Card>
 
                     {/* PDF iframe Container */}
                     <Card className="flex-1 w-full h-full">
-                        <iframe
-                            // This URL is from your original code. The key prop ensures it re-renders on change.
-                            src={`https://drive.google.com/file/d/1PpmNJO4Ibol0gzjggzzJwBQW01fm7J7J/preview`}
-                            className="w-full h-full border-0 px-2"
-                            title={`PDF Viewer - ${pdfFiles[currentPdfIndex]}`}
-                            key={pdfFiles[currentPdfIndex]}
-                        />
+                        {currentStudent ? (
+                            <iframe
+                                src={pdfSource}
+                                className="w-full h-full border-0 px-2"
+                                title={`PDF Viewer - ${currentStudent.student.user.first_name} ${currentStudent.student.user.last_name}`}
+                                key={currentStudent.interviewID}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                                No students in the queue.
+                            </div>
+                        )}
                     </Card>
                 </div>
 
-                {/* Right Section: Queue Card (spans 1 column on large screens) */}
+                {/* Right Section: Queue Card */}
                 <div className="lg:col-span-1 h-full overflow-y-auto">
                     <QueueCard
-                        companyName="MAS Holdings"
-                        stallNumber="Stall 1"
-                        students={queueStudents}
+                        companyName={companyName}
+                        stallNumber={stallNumber}
+                        prelistedStudents={prelistedStudents}
+                        walkinStudents={walkinStudents}
+                        onStudentClick={handleStudentClick}
                     />
                 </div>
             </div>

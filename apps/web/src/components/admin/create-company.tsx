@@ -19,29 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
-// Enum values matching backend DTOs
-const companyStreams = [
-  "ZL", "BT", "CH", "MT", "BMS", "ST", "GL", "CS", "DS",
-  "ML", "BL", "MB", "CM", "AS", "ES", "SOR"
-];
-
-// Make sure these match your CompanySponsership enum values exactly
 const companySponsorships = ["GOLD", "SILVER", "BRONZE"];
 
 export default function CreateCompany() {
   const [formData, setFormData] = useState({
     user: {
       email: "",
-      first_name: "",
-      last_name: "",
-      role: "company"
+      password: "",
+      role: "company",
     },
     company: {
       companyName: "",
       description: "",
       sponsership: "GOLD",
-      stream: "CS",
       contactPersonName: "",
       contactPersonDesignation: "",
       contactNumber: "",
@@ -51,80 +44,61 @@ export default function CreateCompany() {
     },
   });
 
-  const handleInput = (
-    e: React.ChangeEvent<HTMLInputElement>,
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: "user" | "company",
   ) => {
     const { name, value } = e.target;
-    setFormData(p => ({ ...p, [section]: { ...p[section], [name]: value } }));
+    setFormData((p) => ({ ...p, [section]: { ...p[section], [name]: value } }));
   };
 
-  const handleSelect = (
-    name: "stream" | "sponsership",
-    value: string,
-  ) => setFormData(p => ({ ...p, company: { ...p.company, [name]: value } }));
+  const handleSponsorshipSelect = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      company: { ...prev.company, sponsership: value },
+    }));
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Function to prepare data matching DTO requirements
-    const prepareUserData = (data: any) => {
-      const prepared: any = {
-        email: data.email,
-        role: data.role
-      };
-      
-      // Only include optional fields if they have values
-      if (data.first_name && data.first_name.trim() !== "") {
-        prepared.first_name = data.first_name;
-      }
-      if (data.last_name && data.last_name.trim() !== "") {
-        prepared.last_name = data.last_name;
-      }
-      
-      return prepared;
-    };
-
-    const prepareCompanyData = (data: any) => {
-      const prepared: any = {
-        companyName: data.companyName,
-        description: data.description,
-        sponsership: data.sponsership,
-        contactPersonName: data.contactPersonName,
-        contactPersonDesignation: data.contactPersonDesignation,
-        contactNumber: data.contactNumber,
-        stream: data.stream,
-        location: data.location
-      };
-      
-      // Only include optional fields if they have values
-      if (data.logo && data.logo.trim() !== "") {
-        prepared.logo = data.logo;
-      }
-      if (data.companyWebsite && data.companyWebsite.trim() !== "") {
-        prepared.companyWebsite = data.companyWebsite;
-      }
-      
-      return prepared;
-    };
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
     const payload = {
-      user: prepareUserData(formData.user),
-      company: prepareCompanyData(formData.company)
+      user: {
+        email: formData.user.email,
+        password: formData.user.password,
+        role: formData.user.role,
+      },
+      company: {
+        companyName: formData.company.companyName,
+        description: formData.company.description,
+        sponsership: formData.company.sponsership,
+        contactPersonName: formData.company.contactPersonName,
+        contactPersonDesignation: formData.company.contactPersonDesignation,
+        contactNumber: formData.company.contactNumber,
+        location: formData.company.location,
+        ...(formData.company.logo && { logo: formData.company.logo }),
+        ...(formData.company.companyWebsite && {
+          companyWebsite: formData.company.companyWebsite,
+        }),
+      },
     };
 
     try {
-      console.log("Payload:", payload);
-
       await api.post("/company", payload);
-      alert("Company created!");
+      setSuccess("Company created successfully!");
       setFormData({
-        user: { email: "", first_name: "", last_name: "", role: "company" },
+        user: { email: "", password: "", role: "company" },
         company: {
           companyName: "",
           description: "",
           sponsership: "GOLD",
-          stream: "CS",
           contactPersonName: "",
           contactPersonDesignation: "",
           contactNumber: "",
@@ -135,149 +109,129 @@ export default function CreateCompany() {
       });
     } catch (err: any) {
       console.error("Error details:", err.response?.data ?? err);
-      alert(`Failed to create company: ${err.response?.data?.message || err.message}`);
+      setError(err.response?.data?.message || "Failed to create company.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="bg-white shadow-md">
+    <Card className="max-w-2xl mx-auto shadow-lg">
       <CardHeader>
         <CardTitle>Create Company</CardTitle>
-        <CardDescription>Register new company profile</CardDescription>
+        <CardDescription>
+          Register a new company profile with user credentials.
+        </CardDescription>
       </CardHeader>
-
       <CardContent>
-        <form onSubmit={submit} className="space-y-4">
-          {/* User Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={submit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field
+              label="Company Name *"
+              name="companyName"
+              value={formData.company.companyName}
+              onChange={(e) => handleInputChange(e, "company")}
+              placeholder="e.g., Tech Solutions Inc."
+            />
+            <Field
+              label="Sponsorship *"
+              name="sponsership"
+              value={formData.company.sponsership}
+              isSelect={true}
+              onSelectChange={handleSponsorshipSelect}
+            />
             <Field
               label="Email *"
               name="email"
               type="email"
               value={formData.user.email}
-              onChange={(e) => handleInput(e, "user")}
-              required={true}
+              onChange={(e) => handleInputChange(e, "user")}
+              placeholder="e.g., contact@company.com"
             />
             <Field
-              label="First Name"
-              name="first_name"
-              value={formData.user.first_name}
-              onChange={(e) => handleInput(e, "user")}
-              required={false}
-            />
-            <Field
-              label="Last Name"
-              name="last_name"
-              value={formData.user.last_name}
-              onChange={(e) => handleInput(e, "user")}
-              required={false}
-            />
-          </div>
-          
-          <hr/>
-          
-          {/* Company Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <Field
-              label="Company Name *"
-              name="companyName"
-              value={formData.company.companyName}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
-            />
-            <Field
-              label="Description *"
-              name="description"
-              value={formData.company.description}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
+              label="Password *"
+              name="password"
+              type="password"
+              value={formData.user.password}
+              onChange={(e) => handleInputChange(e, "user")}
+              placeholder="Enter a secure password"
             />
             <Field
               label="Contact Person *"
               name="contactPersonName"
               value={formData.company.contactPersonName}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
+              onChange={(e) => handleInputChange(e, "company")}
+              placeholder="Full Name"
             />
             <Field
               label="Designation *"
               name="contactPersonDesignation"
               value={formData.company.contactPersonDesignation}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
+              onChange={(e) => handleInputChange(e, "company")}
+              placeholder="e.g., HR Manager"
             />
             <Field
               label="Contact Number *"
               name="contactNumber"
               value={formData.company.contactNumber}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
+              onChange={(e) => handleInputChange(e, "company")}
+              placeholder="e.g., +1234567890"
             />
             <Field
               label="Location *"
               name="location"
               value={formData.company.location}
-              onChange={(e) => handleInput(e, "company")}
-              required={true}
+              onChange={(e) => handleInputChange(e, "company")}
+              placeholder="e.g., New York, USA"
             />
             <Field
               label="Company Website"
               name="companyWebsite"
               type="url"
               value={formData.company.companyWebsite}
-              onChange={(e) => handleInput(e, "company")}
+              onChange={(e) => handleInputChange(e, "company")}
               required={false}
+              placeholder="https://www.company.com"
             />
             <Field
-              label="Logo URL"
+              label="Logo"
               name="logo"
-              type="url"
+              type="text"
               value={formData.company.logo}
-              onChange={(e) => handleInput(e, "company")}
+              onChange={(e) => handleInputChange(e, "company")}
               required={false}
+              placeholder="logo"
             />
-
-            <div>
-              <Label>Sponsorship *</Label>
-              <Select
-                value={formData.company.sponsership}
-                onValueChange={(v) => handleSelect("sponsership", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Sponsorship" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companySponsorships.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Stream *</Label>
-              <Select
-                value={formData.company.stream}
-                onValueChange={(v) => handleSelect("stream", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Stream" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companyStreams.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-gray-700">
+              Description *
+            </Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.company.description}
+              onChange={(e) => handleInputChange(e, "company")}
+              required
+              rows={4}
+              placeholder="A brief description of your company..."
+            />
           </div>
 
-          <Button type="submit" className="w-full mt-4">
-            Create Company
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+          {success && (
+            <p className="text-green-500 text-sm text-center">{success}</p>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full mt-4"
+            disabled={isLoading}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? "Creating..." : "Create Company"}
           </Button>
         </form>
       </CardContent>
@@ -290,27 +244,49 @@ function Field({
   name,
   value,
   onChange,
+  onSelectChange,
   type = "text",
   required = true,
+  placeholder = "",
+  isSelect = false,
 }: {
   label: string;
   name: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSelectChange?: (value: string) => void;
   type?: string;
   required?: boolean;
+  placeholder?: string;
+  isSelect?: boolean;
 }) {
   return (
-    <div>
+    <div className="space-y-2">
       <Label htmlFor={name}>{label}</Label>
-      <Input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-      />
+      {isSelect ? (
+        <Select value={value} onValueChange={onSelectChange}>
+          <SelectTrigger>
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {companySponsorships.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <Input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          required={required}
+          placeholder={placeholder}
+        />
+      )}
     </div>
   );
 }

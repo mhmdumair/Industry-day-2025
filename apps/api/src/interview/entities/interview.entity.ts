@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Stall } from '../../stall/entities/stall.entity';
 import { Student } from '../../student/entities/student.entity';
+import { Company } from 'src/typeorm/entities';
 
 export enum InterviewType {
   PRE_LISTED = 'pre-listed',
@@ -64,4 +65,9 @@ export class Interview {
   @ManyToOne(() => Student, (student) => student.interviews, { nullable: false })
   @JoinColumn({ name: 'studentID' })
   student: Student;
+
+  @ManyToOne(() => Company, (company) => company.interviews, { nullable: false })
+  @JoinColumn({ name: 'companyID' })
+  company: Company;
+
 }

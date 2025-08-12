@@ -1,16 +1,15 @@
-// src/cv/cv.controller.ts
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
   Patch,
-  Param, 
+  Param,
   Delete,
-  ValidationPipe
+  ValidationPipe,
 } from '@nestjs/common';
 import { CvService } from './cv.service';
-import { CreateCvDto } from './dto/create-cv.dto';
+import { CreateCvDto, CreateCvByRegnoDto } from './dto/create-cv.dto';
 import { UpdateCvDto } from './dto/update-cv.dto';
 
 @Controller('cv')
@@ -22,9 +21,21 @@ export class CvController {
     return this.cvService.create(createCvDto);
   }
 
+  @Post('by-regno')
+  async createByRegNo(@Body(ValidationPipe) createCvByRegnoDto: CreateCvByRegnoDto) {
+    return this.cvService.createByRegNo(createCvByRegnoDto);
+  }
+
   @Post('bulk')
   async bulkCreate(@Body(ValidationPipe) createCvDtos: CreateCvDto[]) {
     return this.cvService.bulkCreate(createCvDtos);
+  }
+
+  @Post('bulk/by-regno')
+  async bulkCreateByRegNo(
+    @Body(ValidationPipe) createCvByRegnoDtos: CreateCvByRegnoDto[],
+  ) {
+    return this.cvService.bulkCreateByRegNo(createCvByRegnoDtos);
   }
 
   @Get()
@@ -55,8 +66,8 @@ export class CvController {
 
   @Patch(':cvId')
   async update(
-    @Param('cvId') cvId: string, 
-    @Body(ValidationPipe) updateCvDto: UpdateCvDto
+    @Param('cvId') cvId: string,
+    @Body(ValidationPipe) updateCvDto: UpdateCvDto,
   ) {
     return this.cvService.update(cvId, updateCvDto);
   }

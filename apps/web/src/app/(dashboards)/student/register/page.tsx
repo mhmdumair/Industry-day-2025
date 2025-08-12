@@ -108,7 +108,7 @@ const InterviewRegistration = () => {
         </div>
       )}
 
-      <Card className="bg-slate-100/80">
+      <Card className="bg-slate-100/80 mb-2 last:mb-0 w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Register for Interviews</CardTitle>
           <CardDescription>Select a company to join its walk-in queue</CardDescription>

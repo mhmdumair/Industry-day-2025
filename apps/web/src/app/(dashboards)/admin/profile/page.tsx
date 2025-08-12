@@ -37,6 +37,16 @@ export interface AdminProfile {
     user: User;
 }
 
+interface APIError {
+    response?: {
+        status: number;
+        data?: {
+            message?: string;
+        };
+    };
+    message: string;
+}
+
 const safeString = (value: string | null | undefined): string => {
     return value || '';
 };
@@ -76,7 +86,7 @@ export default function AdminProfileCard() {
                 setEditData(sanitizedData); 
                 setLoading(false);
             })
-            .catch((err) => {
+            .catch(() => {
                 setError("Failed to fetch admin profile.");
                 setLoading(false);
             });
@@ -151,14 +161,14 @@ export default function AdminProfileCard() {
         };
 
         try {
-            let response;
             try {
                 console.log("Attempting to save with flattened payload:", flattenedPayload);
-                response = await api.patch(`/admin/${adminId}`, flattenedPayload);
-            } catch (e: any) {
-                if (e.response?.status === 400) {
+                await api.patch(`/admin/${adminId}`, flattenedPayload);
+            } catch (e) {
+                const error = e as APIError;
+                if (error.response?.status === 400) {
                     console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
-                    response = await api.patch(`/admin/${adminId}`, nestedPayload);
+                    await api.patch(`/admin/${adminId}`, nestedPayload);
                 } else {
                     throw e;
                 }
@@ -181,9 +191,10 @@ export default function AdminProfileCard() {
             setIsDialogOpen(false);
             alert("Profile updated successfully!");
 
-        } catch (error: any) {
-            console.error("Save error:", error.response?.data || error.message);
-            alert(`Failed to save: ${error.response?.data?.message || error.message || "An unknown error occurred."}`);
+        } catch (error) {
+            const apiError = error as APIError;
+            console.error("Save error:", apiError.response?.data || apiError.message);
+            alert(`Failed to save: ${apiError.response?.data?.message || apiError.message || "An unknown error occurred."}`);
         } finally {
             setLoading(false);
         }

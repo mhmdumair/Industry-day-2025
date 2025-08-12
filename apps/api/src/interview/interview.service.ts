@@ -30,33 +30,45 @@ export class InterviewService {
   ) {}
 
   private async renumberPreferences(companyID: string): Promise<void> {
-    const list = await this.interviewRepository.find({
-      where: { companyID, type: InterviewType.PRE_LISTED },
-      order: { company_preference: 'ASC' },
-    });
+    try {
+      const list = await this.interviewRepository.find({
+        where: { companyID, type: InterviewType.PRE_LISTED },
+        order: { company_preference: 'ASC' },
+      });
 
-    let changed = false;
-    list.forEach((iv, idx) => {
-      const target = idx + 1;
-      if (iv.company_preference !== target) {
-        iv.company_preference = target;
-        changed = true;
-      }
-    });
+      let changed = false;
+      list.forEach((iv, idx) => {
+        const target = idx + 1;
+        if (iv.company_preference !== target) {
+          iv.company_preference = target;
+          changed = true;
+        }
+      });
 
-    if (changed) await this.interviewRepository.save(list);
+      if (changed) await this.interviewRepository.save(list);
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to renumber preferences: ${err.message}`,
+      );
+    }
   }
 
   private async nextCompanyPreference(companyID: string): Promise<number> {
-    const row = await this.interviewRepository
-      .createQueryBuilder('i')
-      .select('MAX(i.company_preference)', 'max')
-      .where('i.companyID = :companyID', { companyID })
-      .andWhere('i.type = :type', { type: InterviewType.PRE_LISTED })
-      .getRawOne<{ max: string | null }>();
+    try {
+      const row = await this.interviewRepository
+        .createQueryBuilder('i')
+        .select('MAX(i.company_preference)', 'max')
+        .where('i.companyID = :companyID', { companyID })
+        .andWhere('i.type = :type', { type: InterviewType.PRE_LISTED })
+        .getRawOne<{ max: string | null }>();
 
-    const maxPref = row?.max ? Number(row.max) : 0;
-    return maxPref + 1;
+      const maxPref = row?.max ? Number(row.max) : 0;
+      return maxPref + 1;
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get next company preference: ${err.message}`,
+      );
+    }
   }
 
   async create(dto: CreateInterviewDto): Promise<Interview> {
@@ -71,32 +83,32 @@ export class InterviewService {
   }
 
   async createPrelist(dto: Partial<CreateInterviewDto>): Promise<Interview> {
-  try {
-    if (!dto.companyID) {
-      throw new BadRequestException('companyID must be provided for a pre-listed interview.');
-    }
+    try {
+      if (!dto.companyID) {
+        throw new BadRequestException('companyID must be provided for a pre-listed interview.');
+      }
 
-    const interview = this.interviewRepository.create({
-      ...dto,
-      type: InterviewType.PRE_LISTED,
-      status: InterviewStatus.SCHEDULED,
-      stallID: undefined,
-      company_preference: await this.nextCompanyPreference(dto.companyID),
-    });
-    return await this.interviewRepository.save(interview);
-  } catch (err) {
-    throw new InternalServerErrorException(
-      `Failed to create pre-list interview: ${err.message}`,
-    );
+      const interview = this.interviewRepository.create({
+        ...dto,
+        type: InterviewType.PRE_LISTED,
+        status: InterviewStatus.INQUEUE,
+        stallID: undefined,
+        company_preference: await this.nextCompanyPreference(dto.companyID),
+      });
+      return await this.interviewRepository.save(interview);
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to create pre-list interview: ${err.message}`,
+      );
+    }
   }
-}
 
   async createWalkin(dto: Partial<CreateInterviewDto>): Promise<Interview> {
     try {
       const interview = this.interviewRepository.create({
         ...dto,
         type: InterviewType.WALK_IN,
-        status: InterviewStatus.INQUEUE,
+        status: InterviewStatus.SCHEDULED,
         stallID: undefined,
       });
       return await this.interviewRepository.save(interview);
@@ -154,14 +166,18 @@ export class InterviewService {
 
     const prefs: Record<string, number> = {};
     const companyIDs = [...new Set(dtos.map(d => d.companyID))];
+    
+    try {
+      await Promise.all(companyIDs.map(id => this.renumberPreferences(id)));
 
-    await Promise.all(companyIDs.map(id => this.renumberPreferences(id)));
-
-    await Promise.all(
-      companyIDs.map(async id => {
-        prefs[id] = await this.nextCompanyPreference(id) - 1;
-      }),
-    );
+      await Promise.all(
+        companyIDs.map(async id => {
+          prefs[id] = await this.nextCompanyPreference(id) - 1;
+        }),
+      );
+    } catch(err) {
+      throw new InternalServerErrorException(`Failed to prepare prelist batch: ${err.message}`);
+    }
 
     for (let i = 0; i < dtos.length; i++) {
       try {
@@ -171,6 +187,7 @@ export class InterviewService {
         const interview = this.interviewRepository.create({
           ...dto,
           type: InterviewType.PRE_LISTED,
+          status: InterviewStatus.INQUEUE,
           stallID: undefined,
           company_preference: prefs[dto.companyID],
         });
@@ -199,114 +216,182 @@ export class InterviewService {
   async createInterviewByRegNo(
     dto: CreateInterviewByRegNoDto,
   ): Promise<Interview> {
-    const student = await this.studentSerrvice.findByRegNo(dto.regNo);
-    if (!student) {
-      throw new NotFoundException(
-        `Student with registration number ${dto.regNo} not found`,
+    try {
+      const student = await this.studentSerrvice.findByRegNo(dto.regNo);
+      if (!student) {
+        throw new NotFoundException(
+          `Student with registration number ${dto.regNo} not found`,
+        );
+      }
+
+      const baseDto: Partial<CreateInterviewDto> = {
+        companyID: dto.companyID,
+        studentID: student.studentID,
+      };
+
+      if (dto.type === InterviewType.PRE_LISTED) {
+        return this.createPrelist(baseDto);
+      } else {
+        return this.createWalkin(baseDto);
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException || err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to create interview by registration number: ${err.message}`,
       );
-    }
-
-    const baseDto: Partial<CreateInterviewDto> = {
-      companyID: dto.companyID,
-      studentID: student.studentID,
-    };
-
-    if (dto.type === InterviewType.PRE_LISTED) {
-      return this.createPrelist(baseDto);
-    } else {
-      return this.createWalkin(baseDto);
     }
   }
 
-
   async findAll() {
-    return this.interviewRepository.find({
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return this.interviewRepository.find({
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to retrieve interviews: ${err.message}`,
+      );
+    }
   }
 
   async findOne(id: string) {
-    return this.interviewRepository.findOne({
-      where: { interviewID: id },
-      relations: ['stall', 'student', 'student.user'],
-    });
+    try {
+      return this.interviewRepository.findOne({
+        where: { interviewID: id },
+        relations: ['stall', 'student', 'student.user'],
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to retrieve interview: ${err.message}`,
+      );
+    }
   }
 
   async findByStudentId(studentID: string) {
-    return this.interviewRepository.find({
-      where: { studentID },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return this.interviewRepository.find({
+        where: { studentID },
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to find interviews by student ID: ${err.message}`,
+      );
+    }
   }
 
   async findByStallId(stallID: string) {
-    return this.interviewRepository.find({
-      where: { stallID },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return this.interviewRepository.find({
+        where: { stallID, status: InterviewStatus.INQUEUE },
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to find interviews by stall ID: ${err.message}`,
+      );
+    }
   }
 
   async findByCompanyId(companyID: string) {
-    return this.interviewRepository.find({
-      where: { companyID },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return this.interviewRepository.find({
+        where: { companyID },
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to find interviews by company ID: ${err.message}`,
+      );
+    }
   }
 
   private prelistOrder = {
-    company_preference: 'ASC' as const,
     student_preference: 'ASC' as const,
+    company_preference: 'ASC' as const,
   };
 
-  getPrelistedByCompany(companyID: string) {
-    return this.interviewRepository.find({
-      where: { companyID, type: InterviewType.PRE_LISTED },
-      relations: ['stall', 'student', 'student.user'],
-      order: this.prelistOrder,
-    });
+  async getPrelistedByCompany(companyID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: { companyID, type: InterviewType.PRE_LISTED },
+        relations: ['stall', 'student', 'student.user'],
+        order: this.prelistOrder,
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get pre-listed interviews by company: ${err.message}`,
+      );
+    }
   }
 
-  getPrelistedScheduledByCompany(companyID: string) {
-    return this.interviewRepository.find({
-      where: {
-        companyID,
-        type: InterviewType.PRE_LISTED,
-        status: InterviewStatus.SCHEDULED,
-      },
-      relations: ['stall', 'student', 'student.user'],
-      order: this.prelistOrder,
-    });
+  async getPrelistedScheduledByCompany(companyID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: {
+          companyID,
+          type: InterviewType.PRE_LISTED,
+          status: InterviewStatus.INQUEUE,
+        },
+        relations: ['stall', 'student', 'student.user'],
+        order: this.prelistOrder,
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get scheduled pre-listed interviews: ${err.message}`,
+      );
+    }
   }
 
-  getWalkinByCompany(companyID: string) {
-    return this.interviewRepository.find({
-      where: { companyID, type: InterviewType.WALK_IN },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'ASC' },
-    });
+  async getWalkinByCompany(companyID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: { companyID, type: InterviewType.WALK_IN },
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get walk-in interviews by company: ${err.message}`,
+      );
+    }
   }
 
-  getWalkinScheduledByCompany(companyID: string) {
-    return this.interviewRepository.find({
-      where: {
-        companyID,
-        type: InterviewType.WALK_IN,
-        status: InterviewStatus.SCHEDULED,
-      },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'ASC' },
-    });
+  async getWalkinScheduledByCompany(companyID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: {
+          companyID,
+          type: InterviewType.WALK_IN,
+          status: InterviewStatus.SCHEDULED,
+        },
+        relations: ['stall', 'student', 'student.user'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get scheduled walk-in interviews: ${err.message}`,
+      );
+    }
   }
 
   async getWalkinCountByCompany(companyID: string) {
-    const count = await this.interviewRepository.count({
-      where: { companyID, type: InterviewType.WALK_IN },
-    });
-    return { count };
+    try {
+      const count = await this.interviewRepository.count({
+        where: { companyID, type: InterviewType.WALK_IN },
+      });
+      return { count };
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get walk-in count: ${err.message}`,
+      );
+    }
   }
 
   async getNextWalkinInterview(
@@ -327,7 +412,7 @@ export class InterviewService {
         .where('interview.companyID = :companyID', { companyID })
         .andWhere('interview.type = :type', { type: InterviewType.WALK_IN })
         .andWhere('interview.status = :status', {
-          status: InterviewStatus.INQUEUE,
+          status: InterviewStatus.SCHEDULED,
         })
         .andWhere('interview.stallID IS NULL');
 
@@ -347,7 +432,33 @@ export class InterviewService {
         .addOrderBy('interview.created_at', 'ASC')
         .limit(count);
 
-      return await qb.getMany();
+      const scheduledInterviews = await qb.getMany();
+
+      if (scheduledInterviews.length === 0) {
+        return [];
+      }
+      const interviewIDsToUpdate = scheduledInterviews.map(
+        (interview) => interview.interviewID,
+      );
+
+      await this.interviewRepository
+        .createQueryBuilder()
+        .update(Interview)
+        .set({
+          status: InterviewStatus.INQUEUE,
+          stallID: stallID,
+        })
+        .whereInIds(interviewIDsToUpdate)
+        .execute();
+
+      const updatedInterviews = await this.interviewRepository
+        .createQueryBuilder('interview')
+        .leftJoinAndSelect('interview.student', 'student')
+        .leftJoinAndSelect('student.user', 'user')
+        .whereInIds(interviewIDsToUpdate)
+        .getMany();
+
+      return updatedInterviews;
     } catch (err) {
       throw new InternalServerErrorException(
         `Failed to get next walk-in interviews: ${err.message}`,
@@ -355,46 +466,91 @@ export class InterviewService {
     }
   }
 
-  getPrelistedSortedByStudent(studentID: string) {
-    return this.interviewRepository.find({
-      where: { studentID, type: InterviewType.PRE_LISTED },
-      relations: ['stall', 'student', 'student.user'],
-      order: this.prelistOrder,
-    });
+  async getPrelistedSortedByStudent(studentID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: { studentID, type: InterviewType.PRE_LISTED },
+        relations: ['stall', 'student', 'student.user','company'],
+        order: this.prelistOrder,
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get pre-listed interviews by student: ${err.message}`,
+      );
+    }
   }
 
-  getWalkinSortedByStudent(studentID: string) {
-    return this.interviewRepository.find({
-      where: { studentID, type: InterviewType.WALK_IN },
-      relations: ['stall', 'student', 'student.user'],
-      order: { created_at: 'ASC' },
-    });
+  async getWalkinSortedByStudent(studentID: string) {
+    try {
+      return this.interviewRepository.find({
+        where: { studentID, type: InterviewType.WALK_IN },
+        relations: ['stall', 'student', 'student.user','company'],
+        order: { created_at: 'ASC' },
+      });
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to get walk-in interviews by student: ${err.message}`,
+      );
+    }
   }
 
   async update(id: string, dto: UpdateInterviewDto) {
-    const interview = await this.findOne(id);
-    if (!interview)
-      throw new NotFoundException(`Interview with ID ${id} not found`);
+    try {
+      const interview = await this.findOne(id);
+      if (!interview)
+        throw new NotFoundException(`Interview with ID ${id} not found`);
 
-    this.interviewRepository.merge(interview, dto);
-    return this.interviewRepository.save(interview);
+      this.interviewRepository.merge(interview, dto);
+      return this.interviewRepository.save(interview);
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update interview: ${err.message}`,
+      );
+    }
   }
 
   async updateStatus(id: string, status: InterviewStatus) {
-    const interview = await this.findOne(id);
-    if (!interview)
-      throw new NotFoundException(`Interview with ID ${id} not found`);
-
-    interview.status = status;
-    return this.interviewRepository.save(interview);
+    try {
+      const interview = await this.findOne(id);
+      if (!interview) {
+        throw new NotFoundException(`Interview with ID ${id} not found`);
+      }
+      interview.status = status;
+      return this.interviewRepository.save(interview);
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update interview status: ${err.message}`,
+      );
+    }
   }
 
   scheduleInterview(id: string) {
     return this.updateStatus(id, InterviewStatus.SCHEDULED);
   }
 
-  completeInterview(id: string, remark?: string) {
-    return this.update(id, { status: InterviewStatus.COMPLETED, remark });
+  async completeInterview(id: string) {
+    try {
+      const interview = await this.findOne(id);
+      if (!interview) {
+        throw new NotFoundException(`Interview with ID ${id} not found`);
+      }
+      
+      interview.status = InterviewStatus.COMPLETED;
+      return this.interviewRepository.save(interview);
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to complete interview: ${err.message}`,
+      );
+    }
   }
 
   cancelInterview(id: string) {
@@ -402,61 +558,94 @@ export class InterviewService {
   }
 
   async remove(id: string) {
-    const interview = await this.findOne(id);
-    if (!interview)
-      throw new NotFoundException(`Interview with ID ${id} not found`);
+    try {
+      const interview = await this.findOne(id);
+      if (!interview)
+        throw new NotFoundException(`Interview with ID ${id} not found`);
 
-    await this.interviewRepository.remove(interview);
-    return { message: `Interview ${id} removed successfully` };
+      await this.interviewRepository.remove(interview);
+      return { message: `Interview ${id} removed successfully` };
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to remove interview: ${err.message}`,
+      );
+    }
   }
 
   async removePrelistedInterview(id: string) {
-    const interview = await this.interviewRepository.findOne({
-      where: { interviewID: id, type: InterviewType.PRE_LISTED },
-    });
-    if (!interview)
-      throw new NotFoundException(
-        `Pre-listed interview with ID ${id} not found`,
-      );
+    try {
+      const interview = await this.interviewRepository.findOne({
+        where: { interviewID: id, type: InterviewType.PRE_LISTED },
+      });
+      if (!interview)
+        throw new NotFoundException(
+          `Pre-listed interview with ID ${id} not found`,
+        );
 
-    const companyID = interview.companyID;
-    await this.interviewRepository.remove(interview);
-    
-    await this.renumberPreferences(companyID);
-    
-    return { message: `Pre-listed interview ${id} removed successfully` };
+      const companyID = interview.companyID;
+      await this.interviewRepository.remove(interview);
+      
+      await this.renumberPreferences(companyID);
+      
+      return { message: `Pre-listed interview ${id} removed successfully` };
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to remove pre-listed interview: ${err.message}`,
+      );
+    }
   }
 
   async setStudentPreference(
     id: string,
     preference: number,
   ): Promise<Interview> {
-    if (!preference || preference < 1)
-      throw new BadRequestException('student_preference must be ≥ 1');
+    try {
+      if (!preference || preference < 1)
+        throw new BadRequestException('student_preference must be ≥ 1');
 
-    const interview = await this.findOne(id);
-    if (!interview)
-      throw new NotFoundException(`Interview with ID ${id} not found`);
+      const interview = await this.findOne(id);
+      if (!interview)
+        throw new NotFoundException(`Interview with ID ${id} not found`);
 
-    interview.student_preference = preference;
-    return this.interviewRepository.save(interview);
+      interview.student_preference = preference;
+      return this.interviewRepository.save(interview);
+    } catch (err) {
+      if (err instanceof NotFoundException || err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Failed to set student preference: ${err.message}`,
+      );
+    }
   }
 
   async clearWalkinsFromStall(
     stallID: string,
   ): Promise<{ updated: number }> {
-    const list = await this.interviewRepository.find({
-      where: { stallID, type: InterviewType.WALK_IN },
-    });
+    try {
+      const list = await this.interviewRepository.find({
+        where: { stallID, type: InterviewType.WALK_IN },
+      });
 
-    if (list.length === 0) return { updated: 0 };
+      if (list.length === 0) return { updated: 0 };
 
-    list.forEach((iv) => {
-      iv.stallID = null;
-      iv.status = InterviewStatus.SCHEDULED;
-    });
+      list.forEach((iv) => {
+        iv.stallID = null;
+        iv.status = InterviewStatus.SCHEDULED;
+      });
 
-    await this.interviewRepository.save(list);
-    return { updated: list.length };
+      await this.interviewRepository.save(list);
+      return { updated: list.length };
+    } catch (err) {
+      throw new InternalServerErrorException(
+        `Failed to clear walk-ins from stall: ${err.message}`,
+      );
+    }
   }
 }
