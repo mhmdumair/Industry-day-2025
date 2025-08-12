@@ -94,7 +94,7 @@ export default function ProfileCard() {
           contactPersonName: safeString(res.data.contactPersonName),
           contactPersonDesignation: safeString(res.data.contactPersonDesignation),
           contactNumber: safeString(res.data.contactNumber),
-          logo: safeString(res.data.logo),
+          logo: safeString("/logo/c.png"),
           location: safeString(res.data.location),
           companyWebsite: safeString(res.data.companyWebsite),
         };
