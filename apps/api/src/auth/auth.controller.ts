@@ -28,8 +28,6 @@ export class AuthController {
 
     try {
       const user = req.user;
-
-      // The logic for redirecting based on role can stay the same
       return res.redirect(`${process.env.FRONTEND_URL}home?id=${user.userID}`);
 
     } catch (error) {
@@ -40,7 +38,7 @@ export class AuthController {
           : 'An unexpected error occurred during login.';
 
       return res.redirect(
-          `http://159.65.152.162/login?error=${encodeURIComponent(message)}`,
+          `${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(message)}`,
       );
     }
   }
