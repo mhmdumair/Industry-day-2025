@@ -76,7 +76,7 @@ export default function HomeNavbar() {
             <SheetContent side="right" className="p-6 space-y-4">
               <Link href={`/home?id=${userId}`} className="block hover:text-green-600 transition-colors text-black">Home</Link>
               <Link href={`/home/map?id=${userId}`} className="block hover:text-green-600 transition-colors text-black">Map</Link>
-              {/* <Link href={`/home/live?id=${userId}`} className="block hover:text-green-600 transition-colors text-black">Live Queues</Link> */}
+              <Link href={`/home/live?id=${userId}`} className="block hover:text-green-600 transition-colors text-black">Live Queues</Link>
               <div className="pt-4 border-t">
                 <Button className="w-full" onClick={handleDashboardClick} disabled={isLoading}>
                   {isLoading ? "Loading..." : "Dashboard"}

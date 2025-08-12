@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import {Card, CardTitle} from "@/components/ui/card";
+import {Card} from "@/components/ui/card";
 import HomeAnnouncement from "../../components/home/home-announcement";
 import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
 import SponsorDialog from "../../components/home/sponsor-dialog";
 import api from "../../lib/axios"
-import HomeNavbarWrapper from "@/components/home/HomeNavbarWrapper";
 
 
 interface User {
