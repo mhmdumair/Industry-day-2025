@@ -1,7 +1,7 @@
 // src/components/InterviewForm.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import api from "@/lib/axios";
 import {
   Card,
@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
 import { AxiosError } from "axios";
 
 enum InterviewType {

@@ -13,7 +13,6 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('auth')
 export class AuthController {
-  // The controller no longer needs all the extra services for this flow
   constructor() {}
 
   @Get('google/login')
@@ -29,7 +28,6 @@ export class AuthController {
     try {
       const user = req.user;
 
-      // The logic for redirecting based on role can stay the same
       return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
 
     } catch (error) {
@@ -50,7 +48,6 @@ export class AuthController {
 async login(@Req() req: AuthenticatedRequest) {
   const user = req.user;
   
-  // Return JSON response instead of redirect
   return {
     success: true,
     message: 'Login successful',

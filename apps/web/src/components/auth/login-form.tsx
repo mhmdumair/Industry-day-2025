@@ -48,7 +48,13 @@ export function LoginForm({
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Login to your account</CardTitle>
                     <CardDescription className="text-black">
-                        Enter your credentials to access your account
+                        <div className="relative">
+                            <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="p-2 text-black text-center bg-blue-500/80 border border-blue-700 rounded-md">
+                                      Companies, please use the provided credentials to log in
+                                    </span>
+                            </div>
+                        </div>
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -60,7 +66,6 @@ export function LoginForm({
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="m@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
