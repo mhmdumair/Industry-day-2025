@@ -28,9 +28,7 @@ export class AuthController {
 
     try {
       const user = req.user;
-
-      // The logic for redirecting based on role can stay the same
-      return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
+      return res.redirect(`${process.env.FRONTEND_URL}home?id=${user.userID}`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);
@@ -40,7 +38,7 @@ export class AuthController {
           : 'An unexpected error occurred during login.';
 
       return res.redirect(
-          `http://localhost:3000/login?error=${encodeURIComponent(message)}`,
+          `${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(message)}`,
       );
     }
   }
@@ -59,7 +57,7 @@ async login(@Req() req: AuthenticatedRequest) {
       email: user.email,
       role: user.role
     },
-    redirectUrl: `http://localhost:3000/home?id=${user.userID}`
+    redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
   };
 }
 

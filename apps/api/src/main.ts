@@ -11,7 +11,7 @@ async function bootstrap() {
 
     // Get environment
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
-    const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrl = configService.get<string>('FRONTEND_URL');
 
     // Configure session middleware FIRST
     app.use(
@@ -30,7 +30,7 @@ async function bootstrap() {
 
     // Enable CORS with dynamic origin
     app.enableCors({
-        origin: [frontendUrl, 'http://localhost:3000'], // Allow both env var and fallback
+        origin: [frontendUrl], // Allow both env var and fallback
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],

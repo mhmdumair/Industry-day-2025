@@ -28,7 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/* ---------- types ---------- */
 interface Stall {
   stallID: string;
   title: string;

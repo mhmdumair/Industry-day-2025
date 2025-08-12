@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react'; // Import useMemo
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import api from "@/lib/axios";
 import { Card } from "@/components/ui/card";
@@ -14,24 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-// Enum for Preference Streams
-export enum Preference {
-    BT = "BT", //Botany
-    ZL = "ZL", //Zoology
-    CH = "CH", //Chemistry
-    MT = "MT", //Mathematics
-    BMS = "BMS", //Biomedical Science
-    ST = "ST", //Statistics
-    GL = "GL", // Geology
-    CS = "CS", //Computer Science
-    DS = "DS", //Data Science
-    ML = "ML", //Microbiology
-    CM = "CM", //Computation and Management
-    ES = "ES", //Environmental Science
-    MB = "MB", //Molecular Biology
-    PH = "PH", //Physics
-    ALL = "ALL"
-}
+
 
 // Interface for the fetched student data
 interface StudentData {
@@ -55,10 +38,9 @@ interface QueueCardProps {
     prelistedStudents: StudentData[];
     walkinStudents: StudentData[];
     onStudentClick: (studentId: string) => void;
-    loading?: boolean;
 }
 
-const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents, onStudentClick, loading }: QueueCardProps) => {
+const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents, onStudentClick }: QueueCardProps) => {
     const getStatusStyles = (status: string, type: string) => {
         if (type === 'prelisted') {
             switch (status) {
@@ -75,7 +57,7 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
                     return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
                 case 'missed':
                     return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
-                default:
+                default: 
                     return "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200";
             }
         }
@@ -87,7 +69,6 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
                 key={student.interviewID}
                 onClick={() => onStudentClick(student.interviewID)}
                 className={`w-full justify-start p-3 h-auto border ${getStatusStyles(student.status, student.type)}`}
-                disabled={loading}
             >
                 <span className="font-semibold mr-3">{student.student.regNo}</span>
                 <span className="truncate">{student.student.user.first_name} {student.student.user.last_name}</span>
@@ -95,18 +76,8 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
         ))
     );
 
-    if (loading) {
-        return (
-            <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full">
-                <div className="flex items-center justify-center h-full">
-                    <div className="text-gray-500">Loading queue...</div>
-                </div>
-            </Card>
-        );
-    }
-
     return (
-        <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full overflow-y-auto">
+        <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full">
             {/* Company Name + Stall */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                 <h2 className="text-xl font-bold">{companyName}</h2>
@@ -149,179 +120,188 @@ export default function ResumePage() {
     const [walkinStudents, setWalkinStudents] = useState<StudentData[]>([]);
     const [companyName, setCompanyName] = useState<string>('');
     const [stallNumber, setStallNumber] = useState<string>('');
-    const [loading, setLoading] = useState(true);
-    const [selectedPreference, setSelectedPreference] = useState<Preference>(Preference.ALL);
     const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
-    // NEW: State to track if this is the initial data load
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    const activeStudents = useMemo(() => [...prelistedStudents, ...walkinStudents], [prelistedStudents, walkinStudents]);
-    const currentStudent = useMemo(() => activeStudents.find(s => s.interviewID === currentInterviewID), [activeStudents, currentInterviewID]);
+    const activeStudents = [...prelistedStudents, ...walkinStudents];
+    const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
     const maxSize = 15;
 
-    const fetchCompanyAndStallData = async () => {
+    const fetchCompanyAndStallData = useCallback(async () => {
         if (!companyID || !stallID) return;
+
         try {
-            const [companyResponse, stallResponse] = await Promise.all([
-                api.get(`/company/${companyID}`),
-                api.get(`/stall/${stallID}`)
-            ]);
+            const companyResponse = await api.get(`/company/${companyID}`);
             setCompanyName(companyResponse.data.companyName);
+
+            const stallResponse = await api.get(`/stall/${stallID}`);
             setStallNumber(stallResponse.data.stallNumber);
         } catch (error) {
             console.error("Failed to fetch company or stall data:", error);
         }
-    };
-
-    const fetchCvFileName = async (studentId: string) => {
+    }, [companyID, stallID]);
+    
+    const fetchCvFileName = useCallback(async (studentId: string) => {
         try {
             const { data } = await api.get(`/cv/student/${studentId}`);
-            setCurrentCvFileName(data?.fileName || null);
+            if (data && data.fileName) {
+                setCurrentCvFileName(data.fileName);
+            } else {
+                setCurrentCvFileName(null);
+            }
         } catch (error) {
             console.error(`Failed to fetch CV for student ${studentId}:`, error);
             setCurrentCvFileName(null);
         }
-    };
+    }, []);
 
-    const fillEmptySlots = async () => {
-        if (!companyID || !stallID) return;
-        const slotsToFill = maxSize - activeStudents.length;
-
-        if (slotsToFill > 0) {
-            try {
-                await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
-                await refreshQueue(); // Refresh the queue after filling slots
-            } catch (error) {
-                console.error("Failed to fill empty slots:", error);
-            }
-        }
-    };
-
-    const refreshQueue = async () => {
+    const refreshQueue = useCallback(async () => {
         if (!stallID || !companyID) return;
-        setLoading(true);
+
         try {
             const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyID}/prelisted/inqueue`);
             const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallID}/inqueue`);
 
             setPrelistedStudents(fetchedPrelisted);
-            setWalkinStudents(fetchedWalkin)
+            setWalkinStudents(fetchedWalkin);
+            
+            if (!currentInterviewID && fetchedPrelisted.length > 0) {
+                setCurrentInterviewID(fetchedPrelisted[0].interviewID);
+            } else if (!currentInterviewID && fetchedWalkin.length > 0) {
+                setCurrentInterviewID(fetchedWalkin[0].interviewID);
+            }
 
         } catch (error) {
             console.error("Failed to fetch queue:", error);
-        } finally {
-            setLoading(false);
+            setPrelistedStudents([]);
+            setWalkinStudents([]);
         }
-    };
+    }, [stallID, companyID, currentInterviewID]);
 
-    const handleStudentClick = (interviewId: string) => {
+    const fillEmptySlots = useCallback(async () => {
+        if (!companyID || !stallID) return;
+        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
+
+        if (slotsToFill > 0) {
+            console.log(`Filling ${slotsToFill} empty slots...`);
+            try {
+                await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
+                console.log("New walk-ins requested");
+                await refreshQueue();
+            } catch (error) {
+                console.error("Failed to fill empty slots:", error);
+            }
+        }
+    }, [companyID, stallID, prelistedStudents.length, walkinStudents.length, refreshQueue]);
+        
+    const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
-    };
+        const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
+        if (selectedStudent) {
+            fetchCvFileName(selectedStudent.studentID);
+        }
+    }, [activeStudents, fetchCvFileName]);
 
-    // Main effect for polling
     useEffect(() => {
         if (companyID && stallID) {
             fetchCompanyAndStallData();
-            refreshQueue().then(() => fillEmptySlots());
+            refreshQueue().then(() => {
+                fillEmptySlots();
+            });
 
             const interval = setInterval(() => {
-                refreshQueue().then(() => fillEmptySlots());
+                refreshQueue().then(() => {
+                    fillEmptySlots();
+                });
             }, 10000);
-
+            
             return () => clearInterval(interval);
         }
-    }, [companyID, stallID]);
+    }, [companyID, stallID, fetchCompanyAndStallData, refreshQueue, fillEmptySlots]);
 
-    // NEW: Effect to select the first student ONLY on the initial load
-    useEffect(() => {
-        if (isInitialLoad && activeStudents.length > 0 && !currentInterviewID) {
-            const firstStudent = activeStudents[0];
-            setCurrentInterviewID(firstStudent.interviewID);
-            setIsInitialLoad(false); // Ensure this only runs once
-        }
-    }, [activeStudents, isInitialLoad, currentInterviewID]);
-
-    // Effect to fetch CV when the current student changes
     useEffect(() => {
         if (currentStudent) {
             fetchCvFileName(currentStudent.studentID);
-        } else {
-            setCurrentCvFileName(null);
         }
-    }, [currentStudent]);
+    }, [currentStudent, fetchCvFileName]);
 
     const handleFinishInterview = async () => {
         if (!currentStudent) return;
-
-        const currentIndex = activeStudents.findIndex(s => s.interviewID === currentStudent.interviewID);
-        const nextStudent = activeStudents[currentIndex + 1] || null;
-
         try {
             await api.patch(`/interview/${currentStudent.interviewID}/complete`);
-            // Select the next student immediately for a smoother UI experience
-            setCurrentInterviewID(nextStudent?.interviewID || null);
-            // Then refresh the queue from the backend
+            
             await refreshQueue();
+            
+            const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
+            if (nextStudentIndex < activeStudents.length) {
+                setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
+                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID); 
+            } else {
+                setCurrentInterviewID(null);
+                setCurrentCvFileName(null);
+            }
+            
             await fillEmptySlots();
+
         } catch (error) {
             console.error("Failed to finish interview:", error);
         }
     };
 
-    const filteredPrelisted = prelistedStudents.filter(student => selectedPreference === Preference.ALL || student.student.group.toUpperCase().includes(selectedPreference));
-    const filteredWalkin = walkinStudents.filter(student => selectedPreference === Preference.ALL || student.student.group.toUpperCase().includes(selectedPreference));
 
     const currentStudentType = currentStudent?.type === 'walkin' ? 'Walk-in' : 'Pre-Listed';
-    const pdfSource = currentCvFileName ? `https://drive.google.com/file/d/${currentCvFileName}/preview` : 'about:blank';
+    
+    const pdfSource = currentCvFileName 
+        ? `https://drive.google.com/file/d/${currentCvFileName}/preview` 
+        : 'about:blank'; 
 
     return (
         <div className="bg-transparent w-full p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">
+
+                {/* Left Section: PDF Viewer */}
                 <div className="lg:col-span-2 flex flex-col gap-4 h-full">
                     <Card className="flex flex-row justify-between items-center p-3 bg-white">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Select value={selectedPreference} onValueChange={(value: Preference) => setSelectedPreference(value)} disabled={loading}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter by Stream" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.values(Preference).map(pref => <SelectItem key={pref} value={pref}>{pref}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                        <div className="flex items-center gap-2">
+                
                             {currentStudent && (
-                                <Badge className={`py-1 px-3 ${currentStudent.type === 'prelisted' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>{currentStudentType} Student</Badge>
+                                <Badge className={`py-1 px-3 ${currentStudent.type === 'prelisted' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    {currentStudentType} Student
+                                </Badge>
                             )}
                             <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 py-1 px-3">
-                                Position: {currentStudent ? activeStudents.findIndex(s => s.interviewID === currentStudent.interviewID) + 1 : 'N/A'}
+                                Position: {currentStudent ? activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1 : 'N/A'}
                             </Badge>
                         </div>
-                        <Button onClick={handleFinishInterview} className='border bg-blue-600 text-white hover:bg-blue-700' disabled={loading || !currentStudent}>
-                            {loading ? 'Loading...' : 'Finish Interview'}
+                        <Button onClick={handleFinishInterview} className='border bg-blue-600 text-white hover:bg-blue-700'>
+                            Finish Interview
                         </Button>
                     </Card>
+
+                    {/* PDF iframe Container */}
                     <Card className="flex-1 w-full h-full">
-                        {loading && !currentStudent ? (
-                            <div className="flex items-center justify-center h-full text-gray-500">Loading...</div>
-                        ) : currentStudent ? (
+                        {currentStudent ? (
                             <iframe
                                 src={pdfSource}
                                 className="w-full h-full border-0 px-2"
-                                title={`PDF Viewer - ${currentStudent.student.user.first_name}`}
+                                title={`PDF Viewer - ${currentStudent.student.user.first_name} ${currentStudent.student.user.last_name}`}
                                 key={currentStudent.interviewID}
                             />
                         ) : (
-                            <div className="flex items-center justify-center h-full text-gray-500">No students in the queue.</div>
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                                No students in the queue.
+                            </div>
                         )}
                     </Card>
                 </div>
+
+                {/* Right Section: Queue Card */}
                 <div className="lg:col-span-1 h-full overflow-y-auto">
                     <QueueCard
                         companyName={companyName}
                         stallNumber={stallNumber}
-                        prelistedStudents={filteredPrelisted}
-                        walkinStudents={filteredWalkin}
+                        prelistedStudents={prelistedStudents}
+                        walkinStudents={walkinStudents}
                         onStudentClick={handleStudentClick}
-                        loading={loading}
                     />
                 </div>
             </div>
