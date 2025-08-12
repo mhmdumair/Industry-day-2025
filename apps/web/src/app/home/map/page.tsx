@@ -11,7 +11,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/home/home-navbar";
 import L from 'leaflet';
 
 const departmentData = [
@@ -20,7 +19,7 @@ const departmentData = [
     { department: "Physics", location: "Smart Room; Seminar Room; 'Dumb' Room", companies: "MAS Holdings; Sands Active (Pvt) Ltd; OCTAVE", buttonColor: "#003097ff" }, // blue
     { department: "Geology", location: "Seminar Room; Room 1; Room 2", companies: "LiveRoom Technologies; Creative Software; Hutch", buttonColor: "#a855f7" }, // purple
     { department: "QBITS", location: "On Site", companies: "CodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
-    { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeCodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
+    { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
 ];
 
 // Create a separate component for the content that might use useSearchParams

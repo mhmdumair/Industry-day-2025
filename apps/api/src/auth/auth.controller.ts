@@ -30,7 +30,7 @@ export class AuthController {
       const user = req.user;
 
       // The logic for redirecting based on role can stay the same
-      return res.redirect(`http://localhost:3000/home?id=${user.userID}`);
+      return res.redirect(`${process.env.FRONTEND_URL}home?id=${user.userID}`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);
