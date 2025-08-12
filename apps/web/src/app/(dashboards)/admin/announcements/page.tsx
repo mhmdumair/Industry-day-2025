@@ -19,6 +19,15 @@ interface Announcement {
     timestamp: string;
 }
 
+// New interface for the API response data
+interface ApiAnnouncement {
+    announcementID: string;
+    title: string;
+    content: string;
+    audienceType: string;
+    created_at: string;
+}
+
 interface AdminResponse {
     adminID: string;
     userID: string;
@@ -55,7 +64,9 @@ export default function AnnouncementBoard() {
                 setAdminUserId(userId);
 
                 const announcementsRes = await api.get(`/announcement/user/${userId}`);
-                const fetchedAnnouncements: Announcement[] = announcementsRes.data.map((a: any) => ({
+                
+                // Explicitly type the data from the API response
+                const fetchedAnnouncements: Announcement[] = (announcementsRes.data as ApiAnnouncement[]).map((a) => ({
                     announcementID: a.announcementID,
                     title: a.title,
                     description: a.content,

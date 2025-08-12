@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Building, Mail } from "lucide-react";
 import api from "@/lib/axios";
 import { useSearchParams } from "next/navigation";
+import { AxiosError } from "axios";
 
 export interface User {
     userID: string;
@@ -31,45 +32,46 @@ export interface User {
 }
 
 export interface AdminProfile {
-    adminID: string;
+    roomAdminID: string;
     userID: string;
     designation: string;
+    roomID: string;
     user: User;
-}
-
-interface APIError {
-    response?: {
-        status: number;
-        data?: {
-            message?: string;
-        };
+    room: {
+        roomID: string;
+        roomName: string;
+        location: string;
+        isActive: boolean;
     };
-    message: string;
 }
 
 const safeString = (value: string | null | undefined): string => {
     return value || '';
 };
 
-export default function AdminProfileCard() {
+// Separate component that uses useSearchParams
+function ProfileCardContent() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileData, setProfileData] = useState<AdminProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    
     const searchParams = useSearchParams();
-    const adminId = searchParams.get("adminId");
-
+    const adminId = searchParams.get("roomAdminId");
+    
     const [editData, setEditData] = useState<AdminProfile | null>(null);
 
     useEffect(() => {
         if (!adminId) {
             setLoading(false);
-            setError("No adminId provided in URL.");
+            setError("No roomAdminId provided in URL.");
             return;
         }
+        
         setLoading(true);
         api
-            .get<AdminProfile>(`/admin/${adminId}`)
+            .get<AdminProfile>(`/room-admin/${adminId}`)
             .then((res) => {
                 const sanitizedData = {
                     ...res.data,
@@ -80,14 +82,16 @@ export default function AdminProfileCard() {
                         last_name: safeString(res.data.user.last_name),
                         email: safeString(res.data.user.email),
                         profile_picture: safeString(res.data.user.profile_picture),
+                        role: "room_admin"
                     }
                 };
                 setProfileData(sanitizedData);
-                setEditData(sanitizedData); 
+                setEditData(sanitizedData);
                 setLoading(false);
             })
-            .catch(() => {
-                setError("Failed to fetch admin profile.");
+            .catch((err) => {
+                console.error("Failed to fetch room admin profile:", err);
+                setError("Failed to fetch room admin profile. Check the console for details.");
                 setLoading(false);
             });
     }, [adminId]);
@@ -128,62 +132,51 @@ export default function AdminProfileCard() {
             };
             setEditData(sanitizedEditData);
         }
+        setSaveError(null);
         setIsDialogOpen(true);
     };
 
     const handleSave = async () => {
         if (!editData || !adminId) {
             console.error("Missing edit data or admin ID.");
+            setSaveError("Missing data required for saving.");
             return;
         }
 
+        // Basic front-end validation
+        if (!editData.user.first_name.trim() || !editData.user.last_name.trim()) {
+            setSaveError("First and last names are required.");
+            return;
+        }
+        if (!editData.user.email.trim()) {
+            setSaveError("Email is required.");
+            return;
+        }
+        
+        setSaveError(null);
         setLoading(true);
-        const flattenedPayload = {
-            designation: editData.designation,
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-            profile_picture: editData.user.profile_picture,
-            role: editData.user.role, 
-        };
 
-        const nestedPayload = {
-            admin: {
-                designation: editData.designation,
-            },
+        const updatePayload = {
+            designation: editData.designation,
             user: {
                 first_name: editData.user.first_name,
                 last_name: editData.user.last_name,
                 email: editData.user.email,
-                profile_picture: editData.user.profile_picture,
-                role: editData.user.role, 
             },
         };
 
         try {
-            try {
-                console.log("Attempting to save with flattened payload:", flattenedPayload);
-                await api.patch(`/admin/${adminId}`, flattenedPayload);
-            } catch (e) {
-                const error = e as APIError;
-                if (error.response?.status === 400) {
-                    console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
-                    await api.patch(`/admin/${adminId}`, nestedPayload);
-                } else {
-                    throw e;
-                }
-            }
+            await api.patch(`/room-admin/${adminId}`, updatePayload);
 
             setProfileData((prev) =>
                 prev ? {
                     ...prev,
-                    designation: editData.designation,
+                    designation: updatePayload.designation,
                     user: {
                         ...prev.user,
-                        first_name: editData.user.first_name,
-                        last_name: editData.user.last_name,
-                        email: editData.user.email,
-                        profile_picture: editData.user.profile_picture,
+                        first_name: updatePayload.user.first_name,
+                        last_name: updatePayload.user.last_name,
+                        email: updatePayload.user.email,
                     },
                 } : prev
             );
@@ -191,24 +184,29 @@ export default function AdminProfileCard() {
             setIsDialogOpen(false);
             alert("Profile updated successfully!");
 
-        } catch (error) {
-            const apiError = error as APIError;
-            console.error("Save error:", apiError.response?.data || apiError.message);
-            alert(`Failed to save: ${apiError.response?.data?.message || apiError.message || "An unknown error occurred."}`);
+        } catch (e) {
+            console.error("Save error:", e);
+            if (e instanceof AxiosError && e.response?.data?.message) {
+                setSaveError(`Failed to save: ${e.response.data.message}`);
+            } else {
+                setSaveError("Failed to save due to an unexpected error. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
     };
-
-
-    if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+    
+    if (loading) {
+        return <div className="flex justify-center items-center h-64">Loading...</div>;
+    }
+    
     if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
     if (!profileData) return <div className="text-center p-4">No admin data found.</div>;
 
     const fullName = `${profileData.user.first_name} ${profileData.user.last_name}`.trim();
 
     return (
-        <div className="mt-3 w-4/5 mx-auto p-4">
+        <div className="mt-3 w-fit mx-auto p-4">
             <Card className="bg-gray-50 shadow-lg mt-3">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
@@ -271,6 +269,11 @@ export default function AdminProfileCard() {
                             </DialogHeader>
                             {editData && (
                                 <div className="grid gap-6 py-4">
+                                    {saveError && (
+                                        <div className="text-sm font-medium text-destructive text-center mb-4">
+                                            {saveError}
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="first-name" className="text-right font-medium">
                                             First Name
@@ -335,20 +338,6 @@ export default function AdminProfileCard() {
                                             placeholder="Enter designation"
                                         />
                                     </div>
-
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="profile-picture" className="text-right font-medium">
-                                            Profile Picture <span className="text-xs text-gray-500 block">Optional</span>
-                                        </Label>
-                                        <Input
-                                            id="profile-picture"
-                                            value={safeString(editData.user.profile_picture)}
-                                            onChange={(e) => handleUserInputChange("profile_picture", e.target.value)}
-                                            className="col-span-3"
-                                            placeholder="Enter profile picture URL"
-                                            type="url"
-                                        />
-                                    </div>
                                 </div>
                             )}
 
@@ -366,4 +355,9 @@ export default function AdminProfileCard() {
             </Card>
         </div>
     );
+}
+
+// Main component that will be wrapped in Suspense
+export default function RoomAdminProfileCard() {
+    return <ProfileCardContent />;
 }

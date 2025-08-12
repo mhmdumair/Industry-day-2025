@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {Card} from "@/components/ui/card";
+import React, { useState, useEffect, Suspense } from "react";
+import {Card, CardTitle} from "@/components/ui/card";
 import HomeAnnouncement from "../../components/home/home-announcement";
 import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
 import SponsorDialog from "../../components/home/sponsor-dialog";
-import HomeNavbar from "@/components/home/home-navbar";
 import api from "../../lib/axios"
-import Image from "next/image";
+import HomeNavbarWrapper from "@/components/home/HomeNavbarWrapper";
 
 
 interface User {
@@ -31,7 +30,7 @@ interface Sponsor {
     contactNumber: string;
     logo: string
     stream: string;
-    sponsership: "MAIN" | "PLATINUM" | "GOLD" | "SILVER" | "BRONZE";
+    sponsership: "MAIN" | "GOLD" | "SILVER" | "BRONZE";
     location: string;
     companyWebsite: string;
     user: User;
@@ -43,6 +42,7 @@ export default function AnnouncementsPage() {
     const [error, setError] = useState<string | null>(null);
 
     const mainSponsor = companies.find(company => company.sponsership === "MAIN");
+    const goldSponsors = companies.filter(company => company.sponsership === "GOLD");
     const silverSponsors = companies.filter(company => company.sponsership === "SILVER");
     const bronzeSponsors = companies.filter(company => company.sponsership === "BRONZE");
 
@@ -84,8 +84,7 @@ export default function AnnouncementsPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-                <HomeNavbar />
+            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">            
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg">Loading companies...</div>
                 </div>
@@ -96,7 +95,6 @@ export default function AnnouncementsPage() {
     if (error) {
         return (
             <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-                <HomeNavbar />
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg text-red-500">Error: {error}</div>
                 </div>
@@ -106,8 +104,6 @@ export default function AnnouncementsPage() {
 
     return (
         <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-            <HomeNavbar />
-
             <div className="h-6 sm:h-10" />
 
             <div className="w-full max-w-6xl px-2 sm:px-0 h-fit">
@@ -127,9 +123,7 @@ export default function AnnouncementsPage() {
                         <MainSponsorDialog sponsor={transformSponsorData(mainSponsor)}>
                             <Card className="w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-square flex items-center justify-center bg-slate-50">
                                 {mainSponsor.logo ? (
-                                    <Image
-                                        width={500}
-                                        height={500}
+                                    <img
                                         src={`/logo/${mainSponsor.logo}`}
                                         alt={`${mainSponsor.companyName} logo`}
                                         className="max-w-[80%] max-h-[80%] object-contain"
@@ -156,9 +150,7 @@ export default function AnnouncementsPage() {
                                         triggerComponent={
                                             <div className="w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-square bg-gradient-to-br bg-white hover:from-slate-200 rounded-lg sm:rounded-xl flex items-center justify-center text-slate-700 text-xs sm:text-sm font-medium cursor-pointer transition-all duration-200 p-2 sm:p-3 border border-slate-300 shadow-sm hover:shadow-md text-center">
                                                 {silverSponsors[0].logo ? (
-                                                    <Image
-                                                        width={100}
-                                                        height={100}
+                                                    <img
                                                         src={`/logo/${silverSponsors[0].logo}`}
                                                         alt={`${silverSponsors[0].companyName} logo`}
                                                         className="max-w-[80%] max-h-[80%] object-contain"
@@ -169,6 +161,13 @@ export default function AnnouncementsPage() {
                                             </div>
                                         }
                                     />
+
+
+
+
+
+
+
                                 </div>
                             </div>
                         )}
@@ -184,9 +183,7 @@ export default function AnnouncementsPage() {
                                             triggerComponent={
                                                 <div className="w-full aspect-square bg-gradient-to-br bg-white rounded-lg flex items-center justify-center text-orange-800 text-xs font-medium cursor-pointer transition-all duration-200 p-2 border shadow-sm hover:shadow-md text-center">
                                                     {sponsor.logo ? (
-                                                        <Image
-                                                            width={100}
-                                                            height={100}
+                                                        <img
                                                             src={`/logo/${sponsor.logo}`}
                                                             alt={`${sponsor.companyName} logo`}
                                                             className="max-w-[80%] max-h-[80%] object-contain"
