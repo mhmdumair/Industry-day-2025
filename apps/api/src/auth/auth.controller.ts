@@ -40,7 +40,7 @@ export class AuthController {
           : 'An unexpected error occurred during login.';
 
       return res.redirect(
-          `http://localhost:3000/login?error=${encodeURIComponent(message)}`,
+          `http://159.65.152.162/login?error=${encodeURIComponent(message)}`,
       );
     }
   }
@@ -59,7 +59,7 @@ async login(@Req() req: AuthenticatedRequest) {
       email: user.email,
       role: user.role
     },
-    redirectUrl: `http://localhost:3000/home?id=${user.userID}`
+    redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
   };
 }
 
