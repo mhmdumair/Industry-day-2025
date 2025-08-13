@@ -163,7 +163,13 @@ async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
     try {
       const company = await this.companyRepository.findOne({ where: { companyID: id } });
       if (!company) throw new NotFoundException(`Company ${id} not found`);
-      await this.companyRepository.remove(company);
+      
+      const userID = company.userID;
+
+      await this.companyRepository.remove(company);;
+      await this.userService.removeUser(userID);
+      
+
       return { message: `Company ${id} removed` };
     } catch (e) {
       if (e instanceof NotFoundException) throw e;

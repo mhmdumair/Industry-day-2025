@@ -18,7 +18,8 @@ export class AnnouncementService {
     private async addAuthorName(announcement: Announcement): Promise<Announcement & { author_name: string }> {
         let authorName = 'SIIC';
 
-        if (announcement.postedByUser.role === 'company') {
+        // Fix: Add a null check to ensure postedByUser exists before accessing its properties.
+        if (announcement.postedByUser && announcement.postedByUser.role === 'company') {
             const companyName = await this.companyService.getCompanyNameByUserId(announcement.postedByUserID);
             authorName = companyName || 'SIIC';
         }

@@ -13,7 +13,6 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('auth')
 export class AuthController {
-  // The controller no longer needs all the extra services for this flow
   constructor() {}
 
   @Get('google/login')
@@ -28,7 +27,8 @@ export class AuthController {
 
     try {
       const user = req.user;
-      return res.redirect(`${process.env.FRONTEND_URL}home?id=${user.userID}`);
+
+      return res.redirect(`${process.env.FRONTEND_URL}/home?id=${user.userID}`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);
@@ -48,7 +48,6 @@ export class AuthController {
 async login(@Req() req: AuthenticatedRequest) {
   const user = req.user;
   
-  // Return JSON response instead of redirect
   return {
     success: true,
     message: 'Login successful',

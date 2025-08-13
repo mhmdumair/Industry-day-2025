@@ -115,7 +115,9 @@ export class RoomAdminService {
       if (!roomAdmin) {
         throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
       }
+      const userId = roomAdmin.userID;
       await this.roomAdminRepository.remove(roomAdmin);
+      await this.userService.removeUser(userId);
       return { message: `RoomAdmin ${id} removed successfully` };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -125,7 +127,6 @@ export class RoomAdminService {
     }
   }
 
-  // Additional utility methods for room admin management
   async removeByRoomId(roomId: string): Promise<{ message: string; count: number }> {
     try {
       const roomAdmins = await this.roomAdminRepository.find({ 

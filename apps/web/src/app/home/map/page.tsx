@@ -18,13 +18,8 @@ const departmentData = [
     { department: "Science Education Unit", location: "SEU 208; ELTU 210; SEU 309", companies: "Hemas Consumer Brands; Federation for Environment Climate and Technology; Aayu Technologies", buttonColor: "#e5d246ff" }, // yellow
     { department: "Physics", location: "Smart Room; Seminar Room; 'Dumb' Room", companies: "MAS Holdings; Sands Active (Pvt) Ltd; OCTAVE", buttonColor: "#003097ff" }, // blue
     { department: "Geology", location: "Seminar Room; Room 1; Room 2", companies: "LiveRoom Technologies; Creative Software; Hutch", buttonColor: "#a855f7" }, // purple
-<<<<<<< HEAD
     { department: "QBITS", location: "On Site", companies: "CodeCodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
     { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeCodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
-=======
-    { department: "QBITS", location: "On Site", companies: "CodeGen International (Pvt) Ltd", buttonColor: "#0f766e" }, // teal
-    { department: "Postgraduate Institute of Science", location: "Block C - Room 1 & 2; Old Building - Room 1; Old Building - Room 2", companies: "A Baur & Co (Pvt) Ltd (Healthcare); A Baur & Co (Pvt) Ltd (Online); CodeGen International (Pvt) Ltd (Online)", buttonColor: "#730f76ff" }, // pink
->>>>>>> 0e921f94383cd5b8d09f61758648b5b0f42f6e16
 ];
 
 // Create a separate component for the content that might use useSearchParams

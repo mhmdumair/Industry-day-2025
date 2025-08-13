@@ -102,7 +102,7 @@ export function LoginForm({
                             {/* Google Login Button */}
                             <div className="flex flex-col gap-4">
                                 <Button variant="outline" className="w-full border-black" type="button" onClick={() => {
-                                    window.location.href = `${process.env.BACKEND_URL}/auth/google/login`;
+                                    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}auth/google/login`;
                                 }} >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 0 48 48" width="48" height="48">
                                         <path fill="#FBBC05" d="M9.83,24c0-1.52,0.25-2.98,0.7-4.36L2.62,13.6C1.08,16.73,0.21,20.26,0.21,24c0,3.74,0.87,7.26,2.41,10.39l7.9-6.05c-0.45-1.36-0.7-2.82-0.7-4.34z"/>
