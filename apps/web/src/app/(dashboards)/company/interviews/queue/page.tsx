@@ -77,7 +77,7 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
     );
 
     return (
-        <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-full">
+        <Card className="w-full rounded-lg p-6 text-black space-y-4 bg-white h-fit">
             {/* Company Name + Stall */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                 <h2 className="text-xl font-bold">{companyName}</h2>
@@ -88,7 +88,7 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
             <hr className="border-gray-200" />
 
             {/* Pre-listed Queue */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 h-fit">
                 <h3 className="font-semibold text-blue-700">Pre-listed Queue</h3>
                 {prelistedStudents.length > 0 ? (
                     renderStudentList(prelistedStudents)
