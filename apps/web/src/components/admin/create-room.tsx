@@ -62,7 +62,6 @@ export default function CreateRoom() {
             const response = await api.post("/room", formData);
             console.log("Room created successfully:", response.data);
             setSuccess(true);
-            // Reset form
             setFormData({
                 roomName: "",
                 location: "",
