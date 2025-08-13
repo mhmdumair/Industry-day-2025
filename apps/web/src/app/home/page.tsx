@@ -55,6 +55,7 @@ export default function AnnouncementsPage() {
 
                 if (response.data) {
                     setCompanies(response.data);
+                    console.log(response.data);
                 } else {
                     setError("No companies data received");
                 }
