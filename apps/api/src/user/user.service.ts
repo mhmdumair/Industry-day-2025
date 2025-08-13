@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -51,6 +51,24 @@ export class UserService {
       throw new InternalServerErrorException('Failed to create user');
     }
   }
+
+  async removeUser(userID: string): Promise<{ message: string }> {
+  try {
+    const user = await this.userRepository.findOne({ where: { userID } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userID} not found`);
+    }
+
+    await this.userRepository.remove(user);
+    return { message: `User ${userID} removed successfully` };
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Failed to remove user');
+  }
+}
 
   async createUserTransactional(
     createUserDto: CreateUserDto,

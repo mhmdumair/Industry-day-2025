@@ -28,7 +28,7 @@ export class AuthController {
     try {
       const user = req.user;
 
-      return res.redirect(`${process.env.FRONTEND_URL}home?id=${user.userID}`);
+      return res.redirect(`${process.env.FRONTEND_URL}/home?id=${user.userID}`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);

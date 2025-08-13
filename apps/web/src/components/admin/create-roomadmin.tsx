@@ -61,7 +61,7 @@ export default function CreateRoomadmin() {
             setRoomsError(null);
             const response = await api.get("/room");
             console.log("Rooms fetched:", response.data);
-            setRooms(response.data.filter((room: Room) => room.isActive)); // Only show active rooms
+            setRooms(response.data); // Only show active rooms
         } catch (error: any) {
             console.error("Error fetching rooms:", error);
             const errorMessage = error.response?.data?.message || 

@@ -26,7 +26,6 @@ const items = [
   { title: "Pre-list Students", url: "/company/pre-listed", icon: List },
   { title: "Announcements", url: "/company/announcements", icon: Bell },
   { title: "Feedback", url: "/company/feedback", icon: Bell },
-  { title: "Summary", url: "/company/summary", icon: Bell }
 ];
 
 const CompanySidebar = () => {

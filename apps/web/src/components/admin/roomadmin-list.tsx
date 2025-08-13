@@ -215,7 +215,7 @@ export default function RoomadminList() {
 
   const getRoomName = (roomID: string) => {
     const room = rooms.find(r => r.roomID === roomID);
-    return room ? `${room.roomName} - ${room.location}` : roomID;
+    return room ? `${room.roomName} - ${room.location}` : "";
   };
 
   const getFullName = (user: User) => {
@@ -286,7 +286,7 @@ export default function RoomadminList() {
                     <Td>{getFullName(ra.user)}</Td>
                     <Td>{ra.user.email}</Td>
                     <Td>{ra.designation}</Td>
-                    <Td>{getRoomName(ra.roomID)}</Td>
+                    <Td>{ra.room?.location }</Td>
                     <Td>
                       <div className="flex gap-1">
                         <Button 

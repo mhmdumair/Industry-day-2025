@@ -160,13 +160,6 @@ export default function AnnouncementsPage() {
                                             </div>
                                         }
                                     />
-
-
-
-
-
-
-
                                 </div>
                             </div>
                         )}

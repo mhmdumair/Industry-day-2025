@@ -97,20 +97,28 @@ export class AdminService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    try {
-      const admin = await this.adminRepository.findOne({ 
-        where: { adminID: id } 
-      });
-      if (!admin) {
-        throw new NotFoundException(`Admin with ID ${id} not found`);
-      }
-      await this.adminRepository.remove(admin);
-      return { message: `Admin ${id} removed successfully` };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to remove admin');
+  try {
+    const admin = await this.adminRepository.findOne({
+      where: { adminID: id },
+    });
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${id} not found`);
     }
+    const userId = admin.userID;
+
+    await this.adminRepository.remove(admin);
+    await this.userService.removeUser(userId);
+
+    return {
+      message: `Admin ${id} and associated user removed successfully`,
+    };
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException(
+      'Failed to remove admin and associated user',
+    );
   }
+}
 }
