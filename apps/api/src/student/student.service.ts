@@ -76,15 +76,19 @@ export class StudentService {
     };
   }
 
-  async findAll(): Promise<Student[]> {
+ async findAll(): Promise<Student[]> {
     try {
-      return await this.studentRepository.find({
-        relations: ['user'],
-      });
+      return await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.user', 'user')
+        .orderBy(`CAST(SUBSTRING(student.regNo, 2) AS UNSIGNED)`, 'ASC')
+        .addOrderBy('student.regNo', 'ASC') 
+        .getMany();
     } catch (error) {
+      console.error('Failed to fetch students:', error);
       throw new InternalServerErrorException('Failed to fetch students');
     }
-  }
+    }
 
   async findOne(id: string): Promise<Student | null> {
     try {
@@ -134,26 +138,25 @@ export class StudentService {
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
-    
     try {
       const student = await this.studentRepository.findOne({
         where: { studentID: id },
         relations: ['user'],
       });
 
-    if (!student) {
-      throw new NotFoundException(`Student with ID ${id} not found`);
-    }
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${id} not found`);
+      }
 
-    const updatedStudent = this.studentRepository.merge(student, updateStudentDto);
-    return await this.studentRepository.save(updatedStudent);
-  } catch (error) {
-    if (error instanceof NotFoundException) {
-      throw error;
+      const updatedStudent = this.studentRepository.merge(student, updateStudentDto);
+      return await this.studentRepository.save(updatedStudent);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update student');
     }
-    throw new InternalServerErrorException('Failed to update student');
   }
-}
 
   async remove(id: string): Promise<{ message: string }> {
     try {
@@ -174,7 +177,4 @@ export class StudentService {
       throw new InternalServerErrorException('Failed to remove student');
     }
   }
-
-  
 }
-

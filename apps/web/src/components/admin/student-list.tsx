@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import api from "@/lib/axios";
 import {
     Card,
@@ -25,9 +25,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-
-// The studentGroups array is no longer needed for the input field.
-// It's still present in the interface, but we won't use it to render the input.
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -56,6 +53,24 @@ interface StudentResponse {
     user: User;
 }
 
+enum Preference {
+    BT = "BT", //Botany
+    ZL = "ZL", //Zoology
+    CH = "CH", //Chemistry
+    MT = "MT", //Mathematics
+    BMS = "BMS", //Biomedical Science
+    ST = "ST", //Statistics
+    GL = "GL", // Geology
+    CS = "CS", //Computer Science
+    DS = "DS", //Data Science
+    ML = "ML", //Microbiology
+    CM = "CM", //Computation and Management
+    ES = "ES", //Environmental Science
+    MB = "MB", //Molecular Biology
+    PH = "PH", //Physics
+    ALL = "ALL"
+}
+
 export default function StudentList() {
     const [students, setStudents] = useState<StudentResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -63,6 +78,10 @@ export default function StudentList() {
     const [editingStudent, setEditingStudent] = useState<StudentResponse | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [updateLoading, setUpdateLoading] = useState(false);
+
+    // State for search and filter
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [selectedGroup, setSelectedGroup] = useState<Preference | "ALL">(Preference.ALL);
 
     useEffect(() => {
         fetchStudents();
@@ -105,6 +124,29 @@ export default function StudentList() {
             setLoading(false);
         }
     };
+
+    // Memoized filtered and searched students
+    const filteredStudents = useMemo(() => {
+        let filtered = students;
+
+        // Filter by group
+        if (selectedGroup !== Preference.ALL) {
+            filtered = filtered.filter(s => s.student.group.includes(selectedGroup));
+        }
+
+        // Search by query
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(s =>
+                s.student.regNo.toLowerCase().includes(query) ||
+                s.user.first_name.toLowerCase().includes(query) ||
+                s.user.last_name.toLowerCase().includes(query) ||
+                s.user.email.toLowerCase().includes(query)
+            );
+        }
+
+        return filtered;
+    }, [students, searchQuery, selectedGroup]);
 
     const handleEditClick = (student: StudentResponse) => {
         try {
@@ -204,6 +246,36 @@ export default function StudentList() {
                 <CardDescription>Fetched from database</CardDescription>
             </CardHeader>
             <CardContent className="overflow-x-auto">
+                {/* Search and Filter Section */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div className="flex-1">
+                        <Label htmlFor="search">Search</Label>
+                        <Input
+                            id="search"
+                            type="text"
+                            placeholder="Search by name, registration number, or email..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <div className="w-full sm:w-1/3">
+                        <Label htmlFor="group-filter">Filter by Group</Label>
+                        <Select onValueChange={(value: Preference | "ALL") => setSelectedGroup(value as Preference | "ALL")} value={selectedGroup}>
+                            <SelectTrigger id="group-filter">
+                                <SelectValue placeholder="Select a group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={Preference.ALL}>All Groups</SelectItem>
+                                {Object.values(Preference).map((group) => (
+                                    <SelectItem key={group} value={group}>
+                                        {group}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="p-4 text-center">Loading students...</div>
                 ) : error ? (
@@ -222,8 +294,8 @@ export default function StudentList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {students.length ? (
-                                students.map((s, i) => (
+                            {filteredStudents.length ? (
+                                filteredStudents.map((s, i) => (
                                     <tr key={s.student.studentID || i}>
                                         <td className="border px-2 py-1">{s.student.regNo}</td>
                                         <td className="border px-2 py-1">
@@ -274,7 +346,7 @@ export default function StudentList() {
                                 <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
                                 <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
                                 
-                                {/* New Input field for Student Group */}
+                                {/* Input field for Student Group - kept as input field as it can be a combination */}
                                 <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
 
                                 <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />
@@ -324,3 +396,4 @@ function SelectField({ label, value, options, onChange }: { label: string, value
         </div>
     );
 }
+

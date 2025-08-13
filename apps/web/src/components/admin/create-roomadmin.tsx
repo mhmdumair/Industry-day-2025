@@ -68,7 +68,7 @@ export default function CreateRoomadmin() {
                                error.response?.data?.error || 
                                "Failed to fetch rooms. Please try again.";
             setRoomsError(errorMessage);
-            setRooms([]); // Set empty array on error
+            setRooms([]); 
         } finally {
             setRoomsLoading(false);
         }
