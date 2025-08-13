@@ -119,13 +119,15 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                                     <div className="space-y-1 col-span-1 sm:col-span-2">
                                         <span className="font-semibold text-gray-900 block">Website:</span>
                                         <a
-                                            href={sponsor.website}
+                                            href={sponsor.website.startsWith('http') ? sponsor.website : `https://${sponsor.website}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 underline break-all transition duration-200"
+                                            className="text-blue-600 hover:text-blue-800 underline break-all transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                                            aria-label={`Visit ${sponsor.name} website (opens in new tab)`}
                                         >
                                             {sponsor.website}
                                         </a>
+
                                     </div>
                                 )}
                             </div>

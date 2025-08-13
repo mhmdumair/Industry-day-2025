@@ -296,7 +296,7 @@ export default function StudentProfileCard() {
                     <Label htmlFor="first-name" className="text-right font-medium">First Name</Label>
                     <Input
                       id="first-name"
-                      value={editData.user.first_name}
+                      value={editData.user.first_name??""}
                       onChange={(e) => handleInputChange("user.first_name", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter first name"
@@ -309,7 +309,7 @@ export default function StudentProfileCard() {
                     <Label htmlFor="last-name" className="text-right font-medium">Last Name</Label>
                     <Input
                       id="last-name"
-                      value={editData.user.last_name}
+                      value={editData.user.last_name??""}
                       onChange={(e) => handleInputChange("user.last_name", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter last name"
@@ -317,29 +317,12 @@ export default function StudentProfileCard() {
                     />
                   </div>
 
-                  {/* Level Dropdown */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="level" className="text-right font-medium">Level</Label>
-                    <select
-                      id="level"
-                      value={editData.level}
-                      onChange={e => handleInputChange('level', e.target.value)}
-                      className="col-span-3 rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="" disabled>Select level</option>
-                      {Object.values(StudentLevel).map(level => (
-                        <option key={level} value={level}>{level.replace('level_', 'Level ')}</option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Contact Number */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="contact-number" className="text-right font-medium">Contact Number</Label>
                     <Input
                       id="contact-number"
-                      value={editData.contact}
+                      value={editData.contact??""}
                       onChange={(e) => handleInputChange("contact", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter contact number"
@@ -353,7 +336,7 @@ export default function StudentProfileCard() {
                     <Label htmlFor="nic" className="text-right font-medium">NIC</Label>
                     <Input
                       id="nic"
-                      value={editData.nic}
+                      value={editData.nic??""}
                       onChange={(e) => handleInputChange("nic", e.target.value)}
                       className="col-span-3"
                       placeholder="Enter NIC"
@@ -366,7 +349,7 @@ export default function StudentProfileCard() {
                     <Label htmlFor="reg-number" className="text-right font-medium">Registration No</Label>
                     <Input
                       id="reg-number"
-                      value={editData.regNo}
+                      value={editData.regNo??""}
                       onChange={(e) => handleInputChange("regNo", e.target.value)}
                       className="col-span-3"
                       placeholder="S20000"
