@@ -166,7 +166,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                                                 Website:
                                             </span>
                                             <a
-                                                href={sponsor.website}
+                                                href={sponsor.website.startsWith('http') ? sponsor.website : `https://${sponsor.website}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-600 hover:text-blue-800 underline break-all transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
@@ -174,6 +174,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                                             >
                                                 {sponsor.website}
                                             </a>
+
                                         </div>
                                     )}
                                 </div>
