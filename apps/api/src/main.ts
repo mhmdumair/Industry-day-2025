@@ -2,8 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import * as session from 'express-session';
-import * as passport from 'passport';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -13,39 +11,24 @@ async function bootstrap() {
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const frontendUrl = configService.get<string>('FRONTEND_URL');
 
-    // Configure session middleware FIRST
-    app.use(
-        session({
-            secret: configService.get<string>('SESSION_SECRET') ?? 'fallback-secret-key',
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                maxAge: 24 * 60 * 60 * 1000, // 24 hours
-                httpOnly: true,
-                secure: isProduction, // Use secure cookies in production
-                sameSite: isProduction ? 'none' : 'lax', // Adjust for cross-origin in production
-            },
-        }),
-    );
-
-    // Enable CORS with dynamic origin
+    // Enable CORS with dynamic origin.
+    // 'credentials: true' is kept to allow cookies to be sent from the frontend.
     app.enableCors({
-        origin: [frontendUrl], // Allow both env var and fallback
+        origin: [frontendUrl],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
 
-    // Initialize passport AFTER session
-    app.use(passport.initialize());
-    app.use(passport.session());
+    // Remove passport.session() and express-session middleware entirely
+    // as they are not needed for stateless JWT authentication.
 
     // Add global validation pipe for DTOs
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true, // Strip properties that don't have decorators
-            forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
-            transform: true, // Automatically transform payloads to DTO instances
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
         }),
     );
 
