@@ -2,17 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
-    // Get environment
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const frontendUrl = configService.get<string>('FRONTEND_URL');
 
-    // Enable CORS with dynamic origin.
-    // 'credentials: true' is kept to allow cookies to be sent from the frontend.
+    // Add cookie-parser middleware here to parse cookies from incoming requests
+    app.use(cookieParser());
+
     app.enableCors({
         origin: [frontendUrl],
         credentials: true,
@@ -20,10 +21,6 @@ async function bootstrap() {
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
 
-    // Remove passport.session() and express-session middleware entirely
-    // as they are not needed for stateless JWT authentication.
-
-    // Add global validation pipe for DTOs
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,

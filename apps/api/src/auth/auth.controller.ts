@@ -37,8 +37,9 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       });
-
-      return res.redirect(`${process.env.FRONTEND_URL}/home?id=${user.userID}`);
+      
+      
+      return res.redirect(`${process.env.FRONTEND_URL}/home`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);
@@ -70,11 +71,7 @@ async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
   return {
     success: true,
     message: 'Login successful',
-    user: {
-      userID: user.userID,
-      email: user.email,
-      role: user.role
-    },
+    user: user,
     redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
   };
 }

@@ -1,23 +1,92 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserService } from './user.service';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
+import { StudentService } from 'src/student/student.service';
+import { CompanyService } from 'src/company/company.service';
+import { AdminService } from 'src/admin/admin.service';
+import { RoomAdminService } from 'src/room-admin/room-admin.service';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    userID: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Controller('user')
 export class UserController {
-  constructor(private usersService: UserService) {}
+  constructor(
+    private readonly usersService: UserService,
+    private readonly studentService: StudentService,
+    private readonly companyService: CompanyService,
+    private readonly adminService: AdminService,
+    private readonly roomAdminService: RoomAdminService,
+  ) {}
 
-  @Get()
-  async getUsers() {
-    return this.usersService.fetchUsers();
-  }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getUsers() {
+    return this.usersService.fetchUsers();
+  }
 
-  @Post()
-  async createUser(@Body() createUser: CreateUserDto) {
-    return this.usersService.createUser(createUser);
-  }
+  @Post()
+  async createUser(@Body() createUser: CreateUserDto) {
+    return this.usersService.createUser(createUser);
+  }
 
-   @Get(':id')
-    async findOne(@Param('id') id: string) {
-      return this.usersService.fetchUserById(id);
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Req() req: AuthenticatedRequest) {
+    return req.user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('dashboard')
+  async getDashboardRedirect(@Req() req: AuthenticatedRequest) {
+    try {
+      const user = req.user;
+      const role = user.role.toLowerCase();
+
+      if (role === 'student') {
+        const student = await this.studentService.findByUserId(user.userID);
+        if (!student) {
+          throw new NotFoundException('Student profile not found.');
+        }
+        return { redirectUrl: `/student/profile?studentId=${student.studentID}` };
+      } else if (role === 'company') {
+        const company = await this.companyService.findByUserId(user.userID);
+        if (!company) {
+          throw new NotFoundException('Company profile not found.');
+        }
+        return { redirectUrl: `/company/profile?companyId=${company.companyID}` };
+      } else if (role === 'admin') {
+        const admin = await this.adminService.findByUserId(user.userID);
+        if (!admin) {
+          throw new NotFoundException('Admin profile not found.');
+        }
+        return { redirectUrl: `/admin/profile?adminId=${admin.adminID}` };
+      } else if (role === 'room_admin') {
+        const roomAdmin = await this.roomAdminService.findByUserId(user.userID);
+        if (!roomAdmin) {
+          throw new NotFoundException('Room admin profile not found.');
+        }
+        return { redirectUrl: `/room-admin/profile?roomAdminId=${roomAdmin.roomAdminID}` };
+      }
+
+      return { redirectUrl: '/home' };
+    } catch (error) {
+      // Log the full error on the backend for debugging
+      console.error('An error occurred in getDashboardRedirect:', error);
+      // Re-throw the exception so NestJS handles it and provides a stack trace in the terminal
+      throw error;
     }
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string) {
+    return this.usersService.fetchUserById(id);
+  }
 }
