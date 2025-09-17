@@ -54,32 +54,30 @@ export class UserController {
         if (!student) {
           throw new NotFoundException('Student profile not found.');
         }
-        return { redirectUrl: `/student/profile?studentId=${student.studentID}` };
+        return { redirectUrl: `/student/profile` };
       } else if (role === 'company') {
         const company = await this.companyService.findByUserId(user.userID);
         if (!company) {
           throw new NotFoundException('Company profile not found.');
         }
-        return { redirectUrl: `/company/profile?companyId=${company.companyID}` };
+        return { redirectUrl: `/company/profile` };
       } else if (role === 'admin') {
         const admin = await this.adminService.findByUserId(user.userID);
         if (!admin) {
           throw new NotFoundException('Admin profile not found.');
         }
-        return { redirectUrl: `/admin/profile?adminId=${admin.adminID}` };
+        return { redirectUrl: `/admin/profile` };
       } else if (role === 'room_admin') {
         const roomAdmin = await this.roomAdminService.findByUserId(user.userID);
         if (!roomAdmin) {
           throw new NotFoundException('Room admin profile not found.');
         }
-        return { redirectUrl: `/room-admin/profile?roomAdminId=${roomAdmin.roomAdminID}` };
+        return { redirectUrl: `/room-admin/profile` };
       }
 
       return { redirectUrl: '/home' };
     } catch (error) {
-      // Log the full error on the backend for debugging
       console.error('An error occurred in getDashboardRedirect:', error);
-      // Re-throw the exception so NestJS handles it and provides a stack trace in the terminal
       throw error;
     }
   }
