@@ -7,6 +7,7 @@ import api from "@/lib/axios"
 import { Button } from "../ui/button"
 import { Home } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 export default function CompanyNavbar() {
   const searchParams = useSearchParams()
@@ -35,7 +36,7 @@ export default function CompanyNavbar() {
       }
 
       if (userId) {
-        window.location.href = `/home?id=${userId}`
+        window.location.href = `/home`
       } else {
         console.warn("Unable to resolve userId — sending to generic /home")
         console.log("problem");
@@ -64,16 +65,17 @@ export default function CompanyNavbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="p-2 hover:bg-slate-200 rounded-md transition-colors"
-            onClick={handleHomeClick}
-            disabled={isLoading}
-            title="Go to Home"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
+          <Link href={"/home"}>
+              <Button
+              variant="ghost"
+              size="icon"
+              className="p-2 hover:bg-slate-200 rounded-md transition-colors"
+              disabled={isLoading}
+              title="Go to Home"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
