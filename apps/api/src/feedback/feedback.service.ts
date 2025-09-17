@@ -1,10 +1,11 @@
+// src/feedback/feedback.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feedback } from './entities/feedback.entity';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { UserRole } from '../user/entities/user.entity'; // Import UserRole enum
+import { UserRole } from '../user/entities/user.entity';
 
 @Injectable()
 export class FeedbackService {
@@ -13,8 +14,11 @@ export class FeedbackService {
     private readonly feedbackRepository: Repository<Feedback>,
   ) {}
 
-  async create(createFeedbackDto: CreateFeedbackDto): Promise<Feedback> {
-    const feedback = this.feedbackRepository.create(createFeedbackDto);
+  async create(createFeedbackDto: CreateFeedbackDto, userID: string): Promise<Feedback> {
+    const feedback = this.feedbackRepository.create({
+      ...createFeedbackDto,
+      userID: userID, // Use the secure userID from the token
+    });
     return this.feedbackRepository.save(feedback);
   }
 
