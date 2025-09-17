@@ -1,10 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query, UseGuards, Req } from '@nestjs/common';
 import { AnnouncementService } from './announcement.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { AudienceType } from './entities/announcement.entity';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
+
+interface AuthenticatedRequest extends Request {
+    user: {
+        userID: string;
+        email: string;
+        role: string;
+    };
+}
 
 @Controller('announcement')
+@UseGuards(JwtAuthGuard)
 export class AnnouncementController {
     constructor(private readonly announcementService: AnnouncementService) {}
 
@@ -28,12 +38,13 @@ export class AnnouncementController {
         return this.announcementService.findForCompanies();
     }
 
-    @Get('user/:userId')
-    findByUserId(@Param('userId') userId: string) {
+    @Get('user')
+    findByUserId(@Req() req: AuthenticatedRequest) {
+        const userId = req.user.userID;
         return this.announcementService.findByUserId(userId);
     }
 
-     @Get('count')
+    @Get('count')
     async getAnnouncementCount(@Query('type') type: AudienceType) {
         if (!type || !Object.values(AudienceType).includes(type)) {
             throw new NotFoundException('Invalid or missing audience type provided');

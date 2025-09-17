@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { InterviewService } from './interview.service';
 import { CreateInterviewByRegNoDto, CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { InterviewStatus } from './entities/interview.entity';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
 @Controller('interview')
+@UseGuards(JwtAuthGuard)
+
 export class InterviewController {
   constructor(private readonly interviewService: InterviewService) {}
 

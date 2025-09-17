@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -19,8 +18,10 @@ import {
 } from "@/components/ui/select";
 import { Clock, CheckCircle } from "lucide-react";
 import api from "../../../../lib/axios";
+import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
-/* ----------  types ---------- */
+/* ----------  types ---------- */
 interface Company {
   companyID: string;
   companyName: string;
@@ -34,7 +35,12 @@ interface Interview {
   student_preference?: number;
 }
 
-/* ----------  helpers ---------- */
+interface StudentProfile {
+  studentID: string;
+  userID: string;
+}
+
+/* ----------  helpers ---------- */
 const statusMap: Record<
   string,
   { class: string; text: string; icon: React.ReactNode }
@@ -68,8 +74,9 @@ const btnForStatus = (s: string) =>
     icon: null,
   };
 
-/* ----------  component ---------- */
+/* ----------  component ---------- */
 const RegisteredQueues = () => {
+  const router = useRouter();
   const [studentID, setStudentID] = useState<string>();
   const [prelist, setPrelist] = useState<Interview[]>([]);
   const [walkin, setWalkin] = useState<Interview[]>([]);
@@ -79,36 +86,40 @@ const RegisteredQueues = () => {
     null,
   );
 
-  /* get studentID */
+  /* load interviews + companies for authenticated user */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id =
-      params.get("studentId") || localStorage.getItem("studentID") || undefined;
-    setStudentID(id || undefined);
-  }, []);
-
-  /* load interviews + companies */
-  useEffect(() => {
-    if (!studentID) return;
     const load = async () => {
       setLoading(true);
       try {
+        // Fetch student profile first to get studentID securely
+        const studentRes = await api.get<StudentProfile>("/student/by-user");
+        const fetchedStudentID = studentRes.data.studentID;
+
+        if (!fetchedStudentID) {
+          throw new Error("Student profile not found for this user.");
+        }
+        setStudentID(fetchedStudentID);
+
         const [cRes, preRes, walkRes] = await Promise.all([
           api.get("/company"),
-          api.get(`/interview/student/${studentID}/prelisted/sorted`),
-          api.get(`/interview/student/${studentID}/walkin/sorted`),
+          api.get(`/interview/student/${fetchedStudentID}/prelisted/sorted`),
+          api.get(`/interview/student/${fetchedStudentID}/walkin/sorted`),
         ]);
+        
         setCompanies(cRes.data);
         setPrelist(preRes.data);
         setWalkin(walkRes.data);
       } catch (error) {
         console.error("Error loading data:", error);
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          router.push('/auth/login');
+        }
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [studentID]);
+  }, [router]);
 
   const companyByID = (id: string) =>
     companies.find((c) => c.companyID === id) ?? {
@@ -116,7 +127,7 @@ const RegisteredQueues = () => {
       companyName: id,
     };
 
-  /* ----------  preference handling ---------- */
+  /* ----------  preference handling ---------- */
   const handlePreferenceChange = async (
     interviewID: string,
     newPreference: number,
@@ -150,11 +161,11 @@ const RegisteredQueues = () => {
             iv.interviewID === interviewID
               ? { ...iv, student_preference: newPreference }
               : iv.interviewID === clash.interviewID
-              ? {
-                  ...iv,
-                  student_preference: oldPreference || undefined,
-                }
-              : iv,
+                ? {
+                    ...iv,
+                    student_preference: oldPreference || undefined,
+                  }
+                : iv,
           ),
         );
       } else {
@@ -180,7 +191,7 @@ const RegisteredQueues = () => {
   const getAvailablePreferences = () =>
     Array.from({ length: prelist.length }, (_, i) => i + 1);
 
-  /* ----------  render helpers ---------- */
+  /* ----------  render helpers ---------- */
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center">Loading...</div>
@@ -255,41 +266,40 @@ const RegisteredQueues = () => {
           alert("Failed to remove interview: An unknown error occurred.");
         }
       }
-
     }
 
     return (
-        <Card key={i.companyID} className="mb-2 last:mb-0">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>{c.companyName}</CardTitle>
-              <CardDescription></CardDescription>
-            </div>
-            <Button
-                size="icon"
-                className="bg-red-500/80 border border-red-600"
-                onClick={() => cancelInterview(i.interviewID)}
-            >
-              ✕
-            </Button>
-          </CardHeader>
-          <div className="p-6 pt-0">
-            <Button
-                variant="secondary"
-                disabled
-                className={`w-full ${cfg.class}`}
-            >
-              {cfg.icon}
-              {cfg.text}
-            </Button>
+      <Card key={i.companyID} className="mb-2 last:mb-0">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{c.companyName}</CardTitle>
+            <CardDescription></CardDescription>
           </div>
-        </Card>
+          <Button
+            size="icon"
+            className="bg-red-500/80 border border-red-600"
+            onClick={() => cancelInterview(i.interviewID)}
+          >
+            ✕
+          </Button>
+        </CardHeader>
+        <div className="p-6 pt-0">
+          <Button
+            variant="secondary"
+            disabled
+            className={`w-full ${cfg.class}`}
+          >
+            {cfg.icon}
+            {cfg.text}
+          </Button>
+        </div>
+      </Card>
     );
   };
 
 
 
-  /* ----------  render ---------- */
+  /* ----------  render ---------- */
   return (
     <div className="mt-3 mx-auto p-4">
       {/* Pre-Listed */}

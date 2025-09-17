@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { RoomAdminService } from './room-admin.service';
 import { CreateRoomAdminDto } from './dto/create-room-admin.dto';
 import { UpdateRoomAdminDto } from './dto/update-room-admin.dto';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
 @Controller('room-admin')
+@UseGuards(JwtAuthGuard)
+
 export class RoomAdminController {
   constructor(private readonly roomAdminService: RoomAdminService) {}
 

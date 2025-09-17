@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    userID: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Controller('company')
+@UseGuards(JwtAuthGuard) 
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
@@ -12,7 +22,6 @@ export class CompanyController {
     return this.companyService.create(createCompanyDto);
   }
 
-  // Bulk create companies
   @Post('bulk')
   bulkCreate(@Body() createCompanyDtos: CreateCompanyDto[]) {
     return this.companyService.bulkCreate(createCompanyDtos);
@@ -23,14 +32,15 @@ export class CompanyController {
     return this.companyService.findAll();
   }
 
-
-  @Get('by-user/:userId')
-  findByUserId(@Param('userId') userId: string) {
+  @Get('by-user')
+  findByUser(@Req() req: AuthenticatedRequest) {
+    const userId = req.user.userID;
     return this.companyService.findByUserId(userId);
   }
 
-  @Get('name/:userId')
-  findCompanyName(@Param('userId') userId: string) {
+  @Get('name')
+  findCompanyName(@Req() req: AuthenticatedRequest) {
+    const userId = req.user.userID;
     return this.companyService.getCompanyNameByUserId(userId);
   }
 

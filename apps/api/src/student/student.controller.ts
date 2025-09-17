@@ -13,29 +13,27 @@ interface AuthenticatedRequest extends Request {
 }
 
 @Controller('student')
+@UseGuards(JwtAuthGuard)
+
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentService.create(createStudentDto);
   }
 
   @Post('bulk')
-  @UseGuards(JwtAuthGuard)
   createBulk(@Body() createStudentDtos: CreateStudentDto[]) {
     return this.studentService.createBulk(createStudentDtos);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.studentService.findAll();
   }
 
   @Get('filter')
-  @UseGuards(JwtAuthGuard)
   filterByGroupAndLevel(
     @Query('group') group?: string,
     @Query('level') level?: string,
@@ -44,7 +42,6 @@ export class StudentController {
   }
 
   @Get('by-user')
-  @UseGuards(JwtAuthGuard)
   async findByUserId(@Req() req: AuthenticatedRequest) {
     const student = await this.studentService.findByUserId(req.user.userID);
     if (!student) {
@@ -54,19 +51,16 @@ export class StudentController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.studentService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
     return this.studentService.update(id, updateStudentDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.studentService.remove(id);
   }
