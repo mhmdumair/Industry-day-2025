@@ -46,7 +46,6 @@ export default function FeedbackForm() {
       setComment("");
       setRating(null);
 
-      // Set a timer to clear the success message after 5 seconds
       setTimeout(() => {
         setSuccess("");
       }, 5000);
