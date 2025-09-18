@@ -1,11 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card";
 import api from "@/lib/axios";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { AxiosError } from "axios";
 import {
     Select,
     SelectContent,
@@ -13,8 +19,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-
-
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 // Interface for the fetched student data
 interface StudentData {
@@ -30,6 +36,25 @@ interface StudentData {
             last_name: string;
         };
     };
+}
+
+interface CompanyProfile {
+  companyID: string;
+  userID: string;
+  companyName: string;
+}
+
+interface Stall {
+    stallID: string;
+    title: string;
+    roomID: string;
+    companyID: string;
+    preference: string;
+    status: string;
+    room: {
+      roomName: string;
+      location: string;
+    }
 }
 
 interface QueueCardProps {
@@ -111,9 +136,7 @@ const QueueCard = ({ companyName, stallNumber, prelistedStudents, walkinStudents
 };
 
 export default function ResumePage() {
-    const searchParams = useSearchParams();
-    const companyID = searchParams.get('companyId');
-    const stallID = searchParams.get('stallId');
+    const router = useRouter();
 
     const [currentInterviewID, setCurrentInterviewID] = useState<string | null>(null);
     const [prelistedStudents, setPrelistedStudents] = useState<StudentData[]>([]);
@@ -121,30 +144,19 @@ export default function ResumePage() {
     const [companyName, setCompanyName] = useState<string>('');
     const [stallNumber, setStallNumber] = useState<string>('');
     const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
+    const [companyID, setCompanyID] = useState<string | null>(null);
+    const [stallID, setStallID] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
     const maxSize = 15;
 
-    const fetchCompanyAndStallData = useCallback(async () => {
-        if (!companyID || !stallID) return;
-
-        try {
-            const companyResponse = await api.get(`/company/${companyID}`);
-            setCompanyName(companyResponse.data.companyName);
-
-            const stallResponse = await api.get(`/stall/${stallID}`);
-            setStallNumber(stallResponse.data.stallNumber);
-        } catch (error) {
-            console.error("Failed to fetch company or stall data:", error);
-        }
-    }, [companyID, stallID]);
-    
     const fetchCvFileName = useCallback(async (studentId: string) => {
         try {
-            const { data } = await api.get(`/cv/student/${studentId}`);
-            if (data && data.fileName) {
-                setCurrentCvFileName(data.fileName);
+            const { data } = await api.get(`/cv/student/${studentId}/list`);
+            if (data && data.length > 0) {
+                setCurrentCvFileName(data[0].fileName);
             } else {
                 setCurrentCvFileName(null);
             }
@@ -153,13 +165,11 @@ export default function ResumePage() {
             setCurrentCvFileName(null);
         }
     }, []);
-
-    const refreshQueue = useCallback(async () => {
-        if (!stallID || !companyID) return;
-
+    
+    const refreshQueue = useCallback(async (companyId: string, stallId: string) => {
         try {
-            const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyID}/prelisted/inqueue`);
-            const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallID}/inqueue`);
+            const { data: fetchedPrelisted } = await api.get(`/interview/company/${companyId}/prelisted/inqueue`);
+            const { data: fetchedWalkin } = await api.get(`/interview/stall/${stallId}/inqueue`);
 
             setPrelistedStudents(fetchedPrelisted);
             setWalkinStudents(fetchedWalkin);
@@ -169,29 +179,24 @@ export default function ResumePage() {
             } else if (!currentInterviewID && fetchedWalkin.length > 0) {
                 setCurrentInterviewID(fetchedWalkin[0].interviewID);
             }
-
         } catch (error) {
             console.error("Failed to fetch queue:", error);
             setPrelistedStudents([]);
             setWalkinStudents([]);
         }
-    }, [stallID, companyID, currentInterviewID]);
+    }, [currentInterviewID]);
 
-    const fillEmptySlots = useCallback(async () => {
-        if (!companyID || !stallID) return;
+    const fillEmptySlots = useCallback(async (companyId: string, stallId: string) => {
         const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
-
         if (slotsToFill > 0) {
-            console.log(`Filling ${slotsToFill} empty slots...`);
             try {
-                await api.get(`/interview/company/${companyID}/stall/${stallID}/next-walkin?count=${slotsToFill}`);
-                console.log("New walk-ins requested");
-                await refreshQueue();
+                await api.get(`/interview/company/${companyId}/stall/${stallId}/next-walkin?count=${slotsToFill}`);
+                await refreshQueue(companyId, stallId);
             } catch (error) {
                 console.error("Failed to fill empty slots:", error);
             }
         }
-    }, [companyID, stallID, prelistedStudents.length, walkinStudents.length, refreshQueue]);
+    }, [prelistedStudents.length, walkinStudents.length, refreshQueue]);
         
     const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
@@ -202,34 +207,51 @@ export default function ResumePage() {
     }, [activeStudents, fetchCvFileName]);
 
     useEffect(() => {
-        if (companyID && stallID) {
-            fetchCompanyAndStallData();
-            refreshQueue().then(() => {
-                fillEmptySlots();
-            });
+        const loadInitialData = async () => {
+            try {
+                const companyResponse = await api.get<CompanyProfile>('/company/by-user');
+                const companyId = companyResponse.data.companyID;
+                setCompanyName(companyResponse.data.companyName);
+                setCompanyID(companyId);
 
-            const interval = setInterval(() => {
-                refreshQueue().then(() => {
-                    fillEmptySlots();
-                });
-            }, 10000);
-            
-            return () => clearInterval(interval);
-        }
-    }, [companyID, stallID, fetchCompanyAndStallData, refreshQueue, fillEmptySlots]);
+                const stallsResponse = await api.get<Stall[]>(`/stall/company/${companyId}`);
+                if (stallsResponse.data.length > 0) {
+                  const stallId = stallsResponse.data[0].stallID;
+                  setStallID(stallId);
+                  setStallNumber(stallsResponse.data[0].title);
+                  await refreshQueue(companyId, stallId);
+                  await fillEmptySlots(companyId, stallId);
+
+                  const interval = setInterval(() => {
+                      refreshQueue(companyId, stallId);
+                      fillEmptySlots(companyId, stallId);
+                  }, 10000);
+                  
+                  return () => clearInterval(interval);
+                }
+
+            } catch (error) {
+                console.error("Failed to fetch initial data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadInitialData();
+    }, [refreshQueue, fillEmptySlots]);
 
     useEffect(() => {
-        if (currentStudent) {
+        if (currentStudent && currentStudent.studentID) {
             fetchCvFileName(currentStudent.studentID);
         }
     }, [currentStudent, fetchCvFileName]);
 
     const handleFinishInterview = async () => {
-        if (!currentStudent) return;
+        if (!currentStudent || !companyID || !stallID) return;
         try {
             await api.patch(`/interview/${currentStudent.interviewID}/complete`);
             
-            await refreshQueue();
+            await refreshQueue(companyID, stallID);
             
             const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
             if (nextStudentIndex < activeStudents.length) {
@@ -240,7 +262,7 @@ export default function ResumePage() {
                 setCurrentCvFileName(null);
             }
             
-            await fillEmptySlots();
+            await fillEmptySlots(companyID, stallID);
 
         } catch (error) {
             console.error("Failed to finish interview:", error);
@@ -254,6 +276,26 @@ export default function ResumePage() {
         ? `https://drive.google.com/file/d/${currentCvFileName}/preview` 
         : 'about:blank'; 
 
+    if (loading) {
+        return (
+            <div className="bg-transparent w-full p-4 lg:p-6">
+                <div className="flex justify-center p-4 min-h-[500px] items-center">
+                    <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
+                </div>
+            </div>
+        )
+    }
+
+    if (!companyID || !stallID) {
+      return (
+        <div className="bg-transparent w-full p-4 lg:p-6">
+          <div className="flex justify-center p-4 min-h-[500px] items-center text-destructive text-lg">
+            Failed to load company or stall data. Please try again later.
+          </div>
+        </div>
+      );
+    }
+    
     return (
         <div className="bg-transparent w-full p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">

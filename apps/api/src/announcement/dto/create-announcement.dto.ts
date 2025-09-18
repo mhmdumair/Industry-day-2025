@@ -1,5 +1,6 @@
+// src/announcement/dto/create-announcement.dto.ts
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { AudienceType } from '../entities/announcement.entity'
+import { AudienceType } from '../entities/announcement.entity';
 
 export class CreateAnnouncementDto {
   @IsNotEmpty()
@@ -12,8 +13,4 @@ export class CreateAnnouncementDto {
 
   @IsEnum(AudienceType)
   audienceType: AudienceType;
-
-  @IsNotEmpty()
-  @IsString()
-  postedByUserID: string;
 }

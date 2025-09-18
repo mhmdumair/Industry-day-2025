@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query, UseGuards, Req } from '@nestjs/common';
+// src/announcement/announcement.controller.ts
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query, UseGuards, Req, ValidationPipe } from '@nestjs/common';
 import { AnnouncementService } from './announcement.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
@@ -19,8 +20,9 @@ export class AnnouncementController {
     constructor(private readonly announcementService: AnnouncementService) {}
 
     @Post()
-    create(@Body() createAnnouncementDto: CreateAnnouncementDto) {
-        return this.announcementService.create(createAnnouncementDto);
+    create(@Body(ValidationPipe) createAnnouncementDto: CreateAnnouncementDto, @Req() req: AuthenticatedRequest) {
+        const postedByUserID = req.user.userID;
+        return this.announcementService.create(createAnnouncementDto, postedByUserID);
     }
 
     @Get()
