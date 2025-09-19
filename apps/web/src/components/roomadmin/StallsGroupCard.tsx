@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSearchParams } from "next/navigation";
 
 /* ---------- types ---------- */
 interface Stall {
@@ -86,28 +85,17 @@ function StallsContent() {
   const [creating, setCreating] = useState(false);
 
   /* ---------- initial load ---------- */
-  const searchParams = useSearchParams();
-  const roomAdminID = searchParams.get("roomAdminId");
-
   useEffect(() => {
-    if (!roomAdminID) {
-      setLoading(false);
-      setError("No roomAdminId provided in URL.");
-      return;
-    }
-
     const load = async () => {
       try {
-        const ra = (await api.get<RoomAdminResponse>(`/room-admin/${roomAdminID}`)).data;
-        const r = ra.room;
+        const res = (await api.get<RoomAdminResponse>(`/room-admin/by-user`)).data;
+        const r = res.room;
         setRoom(r);
 
         const stallRes = (await api.get<Stall[]>(`/stall/room/${r.roomID}`)).data;
 
-        // Fix 1: Type the 's' parameter as Stall
         const uniqueCompanyIDs = [...new Set(stallRes.map((s: Stall) => s.companyID))];
 
-        // Refactored to use async/await within map
         const comps = await Promise.all(
           uniqueCompanyIDs.map(async (id) => {
             const res = await api.get<Company>(`/company/${id}`);
@@ -116,10 +104,8 @@ function StallsContent() {
         );
         
         const compMap: Record<string, Company> = {};
-        // Fix 3: Type the 'c' parameter as Company
         comps.forEach((c: Company) => (compMap[c.companyID] = c));
 
-        // Fix 4: Type the 's' parameter as Stall
         setStalls(stallRes.map((s: Stall) => ({ ...s, company: compMap[s.companyID] })));
         setCompanies(comps);
         setError(null);
@@ -132,11 +118,13 @@ function StallsContent() {
     };
 
     load();
-  }, [roomAdminID]);
+  }, []); // The dependency array is now empty, as we don't rely on URL params
 
   /* ---------- actions ---------- */
   const handleRemove = async (stallID: string) => {
-    if (window.confirm("Are you sure you want to delete this stall? This action cannot be undone.")) {
+    // Replaced window.confirm with a non-blocking message
+    const confirmed = confirm("Are you sure you want to delete this stall? This action cannot be undone.");
+    if (confirmed) {
       try {
         await api.delete(`/stall/${stallID}`);
         setStalls((prev) => prev.filter((s) => s.stallID !== stallID));
