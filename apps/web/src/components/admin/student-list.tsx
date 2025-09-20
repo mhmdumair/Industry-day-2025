@@ -25,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -82,6 +83,10 @@ export default function StudentList() {
     // State for search and filter
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedGroup, setSelectedGroup] = useState<Preference | "ALL">(Preference.ALL);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const studentsPerPage = 20;
 
     useEffect(() => {
         fetchStudents();
@@ -147,6 +152,16 @@ export default function StudentList() {
 
         return filtered;
     }, [students, searchQuery, selectedGroup]);
+
+    // Pagination logic
+    const indexOfLastStudent = currentPage * studentsPerPage;
+    const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+    const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
 
     const handleEditClick = (student: StudentResponse) => {
         try {
@@ -281,50 +296,78 @@ export default function StudentList() {
                 ) : error ? (
                     <div className="p-4 text-center text-red-600">{error}</div>
                 ) : (
-                    <table className="w-full text-sm border-collapse border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border px-2 py-1">Reg No</th>
-                                <th className="border px-2 py-1">Name</th>
-                                <th className="border px-2 py-1">Email</th>
-                                <th className="border px-2 py-1">Group</th>
-                                <th className="border px-2 py-1">Level</th>
-                                <th className="border px-2 py-1">Contact</th>
-                                <th className="border px-2 py-1">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredStudents.length ? (
-                                filteredStudents.map((s, i) => (
-                                    <tr key={s.student.studentID || i}>
-                                        <td className="border px-2 py-1">{s.student.regNo}</td>
-                                        <td className="border px-2 py-1">
-                                            {s.user.first_name} {s.user.last_name}
-                                        </td>
-                                        <td className="border px-2 py-1">{s.user.email}</td>
-                                        <td className="border px-2 py-1">{s.student.group}</td>
-                                        <td className="border px-2 py-1">{s.student.level}</td>
-                                        <td className="border px-2 py-1">{s.student.contact}</td>
-                                        <td className="border px-2 py-1 text-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleEditClick(s)}
-                                            >
-                                                Edit
-                                            </Button>
+                    <>
+                        <table className="w-full text-sm border-collapse border border-gray-300">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border px-2 py-1">Reg No</th>
+                                    <th className="border px-2 py-1">Name</th>
+                                    <th className="border px-2 py-1">Email</th>
+                                    <th className="border px-2 py-1">Group</th>
+                                    <th className="border px-2 py-1">Level</th>
+                                    <th className="border px-2 py-1">Contact</th>
+                                    <th className="border px-2 py-1">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentStudents.length ? (
+                                    currentStudents.map((s, i) => (
+                                        <tr key={s.student.studentID || i}>
+                                            <td className="border px-2 py-1">{s.student.regNo}</td>
+                                            <td className="border px-2 py-1">
+                                                {s.user.first_name} {s.user.last_name}
+                                            </td>
+                                            <td className="border px-2 py-1">{s.user.email}</td>
+                                            <td className="border px-2 py-1">{s.student.group}</td>
+                                            <td className="border px-2 py-1">{s.student.level}</td>
+                                            <td className="border px-2 py-1">{s.student.contact}</td>
+                                            <td className="border px-2 py-1 text-center">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleEditClick(s)}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td className="px-2 py-2 text-center" colSpan={7}>
+                                            No students found
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td className="px-2 py-2 text-center" colSpan={7}>
-                                        No students found
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                        {/* Pagination Controls */}
+                        {filteredStudents.length > studentsPerPage && (
+                            <div className="flex justify-between items-center mt-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-2" />
+                                    Previous
+                                </Button>
+                                <span className="text-sm">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                    <ChevronRight className="h-4 w-4 ml-2" />
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
             </CardContent>
 
@@ -396,4 +439,3 @@ function SelectField({ label, value, options, onChange }: { label: string, value
         </div>
     );
 }
-

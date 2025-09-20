@@ -343,7 +343,6 @@ function StallsContent() {
   );
 }
 
-// Main component wrapper
 const StallsGroupCard = () => {
   return <StallsContent />;
 };

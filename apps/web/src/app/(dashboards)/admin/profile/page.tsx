@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { User, Building, Mail } from "lucide-react";
 import api from "@/lib/axios";
-import { useSearchParams } from "next/navigation";
+import { AxiosError } from "axios";
 
 export interface User {
     userID: string;
@@ -37,16 +37,6 @@ export interface AdminProfile {
     user: User;
 }
 
-interface APIError {
-    response?: {
-        status: number;
-        data?: {
-            message?: string;
-        };
-    };
-    message: string;
-}
-
 const safeString = (value: string | null | undefined): string => {
     return value || '';
 };
@@ -56,41 +46,39 @@ export default function AdminProfileCard() {
     const [profileData, setProfileData] = useState<AdminProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const searchParams = useSearchParams();
-    const adminId = searchParams.get("adminId");
 
     const [editData, setEditData] = useState<AdminProfile | null>(null);
 
     useEffect(() => {
-        if (!adminId) {
-            setLoading(false);
-            setError("No adminId provided in URL.");
-            return;
-        }
         setLoading(true);
         api
-            .get<AdminProfile>(`/admin/${adminId}`)
+            .get<AdminProfile>(`/admin/by-user`)
             .then((res) => {
-                const sanitizedData = {
-                    ...res.data,
-                    designation: safeString(res.data.designation),
-                    user: {
-                        ...res.data.user,
-                        first_name: safeString(res.data.user.first_name),
-                        last_name: safeString(res.data.user.last_name),
-                        email: safeString(res.data.user.email),
-                        profile_picture: safeString(res.data.user.profile_picture),
-                    }
-                };
-                setProfileData(sanitizedData);
-                setEditData(sanitizedData); 
+                const adminProfile = res.data;
+                if (adminProfile) {
+                    const sanitizedData = {
+                        ...adminProfile,
+                        designation: safeString(adminProfile.designation),
+                        user: {
+                            ...adminProfile.user,
+                            first_name: safeString(adminProfile.user.first_name),
+                            last_name: safeString(adminProfile.user.last_name),
+                            email: safeString(adminProfile.user.email),
+                            profile_picture: safeString(adminProfile.user.profile_picture),
+                        }
+                    };
+                    setProfileData(sanitizedData);
+                    setEditData(sanitizedData);
+                } else {
+                    setError("No admin profile data found.");
+                }
                 setLoading(false);
             })
             .catch(() => {
                 setError("Failed to fetch admin profile.");
                 setLoading(false);
             });
-    }, [adminId]);
+    }, []);
 
     const handleInputChange = <K extends keyof AdminProfile>(
         field: K,
@@ -132,21 +120,13 @@ export default function AdminProfileCard() {
     };
 
     const handleSave = async () => {
-        if (!editData || !adminId) {
+        if (!editData || !profileData?.adminID) {
             console.error("Missing edit data or admin ID.");
             return;
         }
 
         setLoading(true);
-        const flattenedPayload = {
-            designation: editData.designation,
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-            profile_picture: editData.user.profile_picture,
-            role: editData.user.role, 
-        };
-
+        
         const nestedPayload = {
             admin: {
                 designation: editData.designation,
@@ -161,18 +141,7 @@ export default function AdminProfileCard() {
         };
 
         try {
-            try {
-                console.log("Attempting to save with flattened payload:", flattenedPayload);
-                await api.patch(`/admin/${adminId}`, flattenedPayload);
-            } catch (e) {
-                const error = e as APIError;
-                if (error.response?.status === 400) {
-                    console.log("Flattened payload failed, trying nested payload instead:", nestedPayload);
-                    await api.patch(`/admin/${adminId}`, nestedPayload);
-                } else {
-                    throw e;
-                }
-            }
+            await api.patch(`/admin/${profileData.adminID}`, nestedPayload);
 
             setProfileData((prev) =>
                 prev ? {
@@ -192,14 +161,12 @@ export default function AdminProfileCard() {
             alert("Profile updated successfully!");
 
         } catch (error) {
-            const apiError = error as APIError;
+            const apiError = error as AxiosError;
             console.error("Save error:", apiError.response?.data || apiError.message);
-            alert(`Failed to save: ${apiError.response?.data?.message || apiError.message || "An unknown error occurred."}`);
         } finally {
             setLoading(false);
         }
     };
-
 
     if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
     if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
