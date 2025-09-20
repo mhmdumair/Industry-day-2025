@@ -42,12 +42,17 @@ export class StudentController {
   }
 
   @Get('by-user')
-  async findByUserId(@Req() req: AuthenticatedRequest) {
+  async findByUser(@Req() req: AuthenticatedRequest) {
     const student = await this.studentService.findByUserId(req.user.userID);
     if (!student) {
       throw new NotFoundException('Student profile not found for the authenticated user.');
     }
     return student;
+  }
+
+  @Get('by-user/:userId')
+  findByUserId(@Query('userId') userId: string) {
+    return this.studentService.findByUserId(userId);
   }
 
   @Get(':id')

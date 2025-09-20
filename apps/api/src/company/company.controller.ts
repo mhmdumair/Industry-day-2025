@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -42,6 +42,11 @@ export class CompanyController {
   findCompanyName(@Req() req: AuthenticatedRequest) {
     const userId = req.user.userID;
     return this.companyService.getCompanyNameByUserId(userId);
+  }
+
+@Get('by-user/:userId')
+  findByUserId(@Query('userId') userId: string) {
+    return this.companyService.findByUserId(userId);
   }
 
   @Get(':id')
