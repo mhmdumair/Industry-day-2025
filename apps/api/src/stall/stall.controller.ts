@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { StallService } from './stall.service';
 import { CreateStallDto } from './dto/create-stall.dto';
 import { UpdateStallDto } from './dto/update-stall.dto';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
 @Controller('stall')
+@UseGuards(JwtAuthGuard)
+
 export class StallController {
   constructor(private readonly stallService: StallService) {}
 

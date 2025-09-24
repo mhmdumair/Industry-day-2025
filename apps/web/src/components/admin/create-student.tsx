@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import api from "../../lib/axios"
+import api from "../../lib/axios";
 import {
     Card,
     CardContent,
@@ -19,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { AxiosError } from "axios";
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -41,6 +42,8 @@ export default function CreateStudent() {
             level: "level_3",
         },
     });
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -58,7 +61,7 @@ export default function CreateStudent() {
 
     const handleSelectChange = (
         section: "student",
-        name: "level", // Only level is left here
+        name: "level",
         value: string
     ) => {
         setFormData((prev) => ({
@@ -72,7 +75,17 @@ export default function CreateStudent() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        setApiError(null);
+
         try {
+            // Check for required fields
+            if (!formData.user.email || !formData.user.first_name || !formData.user.last_name ||
+                !formData.student.regNo || !formData.student.nic || !formData.student.contact || !formData.student.group) {
+                setApiError("All required fields must be filled.");
+                return;
+            }
+
             await api.post("/student", formData);
             alert("Student created successfully!");
             setFormData({
@@ -87,13 +100,23 @@ export default function CreateStudent() {
                     nic: "",
                     linkedin: "",
                     contact: "",
-                    group: "", // Reset to empty string
+                    group: "",
                     level: "level_3",
                 },
             });
         } catch (error) {
-            console.error("Error creating student:", error);
-            alert("Failed to create student.");
+            const err = error as AxiosError;
+            console.error("Error creating student:", err);
+            
+            // Fixed the TypeScript error by using optional chaining and providing a fallback message
+            if (err.response?.status === 400) {
+                const errorMessage = (err.response.data as { message?: string })?.message || "Invalid data submitted.";
+                setApiError(errorMessage);
+            } else {
+                setApiError("Failed to create student. Please check your data and try again.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -105,20 +128,28 @@ export default function CreateStudent() {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {apiError && (
+                        <div className="text-red-500 text-center p-2 border border-red-500 rounded-md">
+                            {apiError}
+                        </div>
+                    )}
                     {/* User Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label>Email</Label>
+                            <Label htmlFor="email">Email</Label>
                             <Input
+                                id="email"
                                 name="email"
+                                type="email"
                                 value={formData.user.email}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
                             />
                         </div>
                         <div>
-                            <Label>First Name</Label>
+                            <Label htmlFor="first_name">First Name</Label>
                             <Input
+                                id="first_name"
                                 name="first_name"
                                 value={formData.user.first_name}
                                 onChange={(e) => handleInputChange(e, "user")}
@@ -126,8 +157,9 @@ export default function CreateStudent() {
                             />
                         </div>
                         <div>
-                            <Label>Last Name</Label>
+                            <Label htmlFor="last_name">Last Name</Label>
                             <Input
+                                id="last_name"
                                 name="last_name"
                                 value={formData.user.last_name}
                                 onChange={(e) => handleInputChange(e, "user")}
@@ -139,8 +171,9 @@ export default function CreateStudent() {
                     {/* Student Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <div>
-                            <Label>Registration Number</Label>
+                            <Label htmlFor="regNo">Registration Number</Label>
                             <Input
+                                id="regNo"
                                 name="regNo"
                                 value={formData.student.regNo}
                                 onChange={(e) => handleInputChange(e, "student")}
@@ -148,8 +181,9 @@ export default function CreateStudent() {
                             />
                         </div>
                         <div>
-                            <Label>NIC</Label>
+                            <Label htmlFor="nic">NIC</Label>
                             <Input
+                                id="nic"
                                 name="nic"
                                 value={formData.student.nic}
                                 onChange={(e) => handleInputChange(e, "student")}
@@ -157,16 +191,18 @@ export default function CreateStudent() {
                             />
                         </div>
                         <div>
-                            <Label>LinkedIn (optional)</Label>
+                            <Label htmlFor="linkedin">LinkedIn (optional)</Label>
                             <Input
+                                id="linkedin"
                                 name="linkedin"
                                 value={formData.student.linkedin}
                                 onChange={(e) => handleInputChange(e, "student")}
                             />
                         </div>
                         <div>
-                            <Label>Contact</Label>
+                            <Label htmlFor="contact">Contact</Label>
                             <Input
+                                id="contact"
                                 name="contact"
                                 value={formData.student.contact}
                                 onChange={(e) => handleInputChange(e, "student")}
@@ -174,8 +210,9 @@ export default function CreateStudent() {
                             />
                         </div>
                         <div>
-                            <Label>Group</Label>
+                            <Label htmlFor="group">Group</Label>
                             <Input
+                                id="group"
                                 name="group"
                                 value={formData.student.group}
                                 onChange={(e) => handleInputChange(e, "student")}
@@ -183,7 +220,7 @@ export default function CreateStudent() {
                             />
                         </div>
                         <div>
-                            <Label>Level</Label>
+                            <Label htmlFor="level">Level</Label>
                             <Select
                                 value={formData.student.level}
                                 onValueChange={(val) =>
@@ -204,8 +241,8 @@ export default function CreateStudent() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full mt-4">
-                        Create Student
+                    <Button type="submit" className="w-full mt-4" disabled={loading}>
+                        {loading ? "Creating..." : "Create Student"}
                     </Button>
                 </form>
             </CardContent>

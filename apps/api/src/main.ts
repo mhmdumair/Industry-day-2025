@@ -2,50 +2,30 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import * as session from 'express-session';
-import * as passport from 'passport';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
-    // Get environment
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const frontendUrl = configService.get<string>('FRONTEND_URL');
 
-    // Configure session middleware FIRST
-    app.use(
-        session({
-            secret: configService.get<string>('SESSION_SECRET') ?? 'fallback-secret-key',
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                maxAge: 24 * 60 * 60 * 1000, // 24 hours
-                httpOnly: true,
-                secure: isProduction, // Use secure cookies in production
-                sameSite: isProduction ? 'none' : 'lax', // Adjust for cross-origin in production
-            },
-        }),
-    );
+    // Add cookie-parser middleware here to parse cookies from incoming requests
+    app.use(cookieParser());
 
-    // Enable CORS with dynamic origin
     app.enableCors({
-        origin: [frontendUrl], // Allow both env var and fallback
+        origin: [frontendUrl],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
 
-    // Initialize passport AFTER session
-    app.use(passport.initialize());
-    app.use(passport.session());
-
-    // Add global validation pipe for DTOs
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true, // Strip properties that don't have decorators
-            forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
-            transform: true, // Automatically transform payloads to DTO instances
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
         }),
     );
 

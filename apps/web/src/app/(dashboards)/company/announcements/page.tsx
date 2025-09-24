@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Edit3 } from "lucide-react";
 import api from "@/lib/axios";
-import { useSearchParams } from 'next/navigation';
+import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 import announcement from "@/components/custom/announcement";
 
 interface Announcement {
@@ -20,42 +27,26 @@ interface Announcement {
     timestamp: string;
 }
 
-interface CompanyResponse {
-    companyID: string;
+interface UserProfile {
     userID: string;
-    companyName: string;
-    user: {
-        userID: string;
-        email: string;
-        first_name: string;
-        last_name: string;
-    };
+    role: string;
 }
 
 export default function CompanyAnnouncementsPage() {
-    const searchParams = useSearchParams();
-    const companyId = searchParams.get('companyId');
-
+    const router = useRouter();
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [audience, setAudience] = useState<string>("");
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [companyUserId, setCompanyUserId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!companyId) {
-                console.error("companyId not found in query parameters.");
-                return;
-            }
-
             try {
-                const companyRes = await api.get(`/company/${companyId}`);
-                const fetchedCompany: CompanyResponse = companyRes.data;
-                const userId = fetchedCompany.userID;
-                setCompanyUserId(userId);
+                setLoading(true);
 
-                const announcementsRes = await api.get(`/announcement/user/${userId}`);
+                const announcementsRes = await api.get(`/announcement/user`);
+                
                 // @ts-expect-error
                 const fetchedAnnouncements: Announcement[] = announcementsRes.data.map((a: announcement) => ({
                     announcementID: a.announcementID,
@@ -67,21 +58,25 @@ export default function CompanyAnnouncementsPage() {
                         minute: '2-digit'
                     }),
                 }));
-                console.log(fetchedAnnouncements);
                 
                 setAnnouncements(fetchedAnnouncements);
             } catch (error) {
                 console.error("Failed to fetch initial data:", error);
+                if (error instanceof AxiosError && error.response?.status === 401) {
+                    router.push('/auth/login');
+                }
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchData();
-    }, [companyId]);
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!title || !description || !audience || !companyUserId) {
-            alert("Please fill all fields and ensure company ID is loaded.");
+        if (!title || !description || !audience) {
+            alert("Please fill all fields.");
             return;
         }
 
@@ -89,12 +84,9 @@ export default function CompanyAnnouncementsPage() {
             title,
             content: description,
             audienceType: audience.toUpperCase(),
-            postedByUserID: companyUserId,
         };
 
         try {
-            console.log(payload);
-            
             const res = await api.post("/announcement", payload);
             const newAnnouncement: Announcement = {
                 announcementID: res.data.announcementID,
@@ -115,7 +107,11 @@ export default function CompanyAnnouncementsPage() {
 
         } catch (error) {
             console.error("Failed to post announcement:", error);
-            alert("Failed to post announcement.");
+            if (error instanceof AxiosError && error.response?.status === 401) {
+                router.push('/auth/login');
+            } else {
+                alert("Failed to post announcement.");
+            }
         }
     };
 
@@ -126,7 +122,11 @@ export default function CompanyAnnouncementsPage() {
             alert("Announcement deleted successfully!");
         } catch (error) {
             console.error("Failed to delete announcement:", error);
-            alert("Failed to delete announcement.");
+            if (error instanceof AxiosError && error.response?.status === 401) {
+                router.push('/auth/login');
+            } else {
+                alert("Failed to delete announcement.");
+            }
         }
     };
 
@@ -139,6 +139,14 @@ export default function CompanyAnnouncementsPage() {
             setAnnouncements(announcements.filter(a => a.announcementID !== id));
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center p-4 min-h-[500px] items-center">
+                <div className="text-lg">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-transparent">

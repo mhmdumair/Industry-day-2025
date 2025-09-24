@@ -68,11 +68,12 @@ export class RoomAdminService {
 
   async findByUserId(userId: string): Promise<RoomAdmin | null> {
     try {
-      return await this.roomAdminRepository.findOne({ 
-        where: { userID: userId },
-        relations: ['user', 'room'],
-      });
-    } catch (error) {
+    const roomAdmin = await this.roomAdminRepository.findOne({ 
+      where: { userID: userId },
+      relations: ['user', 'room'],
+    });
+    return roomAdmin;
+  } catch (error) {
       throw new InternalServerErrorException('Failed to fetch room admin by userID');
     }
   }

@@ -10,12 +10,16 @@ import {
   HttpStatus,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UseGuards,
 } from '@nestjs/common';
 import { ShortlistService } from './shortlist.service';
 import { CreateShortlistDto } from './dto/create-shortlist.dto';
 import { UpdateShortlistDto } from './dto/update-shortlist.dto';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
 @Controller('shortlist')
+@UseGuards(JwtAuthGuard)
+
 @UseInterceptors(ClassSerializerInterceptor)
 export class ShortlistController {
   constructor(private readonly shortlistService: ShortlistService) {}

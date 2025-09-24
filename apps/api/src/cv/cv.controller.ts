@@ -7,12 +7,15 @@ import {
   Param,
   Delete,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CvService } from './cv.service';
 import { CreateCvDto, CreateCvByRegnoDto } from './dto/create-cv.dto';
 import { UpdateCvDto } from './dto/update-cv.dto';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
 @Controller('cv')
+@UseGuards(JwtAuthGuard)
 export class CvController {
   constructor(private readonly cvService: CvService) {}
 
@@ -73,6 +76,7 @@ export class CvController {
   }
 
   @Delete(':cvId')
+
   async remove(@Param('cvId') cvId: string) {
     await this.cvService.remove(cvId);
     return { message: 'CV deleted successfully' };

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Edit3 } from "lucide-react";
 import api from "@/lib/axios";
-import { useSearchParams } from 'next/navigation';
 
 interface Announcement {
     announcementID: string;
@@ -19,7 +18,6 @@ interface Announcement {
     timestamp: string;
 }
 
-// New interface for the API response data
 interface ApiAnnouncement {
     announcementID: string;
     title: string;
@@ -41,31 +39,26 @@ interface AdminResponse {
 }
 
 export default function AnnouncementBoard() {
-    const searchParams = useSearchParams();
-    const adminId = searchParams.get('adminId');
-
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [audience, setAudience] = useState<string>("");
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [adminUserId, setAdminUserId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!adminId) {
-                console.error("adminId not found in query parameters.");
-                return;
-            }
-
             try {
-                const adminRes = await api.get(`/admin/${adminId}`);
+                // Fetch the authenticated admin's profile
+                const adminRes = await api.get<AdminResponse>("/admin/by-user");
                 const fetchedAdmin: AdminResponse = adminRes.data;
                 const userId = fetchedAdmin.userID;
                 setAdminUserId(userId);
 
-                const announcementsRes = await api.get(`/announcement/user/${userId}`);
+                // Use the user ID to fetch their announcements
+                const announcementsRes = await api.get(`/announcement/user`);
                 
-                // Explicitly type the data from the API response
                 const fetchedAnnouncements: Announcement[] = (announcementsRes.data as ApiAnnouncement[]).map((a) => ({
                     announcementID: a.announcementID,
                     title: a.title,
@@ -76,21 +69,23 @@ export default function AnnouncementBoard() {
                         minute: '2-digit'
                     }),
                 }));
-                console.log(fetchedAnnouncements);
                 
                 setAnnouncements(fetchedAnnouncements);
             } catch (error) {
                 console.error("Failed to fetch initial data:", error);
+                setError("Failed to load announcements.");
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchData();
-    }, [adminId]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!title || !description || !audience || !adminUserId) {
-            alert("Please fill all fields and ensure admin ID is loaded.");
+        if (!title || !description || !audience) {
+            alert("Please fill all fields.");
             return;
         }
 
@@ -98,12 +93,9 @@ export default function AnnouncementBoard() {
             title,
             content: description,
             audienceType: audience.toUpperCase(),
-            postedByUserID: adminUserId,
         };
 
         try {
-            console.log(payload);
-            
             const res = await api.post("/announcement", payload);
             const newAnnouncement: Announcement = {
                 announcementID: res.data.announcementID,
@@ -129,6 +121,9 @@ export default function AnnouncementBoard() {
     };
 
     const handleDelete = async (id: string) => {
+        const confirmed = confirm("Are you sure you want to delete this announcement?");
+        if (!confirmed) return;
+
         try {
             await api.delete(`/announcement/${id}`);
             setAnnouncements(announcements.filter(a => a.announcementID !== id));
@@ -148,6 +143,9 @@ export default function AnnouncementBoard() {
             setAnnouncements(announcements.filter(a => a.announcementID !== id));
         }
     };
+
+    if (loading) return <div className="text-center py-8">Loading announcements...</div>;
+    if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
 
     return (
         <div className="min-h-screen bg-transparent">

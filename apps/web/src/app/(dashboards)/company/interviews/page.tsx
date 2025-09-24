@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
     Card,
     CardContent,
@@ -11,6 +11,7 @@ import {
     CardTitle
 } from "@/components/ui/card";
 import api from "@/lib/axios";
+import { AxiosError } from "axios";
 
 interface Room {
     roomID: string;
@@ -59,7 +60,7 @@ interface RoomAdmin {
     userID: string;
     roomID: string;
     designation: string;
-    contact: string;  // Added contact field
+    contact: string;
     user: {
         userID: string;
         email: string;
@@ -73,8 +74,6 @@ interface RoomAdmin {
 
 const Page = () => {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const companyId = searchParams.get('companyId');
 
     const [stalls, setStalls] = useState<Stall[]>([]);
     const [roomAdmins, setRoomAdmins] = useState<{ [key: string]: RoomAdmin[] }>({});
@@ -83,22 +82,17 @@ const Page = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!companyId) {
-                setError("Company ID not found in query parameters");
-                setLoading(false);
-                return;
-            }
-
             try {
+                // Fetch company data for the authenticated user
+                const companyResponse = await api.get('/company/by-user');
+                const companyId = companyResponse.data.companyID;
+
                 // Fetch stalls by company ID
                 const stallsResponse = await api.get(`/stall/company/${companyId}`);
                 const fetchedStalls: Stall[] = stallsResponse.data;
                 setStalls(fetchedStalls);
 
-                // Get unique room IDs from stalls
                 const uniqueRoomIds = [...new Set(fetchedStalls.map(stall => stall.roomID))];
-
-                // Fetch room admins for each unique room
                 const roomAdminPromises = uniqueRoomIds.map(async (roomId) => {
                     try {
                         const response = await api.get(`/room-admin/by-room/${roomId}`);
@@ -117,8 +111,11 @@ const Page = () => {
                 });
 
                 setRoomAdmins(roomAdminMap);
-            } catch (error) {
-                console.error("Failed to fetch data:", error);
+            } catch (err) {
+                console.error("Failed to fetch data:", err);
+                if (err instanceof AxiosError && err.response?.status === 401) {
+                    router.push('/auth/login');
+                }
                 setError("Failed to fetch stalls and room admin data");
             } finally {
                 setLoading(false);
@@ -126,10 +123,12 @@ const Page = () => {
         };
 
         fetchData();
-    }, [companyId]);
+    }, [router]);
 
     const handleStallClick = (stallId: string) => {
-        router.push(`/company/interviews/queue?companyId=${companyId}&stallId=${stallId}`);
+        // Redirect to the interviews queue page with the stall ID
+        // companyId is no longer needed in the URL
+        router.push(`/company/interviews/queue?stallId=${stallId}`);
     };
 
     if (loading) {
@@ -227,7 +226,6 @@ const Page = () => {
                                         Name: {admin.user.first_name} {admin.user.last_name}<br />
                                         Email: {admin.user.email}<br />
                                         Contact: {admin.contact}<br />
-                                        Designation: {admin.designation}<br />
                                         {index < admins.length - 1 && <hr className="my-2" />}
                                     </div>
                                 ))}

@@ -1,10 +1,8 @@
 import { Suspense } from 'react';
 import StallsGroupCard from '@/components/roomadmin/StallsGroupCard';
 
-// Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic';
 
-// Loading fallback component
 function StallsLoading() {
   return (
     <div className="flex justify-center items-center h-64">

@@ -2,6 +2,7 @@ import {Controller, Get, UseGuards, Req, Res, UnauthorizedException, Post} from 
 import { GoogleAuthGuard } from './utils/google-auth.guard';
 import { Response } from 'express';
 import {LocalAuthGuard} from "./utils/local-auth.gaurd";
+import { JwtService } from '@nestjs/jwt'; 
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -13,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('auth')
 export class AuthController {
-  constructor() {}
+  constructor(private readonly jwtService: JwtService) {} 
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
@@ -28,7 +29,17 @@ export class AuthController {
     try {
       const user = req.user;
 
-      return res.redirect(`${process.env.FRONTEND_URL}/home?id=${user.userID}`);
+       const payload = { userID: user.userID, email: user.email, role: user.role };
+      const token = this.jwtService.sign(payload); 
+
+      res.cookie('access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+      
+      
+      return res.redirect(`${process.env.FRONTEND_URL}/home`);
 
     } catch (error) {
       console.error('Redirect failed:', error.message);
@@ -45,17 +56,22 @@ export class AuthController {
 
   @Post('login')
 @UseGuards(LocalAuthGuard)
-async login(@Req() req: AuthenticatedRequest) {
+async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
   const user = req.user;
+
+  const payload = { userID: user.userID, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
   
   return {
     success: true,
     message: 'Login successful',
-    user: {
-      userID: user.userID,
-      email: user.email,
-      role: user.role
-    },
+    user: user,
     redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
   };
 }

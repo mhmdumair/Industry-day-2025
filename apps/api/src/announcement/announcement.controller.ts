@@ -1,16 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query } from '@nestjs/common';
+// src/announcement/announcement.controller.ts
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query, UseGuards, Req, ValidationPipe } from '@nestjs/common';
 import { AnnouncementService } from './announcement.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { AudienceType } from './entities/announcement.entity';
+import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
+
+interface AuthenticatedRequest extends Request {
+    user: {
+        userID: string;
+        email: string;
+        role: string;
+    };
+}
 
 @Controller('announcement')
+@UseGuards(JwtAuthGuard)
 export class AnnouncementController {
     constructor(private readonly announcementService: AnnouncementService) {}
 
     @Post()
-    create(@Body() createAnnouncementDto: CreateAnnouncementDto) {
-        return this.announcementService.create(createAnnouncementDto);
+    create(@Body(ValidationPipe) createAnnouncementDto: CreateAnnouncementDto, @Req() req: AuthenticatedRequest) {
+        const postedByUserID = req.user.userID;
+        return this.announcementService.create(createAnnouncementDto, postedByUserID);
     }
 
     @Get()
@@ -28,12 +40,13 @@ export class AnnouncementController {
         return this.announcementService.findForCompanies();
     }
 
-    @Get('user/:userId')
-    findByUserId(@Param('userId') userId: string) {
+    @Get('user')
+    findByUserId(@Req() req: AuthenticatedRequest) {
+        const userId = req.user.userID;
         return this.announcementService.findByUserId(userId);
     }
 
-     @Get('count')
+    @Get('count')
     async getAnnouncementCount(@Query('type') type: AudienceType) {
         if (!type || !Object.values(AudienceType).includes(type)) {
             throw new NotFoundException('Invalid or missing audience type provided');
