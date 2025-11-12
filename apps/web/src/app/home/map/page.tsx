@@ -161,7 +161,7 @@ function MapPageContent() {
 
     return (
         <div className='flex flex-col items-center w-full min-h-screen bg-background'>
-            <div className='w-full max-w-7xl px-4'>
+            <div className='w-full px-4'>
                 <div className='w-full h-96 mb-8 mt-6'>
                     <div
                         ref={mapRef}
