@@ -12,8 +12,8 @@ export default async function CompanyLayout({
   const cookieStore = await cookies();
 
   return (
-      <SidebarProvider>
-        <div className="flex antialiased bg-transparent w-full ml-3 mr-3">
+      <SidebarProvider defaultOpen={false}>
+        <div className="flex antialiased bg-transparent w-full">
           <CompanySidebar />
           <main className="flex flex-col min-h-screen w-full">
             <CompanyNavbar />

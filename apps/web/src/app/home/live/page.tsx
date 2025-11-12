@@ -183,10 +183,10 @@ const LiveQueueDisplay = () => {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      'in_queue': { label: 'in-queue', className: 'bg-blue-500 text-white rounded-full px-3 py-1' },
-      'in_progress': { label: 'in-progress', className: 'bg-green-500 text-white rounded-full px-3 py-1' },
-      'completed': { label: 'finished', className: 'bg-orange-500 text-white rounded-full px-3 py-1' },
-      'cancelled': { label: 'cancelled', className: 'bg-red-500 text-white rounded-full px-3 py-1' }
+      'in_queue': { label: 'in-queue', className: 'bg-blue-500/50 border-1 border-blue-800 text-blue-950 dark:text-white rounded-full px-3 py-1' },
+      'in_progress': { label: 'in-progress', className: 'bg-green-500/50 border-1 border-green-800 dark:text-white rounded-full px-3 py-1' },
+      'completed': { label: 'finished', className: 'bg-orange-500/50 border-1 border-orange-800 dark:text-white rounded-full px-3 py-1' },
+      'cancelled': { label: 'cancelled', className: 'bg-red-500/50 border-1 border-red-800 dark:text-white rounded-full px-3 py-1' }
     };
     
     const statusInfo = statusMap[status] || { label: status, className: 'bg-gray-500 text-white rounded-full px-3 py-1' };
@@ -210,47 +210,47 @@ const LiveQueueDisplay = () => {
   const colorMap: Record<string, { trigger: string; border: string }> = {
   red: {
     trigger:
-      'bg-red-500/60 dark:bg-red-600/50 text-white hover:bg-red-600/70 dark:hover:bg-red-700/70 border-1 border-red-700 dark:border-red-800',
+      'bg-red-500/70 dark:bg-red-600/50 text-white hover:bg-red-600/70 dark:hover:bg-red-700/70 border-1 border-red-700 dark:border-red-800',
     border: 'border-1 border-red-700 dark:border-red-800'
   },
   blue: {
     trigger:
-      'bg-blue-500/60 dark:bg-blue-600/50 text-white hover:bg-blue-600/70 dark:hover:bg-blue-700/70 border-1 border-blue-700 dark:border-blue-800',
+      'bg-blue-500/70 dark:bg-blue-600/50 text-white hover:bg-blue-600/70 dark:hover:bg-blue-700/70 border-1 border-blue-700 dark:border-blue-800',
     border: 'border-1 border-blue-700 dark:border-blue-800'
   },
   green: {
     trigger:
-      'bg-green-500/60 dark:bg-green-600/50 text-white hover:bg-green-600/70 dark:hover:bg-green-700/70 border-1 border-green-700 dark:border-green-800',
+      'bg-green-500/70 dark:bg-green-600/50 text-white hover:bg-green-600/70 dark:hover:bg-green-700/70 border-1 border-green-700 dark:border-green-800',
     border: 'border-1 border-green-700 dark:border-green-800'
   },
   purple: {
     trigger:
-      'bg-purple-500/60 dark:bg-purple-600/50 text-white hover:bg-purple-600/70 dark:hover:bg-purple-700/70 border-1 border-purple-700 dark:border-purple-800',
+      'bg-purple-500/70 dark:bg-purple-600/50 text-white hover:bg-purple-600/70 dark:hover:bg-purple-700/70 border-1 border-purple-700 dark:border-purple-800',
     border: 'border-1 border-purple-700 dark:border-purple-800'
   },
   orange: {
     trigger:
-      'bg-orange-500/60 dark:bg-orange-600/50 text-white hover:bg-orange-600/70 dark:hover:bg-orange-700/70 border-1 border-orange-700 dark:border-orange-800',
+      'bg-orange-500/70 dark:bg-orange-600/50 text-white hover:bg-orange-600/70 dark:hover:bg-orange-700/70 border-1 border-orange-700 dark:border-orange-800',
     border: 'border-1 border-orange-700 dark:border-orange-800'
   },
   yellow: {
     trigger:
-      'bg-yellow-500/60 dark:bg-yellow-600/50 text-white hover:bg-yellow-600/70 dark:hover:bg-yellow-700/70 border-1 border-yellow-700 dark:border-yellow-800',
+      'bg-yellow-500/70 dark:bg-yellow-600/50 text-white hover:bg-yellow-600/70 dark:hover:bg-yellow-700/70 border-1 border-yellow-700 dark:border-yellow-800',
     border: 'border-1 border-yellow-700 dark:border-yellow-800'
   },
   pink: {
     trigger:
-      'bg-pink-500/60 dark:bg-pink-600/50 text-white hover:bg-pink-600/70 dark:hover:bg-pink-700/70 border-1 border-pink-800 dark:border-pink-700',
+      'bg-pink-500/70 dark:bg-pink-600/50 text-white hover:bg-pink-600/70 dark:hover:bg-pink-700/70 border-1 border-pink-800 dark:border-pink-700',
     border: 'border-1 border-pink-800 dark:border-pink-700'
   },
   indigo: {
     trigger:
-      'bg-indigo-500/60 dark:bg-indigo-600/50 text-white hover:bg-indigo-600/70 dark:hover:bg-indigo-700/70 border-1 border-indigo-700 dark:border-indigo-800',
+      'bg-indigo-500/70 dark:bg-indigo-600/50 text-white hover:bg-indigo-600/70 dark:hover:bg-indigo-700/70 border-1 border-indigo-700 dark:border-indigo-800',
     border: 'border-1 border-indigo-700 dark:border-indigo-800'
   },
   teal: {
     trigger:
-      'bg-teal-500/60 dark:bg-teal-600/50 text-white hover:bg-teal-600/70 dark:hover:bg-teal-700/70 border-1 border-teal-700 dark:border-teal-800',
+      'bg-teal-500/70 dark:bg-teal-600/50 text-white hover:bg-teal-600/70 dark:hover:bg-teal-700/70 border-1 border-teal-700 dark:border-teal-800',
     border: 'border-1 border-teal-700 dark:border-teal-800'
   },
   white: {
