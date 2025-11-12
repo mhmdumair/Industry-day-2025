@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import api from "../../lib/axios";
 import { AxiosError } from "axios";
+import { ModeToggle } from "../common/mode-toggle";
 
 export default function HomeNavbar() {
     const [isLoading, setIsLoading] = useState(false);
@@ -34,21 +35,21 @@ export default function HomeNavbar() {
     };
 
     return (
-        <header className="w-full bg-white border-b border-gray-200">
+        <header className="w-full bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
             <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo and Title */}
                     <div className="flex items-center gap-3">
-                        <img 
-                            src="/unilogo.png" 
-                            alt="University Logo" 
-                            className="h-10 w-10" 
+                        <img
+                            src="/unilogo.png"
+                            alt="University Logo"
+                            className="h-10 w-10"
                         />
                         <div className="flex flex-col">
-                            <h1 className="text-2xl font-extrabold text-black leading-tight">
+                            <h1 className="text-2xl font-extrabold text-black dark:text-white leading-tight">
                                 INDUSTRY DAY 2025
                             </h1>
-                            <span className="text-sm text-gray-700 leading-tight">
+                            <span className="text-sm text-gray-700 dark:text-gray-300 leading-tight">
                                 FACULTY OF SCIENCE
                             </span>
                         </div>
@@ -56,73 +57,75 @@ export default function HomeNavbar() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-8">
-                        <Link 
-                            href="/home" 
-                            className="text-gray-700 hover:text-black transition-colors font-medium"
+                        <Link
+                            href="/home"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
                         >
                             Home
                         </Link>
-                        <Link 
-                            href="/home/map" 
-                            className="text-gray-700 hover:text-black transition-colors font-medium"
+                        <Link
+                            href="/home/map"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
                         >
                             Map
                         </Link>
-                        <Link 
-                            href="/home/live" 
-                            className="text-gray-700 hover:text-black transition-colors font-medium"
+                        <Link
+                            href="/home/live"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
                         >
                             Live Queues
                         </Link>
                     </nav>
 
                     {/* Dashboard Button - Desktop */}
-                    <div className="hidden md:block">
-                        <Button 
-                            onClick={handleDashboardClick} 
+                    <div className="hidden md:flex items-center gap-2">
+                        <ModeToggle/>
+                        <Button
+                            onClick={handleDashboardClick}
                             disabled={isLoading}
-                            className="rounded-none bg-black hover:bg-gray-800 text-white px-6"
+                            className="rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black px-6"
                         >
                             {isLoading ? "Loading..." : "Dashboard"}
                         </Button>
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden">
+                    <div className="md:hidden flex items-center gap-2">
+                        <ModeToggle/>
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button 
-                                    variant="ghost" 
+                                <Button
+                                    variant="ghost"
                                     size="icon"
                                     className="rounded-none"
                                 >
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="rounded-none">
+                            <SheetContent side="right" className="rounded-none bg-white dark:bg-gray-950">
                                 <nav className="flex flex-col space-y-4 mt-8">
-                                    <Link 
-                                        href="/home" 
-                                        className="text-lg font-medium text-gray-700 hover:text-black transition-colors"
+                                    <Link
+                                        href="/home"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                                     >
                                         Home
                                     </Link>
-                                    <Link 
-                                        href="/home/map" 
-                                        className="text-lg font-medium text-gray-700 hover:text-black transition-colors"
+                                    <Link
+                                        href="/home/map"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                                     >
                                         Map
                                     </Link>
-                                    <Link 
-                                        href="/home/live" 
-                                        className="text-lg font-medium text-gray-700 hover:text-black transition-colors"
+                                    <Link
+                                        href="/home/live"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                                     >
                                         Live Queues
                                     </Link>
-                                    <div className="pt-4 border-t">
-                                        <Button 
-                                            className="w-full rounded-none bg-black hover:bg-gray-800 text-white"
-                                            onClick={handleDashboardClick} 
+                                    <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                                        <Button
+                                            className="w-full rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black"
+                                            onClick={handleDashboardClick}
                                             disabled={isLoading}
                                         >
                                             {isLoading ? "Loading..." : "Dashboard"}
