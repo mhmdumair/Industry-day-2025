@@ -255,7 +255,7 @@ const LiveQueueDisplay = () => {
   },
   white: {
     trigger:
-      'bg-transparent text-white hover:bg-gray-600/5 dark:hover:bg-white/5 border-1 border-black dark:border-gray-400',
+      'bg-transparent dark:text-white hover:bg-gray-600/5 dark:hover:bg-white/5 border-1 border-black dark:border-gray-400',
     border: 'border-1 border-black dark:border-gray-400'
   }
   };
