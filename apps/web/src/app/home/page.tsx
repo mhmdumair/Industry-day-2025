@@ -159,7 +159,7 @@ export default function AnnouncementsPage() {
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
                                         triggerComponent={
-                                            <div className="w-[50%] sm:w-[25%] aspect-square bg-gradient-to-br from-slate-50 to-white hover:from-slate-200 rounded-lg sm:rounded-xl flex items-center justify-center text-slate-700 text-xs sm:text-sm font-medium cursor-pointer transition-all duration-200 p-2 sm:p-3 border border-slate-300 shadow-sm hover:shadow-md text-center">
+                                            <div className="w-[50%] sm:w-[25%] aspect-square bg-slate-50 hover:bg-slate-200 rounded-lg sm:rounded-xl flex items-center justify-center text-slate-700 text-xs sm:text-sm font-medium cursor-pointer transition-all duration-200 p-2 sm:p-3 border border-slate-300 shadow-sm hover:shadow-md text-center">
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
@@ -190,7 +190,7 @@ export default function AnnouncementsPage() {
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
                                         triggerComponent={
-                                            <div className="w-full aspect-square bg-gradient-to-br from-slate-50 to-white hover:from-orange-200 rounded-lg flex items-center justify-center text-orange-800 text-xs font-medium cursor-pointer transition-all duration-200 p-2 border shadow-sm hover:shadow-md text-center">
+                                            <div className="w-full aspect-square bg-slate-50 hover:bg-orange-200 rounded-lg flex items-center justify-center text-orange-800 text-xs font-medium cursor-pointer transition-all duration-200 p-2 border shadow-sm hover:shadow-md text-center">
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
