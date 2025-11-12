@@ -142,15 +142,15 @@ const HomeAnnouncement = () => {
     // Loading state
     if (loading) {
         return (
-            <Card className="w-full rounded-none border-gray-200">
+            <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
                 <CardHeader className="pb-3">
                     <div>
                         <h2 className="text-2xl font-semibold">Announcements</h2>
-                        <p className="text-sm text-gray-500 mt-1">All announcements are visible here.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                     </div>
                 </CardHeader>
                 <CardContent className="flex justify-center py-12">
-                    <p className="text-gray-500">Loading announcements...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading announcements...</p>
                 </CardContent>
             </Card>
         );
@@ -159,15 +159,15 @@ const HomeAnnouncement = () => {
     // Error state
     if (error) {
         return (
-            <Card className="w-full rounded-none border-gray-200">
+            <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
                 <CardHeader className="pb-3">
                     <div>
                         <h2 className="text-2xl font-semibold">Announcements</h2>
-                        <p className="text-sm text-gray-500 mt-1">All announcements are visible here.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                     </div>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <p className="text-red-500">Error: {error}</p>
+                    <p className="text-red-500 dark:text-red-400">Error: {error}</p>
                     <Button
                         onClick={() => window.location.reload()}
                         variant="outline"
@@ -181,34 +181,34 @@ const HomeAnnouncement = () => {
     }
 
     return (
-        <Card className="w-full rounded-none border-gray-200 px-5">
+        <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
             <CardHeader className="pb-3">
                 <div>
                     <h2 className="text-2xl font-semibold">Announcements</h2>
-                    <p className="text-sm text-gray-500 mt-1">All announcements are visible here.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                 </div>
             </CardHeader>
-            
-            <CardContent className="p-0">
+
+            <CardContent className="px-5">
                 <Table>
                     <TableHeader>
-                        <TableRow className="hover:bg-transparent text-gray-500">
-                            <TableHead className="w-[40%] font-medium text-gray-600">Title</TableHead>
-                            <TableHead className="w-[10%] font-medium text-gray-600">Sent by</TableHead>
-                            <TableHead className="w-[10%] font-medium text-gray-600">Time</TableHead>
-                            <TableHead className="w-[40%] font-medium text-gray-600">Details</TableHead>
+                        <TableRow className="hover:bg-transparent border-gray-200 dark:border-gray-700">
+                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Title</TableHead>
+                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Sent by</TableHead>
+                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Time</TableHead>
+                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Details</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {currentAnnouncements.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                                <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
                                     No announcements found.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             currentAnnouncements.map((announcement) => (
-                                <TableRow key={announcement.id} className="hover:bg-gray-50/50">
+                                <TableRow key={announcement.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700">
                                     <TableCell className="font-medium align-top py-4">
                                         {announcement.title}
                                     </TableCell>
@@ -219,10 +219,10 @@ const HomeAnnouncement = () => {
                                             {announcement.sentBy}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-gray-600 align-top py-4 whitespace-nowrap">
+                                    <TableCell className="text-gray-600 dark:text-gray-400 align-top py-4 whitespace-nowrap">
                                         {announcement.time}
                                     </TableCell>
-                                    <TableCell className="text-gray-700 align-top py-4 whitespace-normal break-words">
+                                    <TableCell className="text-gray-700 dark:text-gray-300 align-top py-4 whitespace-normal break-words">
                                         {announcement.details}
                                     </TableCell>
                                 </TableRow>
@@ -232,21 +232,21 @@ const HomeAnnouncement = () => {
                 </Table>
 
                 {/* Pagination Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t">
-                    <p className="text-sm text-gray-500">
+                <div className="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                         Showing {showingStart}-{showingEnd} of {totalCount} announcements
                     </p>
-                    
+
                     {totalPages > 1 && (
                         <Pagination>
                             <PaginationContent>
                                 <PaginationItem>
-                                    <PaginationPrevious 
+                                    <PaginationPrevious
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                         className={`rounded-none ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
                                     />
                                 </PaginationItem>
-                                
+
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                     <PaginationItem key={page}>
                                         <PaginationLink
@@ -258,9 +258,9 @@ const HomeAnnouncement = () => {
                                         </PaginationLink>
                                     </PaginationItem>
                                 ))}
-                                
+
                                 <PaginationItem>
-                                    <PaginationNext 
+                                    <PaginationNext
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                         className={`rounded-none ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
                                     />

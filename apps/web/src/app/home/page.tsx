@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import {Card} from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import HomeAnnouncement from "../../components/home/home-announcement";
-import MainSponsorDialog from "../../components/home/main-sponsor-dialog";
 import SponsorDialog from "../../components/home/sponsor-dialog";
-import api from "../../lib/axios"
-
+import api from "../../lib/axios";
 
 // Interface definitions for data types
 interface User {
@@ -28,7 +26,7 @@ interface Sponsor {
     contactPersonName: string;
     contactPersonDesignation: string;
     contactNumber: string;
-    logo: string
+    logo: string;
     stream: string;
     sponsership: "MAIN" | "GOLD" | "SILVER" | "BRONZE";
     location: string;
@@ -37,14 +35,13 @@ interface Sponsor {
 }
 
 export default function AnnouncementsPage() {
-    // State to hold companies data, loading status, and any errors
     const [companies, setCompanies] = useState<Sponsor[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
 
-    // Filter sponsors by category for easy rendering
+    // Filter sponsors by category
     const mainSponsor = companies.find(company => company.sponsership === "MAIN");
-    // The user indicated there are no gold sponsors, but the filter is kept for robustness
     const silverSponsors = companies.filter(company => company.sponsership === "SILVER");
     const bronzeSponsors = companies.filter(company => company.sponsership === "BRONZE");
 
@@ -54,9 +51,8 @@ export default function AnnouncementsPage() {
             try {
                 setLoading(true);
                 setError(null);
-
                 const response = await api.get('/company');
-
+                
                 if (response.data) {
                     setCompanies(response.data);
                 } else {
@@ -73,7 +69,7 @@ export default function AnnouncementsPage() {
         fetchCompanies();
     }, []);
 
-    // Helper function to transform sponsor data for dialog components
+    // Transform sponsor data for dialog
     const transformSponsorData = (sponsor: Sponsor) => ({
         name: sponsor.companyName,
         description: sponsor.description,
@@ -86,10 +82,10 @@ export default function AnnouncementsPage() {
         category: sponsor.sponsership
     });
 
-    // Display loading state
+    // Loading state
     if (loading) {
         return (
-            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4 bg-background text-foreground">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg">Loading companies...</div>
                 </div>
@@ -97,122 +93,133 @@ export default function AnnouncementsPage() {
         );
     }
 
-    // Display error state
+    // Error state
     if (error) {
         return (
-            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
+            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4 bg-background text-foreground">
                 <div className="flex items-center justify-center h-64">
-                    <div className="text-lg text-red-500">Error: {error}</div>
+                    <div className="text-lg text-red-500 dark:text-red-400">Error: {error}</div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen w-full mx-auto p-2 sm:p-4">
-            <div className="h-6 sm:h-10" />
+        <>
+            {/* Overlay when dialog is open */}
+            {dialogOpen && (
+                <div className="fixed inset-0 bg-white/50 dark:bg-black/50 z-40" />
+            )}
 
-            {/* Home Announcement component */}
-            <div className="w-full max-w-6xl px-2 sm:px-0 h-fit">
-                <HomeAnnouncement />
-            </div>
-
-            <div className="h-6 sm:h-10" />
-
-            {/* Main container card for company display */}
-            <Card className="bg-slate-100/80 h-fit w-full max-w-6xl shadow-sm mt-6 sm:mt-10 mx-2 sm:mx-0 text-black flex flex-col items-center">
-                <div className="flex items-center justify-center w-full pt-4 sm:pt-6 pb-2 sm:pb-4">
-                    <h2 className="font-semibold text-3xl sm:text-2xl lg:text-4xl text-center px-4">Companies</h2>
+            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4 bg-background text-foreground">
+                {/* Announcements Section */}
+                <div className="w-full max-w-6xl mb-8">
+                    <HomeAnnouncement />
                 </div>
 
-                {/* Main Sponsor section */}
-                {mainSponsor && (
-                    <div className="flex p-4 sm:p-6 pb-6 sm:pb-8 items-center justify-center w-full">
-                        <MainSponsorDialog sponsor={transformSponsorData(mainSponsor)}>
-                            <Card className="w-full aspect-square flex items-center min-w-[300px] md:min-w-[350px] justify-center">
-                                {mainSponsor.logo ? (
-                                    <img
-                                        src={`/logo/${mainSponsor.logo}`}
-                                        alt={`${mainSponsor.companyName} logo`}
-                                        className="max-w-[90%] max-h-[90%] object-contain"
-                                        onError={(e) => {
-                                            e.currentTarget.onerror = null; // prevents infinite loop
-                                            e.currentTarget.src = 'https://placehold.co/300x300/E2E8F0/1E293B?text=Logo';
-                                        }}
-                                    />
-                                ) : (
-                                    <span className="text-lg sm:text-xl font-semibold text-center">{mainSponsor.companyName}</span>
-                                )}
-                            </Card>
-                        </MainSponsorDialog>
+                {/* Companies Section */}
+                <Card className="w-full max-w-6xl rounded-none border-gray-200 dark:border-gray-800 p-6 bg-card text-card-foreground">
+                    <div className="mb-4">
+                        <h2 className="text-2xl font-semibold">Companies</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All the companies participating and their vacancies.</p>
                     </div>
-                )}
 
-                {/* Silver and Bronze Sponsors sections */}
-                <div className="w-full p-4 sm:p-6 lg:p-8 bg-transparent border-none shadow-none">
-                    {/* Silver Partners grid, handling multiple sponsors without a heading */}
-                    {silverSponsors.length > 0 && (
-                        <div className="flex flex-col items-center justify-center mb-6 sm:mb-8 lg:mb-10">
-                            <div className="flex justify-center items-center gap-6">
+                    <div className="space-y-8">
+                        {/* Main Sponsor - Full width large card */}
+                        {mainSponsor && (
+                            <div className="flex justify-center">
+                                <SponsorDialog
+                                    sponsor={transformSponsorData(mainSponsor)}
+                                    onOpenChange={setDialogOpen}
+                                    triggerComponent={
+                                        <div className="w-full aspect-[3/1] bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700">
+                                            {mainSponsor.logo ? (
+                                                <img
+                                                    src={`/logo/${mainSponsor.logo}`}
+                                                    alt={`${mainSponsor.companyName} logo`}
+                                                    className="max-w-[80%] max-h-[80%] object-contain"
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = 'https://placehold.co/400x200/CCCCCC/666666?text=' + mainSponsor.companyName;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-2xl font-medium text-gray-600 dark:text-gray-300">
+                                                    {mainSponsor.companyName}
+                                                </span>
+                                            )}
+                                        </div>
+                                    }
+                                />
+                            </div>
+                        )}
+
+                        {/* Silver Sponsors - 3 medium cards in a row */}
+                        {silverSponsors.length > 0 && (
+                            <div className={silverSponsors.length < 3 ? "flex justify-center gap-6 items-center" : "grid grid-cols-3 gap-6 items-center"}>
                                 {silverSponsors.map((sponsor) => (
                                     <SponsorDialog
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
+                                        onOpenChange={setDialogOpen}
                                         triggerComponent={
-                                            <div className="w-[50%] sm:w-[25%] aspect-square bg-slate-50 hover:bg-slate-200 rounded-lg sm:rounded-xl flex items-center justify-center text-slate-700 text-xs sm:text-sm font-medium cursor-pointer transition-all duration-200 p-2 sm:p-3 border border-slate-300 shadow-sm hover:shadow-md text-center">
+                                            <div className={`aspect-square bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700 ${silverSponsors.length < 3 ? "w-[23rem]" : ""}`}>
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
-                                                        className="max-w-[80%] max-h-[80%] object-contain"
+                                                        className="max-w-[70%] max-h-[70%] object-contain"
                                                         onError={(e) => {
-                                                            e.currentTarget.onerror = null; // prevents infinite loop
-                                                            e.currentTarget.src = 'https://placehold.co/300x300/E2E8F0/1E293B?text=Logo';
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = 'https://placehold.co/300x300/CCCCCC/666666?text=' + sponsor.companyName;
                                                         }}
                                                     />
                                                 ) : (
-                                                    <span className="line-clamp-2 break-words">{sponsor.companyName}</span>
+                                                    <span className="text-lg font-medium text-gray-600 dark:text-gray-300 text-center px-4">
+                                                        {sponsor.companyName}
+                                                    </span>
                                                 )}
                                             </div>
                                         }
                                     />
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Bronze Partners grid, handling multiple sponsors without a heading and with smaller cards */}
-                    {bronzeSponsors.length > 0 && (
-                        <div className="flex flex-col items-center justify-center">
-                            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 w-full justify-items-center">
+                        {/* Bronze Sponsors - 5 columns x 2 rows of smaller cards */}
+                        {bronzeSponsors.length > 0 && (
+                            <div className="grid grid-cols-5 gap-4">
                                 {bronzeSponsors.map((sponsor) => (
                                     <SponsorDialog
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
+                                        onOpenChange={setDialogOpen}
                                         triggerComponent={
-                                            <div className="w-full aspect-square bg-slate-50 hover:bg-orange-200 rounded-lg flex items-center justify-center text-orange-800 text-xs font-medium cursor-pointer transition-all duration-200 p-2 border shadow-sm hover:shadow-md text-center">
+                                            <div className="aspect-square bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
-                                                        className="max-w-[80%] max-h-[80%] object-contain"
+                                                        className="max-w-[60%] max-h-[60%] object-contain"
                                                         onError={(e) => {
-                                                            e.currentTarget.onerror = null; // prevents infinite loop
-                                                            e.currentTarget.src = 'https://placehold.co/300x300/E2E8F0/1E293B?text=Logo';
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = 'https://placehold.co/200x200/CCCCCC/666666?text=' + sponsor.companyName;
                                                         }}
                                                     />
                                                 ) : (
-                                                    <span className="line-clamp-2 break-words text-[10px]">{sponsor.companyName}</span>
+                                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-center px-2">
+                                                        {sponsor.companyName}
+                                                    </span>
                                                 )}
                                             </div>
                                         }
                                     />
                                 ))}
                             </div>
-                        </div>
-                    )}
-                </div>
-            </Card>
-        </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </>
     );
 }

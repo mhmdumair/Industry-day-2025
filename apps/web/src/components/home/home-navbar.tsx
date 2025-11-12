@@ -35,7 +35,7 @@ export default function HomeNavbar() {
     };
 
     return (
-        <header className="w-full bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+        <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
             <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo and Title */}
