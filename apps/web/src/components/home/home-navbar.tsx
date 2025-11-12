@@ -37,26 +37,26 @@ export default function HomeNavbar() {
     return (
         <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
             <div className="w-full px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+                <div className="flex items-center justify-between h-16 relative">
                     {/* Logo and Title */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                         <img
                             src="/unilogo.png"
                             alt="University Logo"
-                            className="h-10 w-10"
+                            className="h-12 w-12"
                         />
                         <div className="flex flex-col">
-                            <h1 className="text-2xl font-extrabold text-black dark:text-white leading-tight">
-                                INDUSTRY DAY 2025
+                            <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
+                            INDUSTRY DAY 2025
                             </h1>
-                            <span className="text-sm text-gray-700 dark:text-gray-300 leading-tight">
-                                FACULTY OF SCIENCE
+                            <span className="text-base font-bold text-gray-700 dark:text-gray-300">
+                            FACULTY OF SCIENCE
                             </span>
                         </div>
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8">
+                    <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
                         <Link
                             href="/home"
                             className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
