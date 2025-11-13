@@ -54,11 +54,10 @@ export default function CompanyNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo and Title */}
           <div className="flex items-center gap-3">
-            <SidebarTrigger className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"/>
             <img
               src="/unilogo.png"
               alt="University Logo"
-              className="h-13 w-13"
+              className="h-12 w-12"
             />
             <div className="flex flex-col">
               <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">

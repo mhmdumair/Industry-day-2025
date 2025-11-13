@@ -121,22 +121,22 @@ export default function CreateStudent() {
     };
 
     return (
-        <Card className="bg-white shadow-md mt-3 mb-3 max-w-[75%] mx-auto">
+        <Card className="bg-white dark:bg-black shadow-md mt-3 mb-3 max-w-[75%] mx-auto rounded-none">
             <CardHeader>
-                <CardTitle>Create Student</CardTitle>
-                <CardDescription>Register new user and student details</CardDescription>
+                <CardTitle className="text-xl leading-4 dark:text-white">Create Student</CardTitle>
+                <CardDescription className="dark:text-gray-400">Register new user and student details</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {apiError && (
-                        <div className="text-red-500 text-center p-2 border border-red-500 rounded-md">
+                        <div className="text-red-500 dark:text-red-400 text-center p-2 border border-red-500 dark:border-red-400 rounded-none">
                             {apiError}
                         </div>
                     )}
                     {/* User Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="email">Email</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="email">Email</Label>
                             <Input
                                 id="email"
                                 name="email"
@@ -144,26 +144,29 @@ export default function CreateStudent() {
                                 value={formData.user.email}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="first_name">First Name</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="first_name">First Name</Label>
                             <Input
                                 id="first_name"
                                 name="first_name"
                                 value={formData.user.first_name}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="last_name">Last Name</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="last_name">Last Name</Label>
                             <Input
                                 id="last_name"
                                 name="last_name"
                                 value={formData.user.last_name}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                     </div>
@@ -171,66 +174,71 @@ export default function CreateStudent() {
                     {/* Student Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <div>
-                            <Label htmlFor="regNo">Registration Number</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="regNo">Registration Number</Label>
                             <Input
                                 id="regNo"
                                 name="regNo"
                                 value={formData.student.regNo}
                                 onChange={(e) => handleInputChange(e, "student")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="nic">NIC</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="nic">NIC</Label>
                             <Input
                                 id="nic"
                                 name="nic"
                                 value={formData.student.nic}
                                 onChange={(e) => handleInputChange(e, "student")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="linkedin">LinkedIn (optional)</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="linkedin">LinkedIn (optional)</Label>
                             <Input
                                 id="linkedin"
                                 name="linkedin"
                                 value={formData.student.linkedin}
                                 onChange={(e) => handleInputChange(e, "student")}
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="contact">Contact</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="contact">Contact</Label>
                             <Input
                                 id="contact"
                                 name="contact"
                                 value={formData.student.contact}
                                 onChange={(e) => handleInputChange(e, "student")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="group">Group</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="group">Group</Label>
                             <Input
                                 id="group"
                                 name="group"
                                 value={formData.student.group}
                                 onChange={(e) => handleInputChange(e, "student")}
                                 required
+                                className="rounded-none dark:bg-black dark:text-white dark:border-gray-700"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="level">Level</Label>
+                            <Label className="mb-1 dark:text-gray-300" htmlFor="level">Level</Label>
                             <Select
                                 value={formData.student.level}
                                 onValueChange={(val) =>
                                     handleSelectChange("student", "level", val)
                                 }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                                     <SelectValue placeholder="Select level" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                                     {studentLevels.map((level) => (
                                         <SelectItem key={level} value={level}>
                                             {level.toUpperCase()}
@@ -241,7 +249,7 @@ export default function CreateStudent() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full mt-4" disabled={loading}>
+                    <Button type="submit" className="w-full mt-4 rounded-none dark:bg-white dark:text-black dark:hover:bg-gray-200" disabled={loading}>
                         {loading ? "Creating..." : "Create Student"}
                     </Button>
                 </form>

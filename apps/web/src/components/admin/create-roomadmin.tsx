@@ -19,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Room {
     roomID: string;
@@ -142,7 +143,7 @@ export default function CreateRoomadmin() {
     };
 
     return (
-        <Card className="bg-white shadow-md">
+        <Card className="rounded-none">
             <CardHeader>
                 <CardTitle>Create Room Admin</CardTitle>
                 <CardDescription>Register new user and room admin details</CardDescription>
@@ -159,6 +160,7 @@ export default function CreateRoomadmin() {
                                 value={formData.user.email}
                                 onChange={(e) => handleInputChange(e, "user")}
                                 required
+                                className="rounded-none"
                             />
                         </div>
                         <div>
@@ -167,6 +169,7 @@ export default function CreateRoomadmin() {
                                 name="first_name"
                                 value={formData.user.first_name}
                                 onChange={(e) => handleInputChange(e, "user")}
+                                className="rounded-none"
                             />
                         </div>
                         <div>
@@ -175,6 +178,7 @@ export default function CreateRoomadmin() {
                                 name="last_name"
                                 value={formData.user.last_name}
                                 onChange={(e) => handleInputChange(e, "user")}
+                                className="rounded-none"
                             />
                         </div>
                         <div>
@@ -183,6 +187,7 @@ export default function CreateRoomadmin() {
                                 name="profile_picture"
                                 value={formData.user.profile_picture}
                                 onChange={(e) => handleInputChange(e, "user")}
+                                className="rounded-none"
                             />
                         </div>
                     </div>
@@ -197,6 +202,7 @@ export default function CreateRoomadmin() {
                                 onChange={(e) => handleInputChange(e, "roomAdmin")}
                                 placeholder="e.g., Room Manager, Supervisor"
                                 required
+                                className="rounded-none"
                             />
                         </div>
                         <div>
@@ -207,21 +213,24 @@ export default function CreateRoomadmin() {
                                 onChange={(e) => handleInputChange(e, "roomAdmin")}
                                 placeholder="e.g., +94 77 123 4567"
                                 required
+                                className="rounded-none"
                             />
                         </div>
                         <div className="sm:col-span-2">
                             <Label>Assigned Room</Label>
                             {roomsError ? (
                                 <div className="space-y-2">
-                                    <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                                        {roomsError}
-                                    </div>
+                                    <Alert variant="destructive" className="rounded-none">
+                                        <AlertTitle>Error</AlertTitle>
+                                        <AlertDescription>{roomsError}</AlertDescription>
+                                    </Alert>
                                     <Button 
                                         type="button" 
                                         variant="outline" 
                                         size="sm" 
                                         onClick={handleRetryFetchRooms}
                                         disabled={roomsLoading}
+                                        className="rounded-none"
                                     >
                                         {roomsLoading ? "Retrying..." : "Retry"}
                                     </Button>
@@ -234,7 +243,7 @@ export default function CreateRoomadmin() {
                                     }
                                     disabled={roomsLoading || rooms.length === 0}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="rounded-none">
                                         <SelectValue 
                                             placeholder={
                                                 roomsLoading 
@@ -245,7 +254,7 @@ export default function CreateRoomadmin() {
                                             } 
                                         />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="rounded-none">
                                         {rooms.map((room) => (
                                             <SelectItem key={room.roomID} value={room.roomID}>
                                                 {room.roomName} - {room.location}
@@ -259,21 +268,23 @@ export default function CreateRoomadmin() {
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-                            {error}
-                        </div>
+                        <Alert variant="destructive" className="rounded-none">
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                     )}
 
                     {/* Success Message */}
                     {success && (
-                        <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
-                            Room Admin created successfully!
-                        </div>
+                        <Alert variant="default" className="rounded-none">
+                            <AlertTitle>Success</AlertTitle>
+                            <AlertDescription>Room Admin created successfully!</AlertDescription>
+                        </Alert>
                     )}
 
                     <Button 
                         type="submit" 
-                        className="w-full mt-4" 
+                        className="w-full mt-4 rounded-none" 
                         disabled={isLoading || roomsLoading || (rooms.length === 0 && !roomsError)}
                     >
                         {isLoading ? "Creating..." : "Create Room Admin"}

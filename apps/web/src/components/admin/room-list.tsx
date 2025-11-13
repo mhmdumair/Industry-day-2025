@@ -25,6 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Badge } from "../ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 interface Room {
   roomID: string;
@@ -144,78 +153,75 @@ export default function RoomsListCard() {
   };
 
   return (
-    <Card className="bg-white shadow-md">
+    <Card className="bg-white dark:bg-transparent shadow-md rounded-none">
       <CardHeader>
-        <CardTitle>Room List</CardTitle>
+        <CardTitle className="text-xl leading-tight">Room List</CardTitle>
         <CardDescription>Fetched from database</CardDescription>
       </CardHeader>
 
-      <CardContent className="overflow-x-auto">
+      <CardContent>
         {loading ? (
           <div className="p-4 text-center">Loading rooms...</div>
         ) : error ? (
-          <div className="p-4 text-center text-red-600">{error}</div>
+          <div className="p-4 text-center text-red-600 dark:text-red-300">{error}</div>
         ) : (
-          <table className="w-full text-sm border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                {["Room Name", "Location", "Status", "Actions"].map((h) => (
-                  <th key={h} className="border px-2 py-1">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Room Name</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rooms.length ? (
-                rooms.map((r, i) => (
-                  <tr key={i}>
-                    <Td>{r.roomName}</Td>
-                    <Td>{r.location}</Td>
-                    <Td>
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          r.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                rooms.map((r) => (
+                  <TableRow key={r.roomID}>
+                    <TableCell>{r.roomName}</TableCell>
+                    <TableCell>{r.location}</TableCell>
+                    <TableCell className="justify-center">
+                      <Badge
+                        variant={r.isActive ? "default" : "secondary"}
+                        className=""
                       >
                         {r.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </Td>
-                    <Td>
-                      <div className="flex gap-1">
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-between">
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEditClick(r)}
+                          className="rounded-none"
                         >
                           Edit
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 rounded-none"
                           onClick={() => handleDelete(r.roomID)}
                         >
                           Delete
                         </Button>
                       </div>
-                    </Td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <Td colSpan={4}>No rooms found.</Td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">No rooms found.</TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-none dark:bg-gray-900">
           <DialogHeader>
             <DialogTitle>Edit Room</DialogTitle>
           </DialogHeader>
@@ -241,10 +247,10 @@ export default function RoomsListCard() {
                     value={editingRoom.isActive ? "true" : "false"}
                     onValueChange={handleSelectChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-none dark:bg-gray-700 dark:text-gray-100">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-none dark:bg-gray-800 dark:text-gray-100">
                       <SelectItem value="true">Active</SelectItem>
                       <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>
@@ -254,7 +260,7 @@ export default function RoomsListCard() {
               <div className="flex gap-2">
                 <Button
                   type="submit"
-                  className="flex-1"
+                  className="flex-1 rounded-none"
                   disabled={updateLoading}
                 >
                   {updateLoading ? "Saving..." : "Save Changes"}
@@ -264,6 +270,7 @@ export default function RoomsListCard() {
                   variant="outline"
                   onClick={handleDialogClose}
                   disabled={updateLoading}
+                  className="rounded-none"
                 >
                   Cancel
                 </Button>
@@ -275,12 +282,6 @@ export default function RoomsListCard() {
     </Card>
   );
 }
-
-const Td = ({ children, ...rest }: any) => (
-  <td className="border px-2 py-1" {...rest}>
-    {children}
-  </td>
-);
 
 function InputField({
   label,
@@ -296,7 +297,7 @@ function InputField({
   return (
     <div>
       <Label>{label}</Label>
-      <Input name={name} value={value} onChange={onChange} />
+      <Input name={name} value={value} onChange={onChange} className="rounded-none dark:bg-gray-700 dark:text-gray-100" />
     </div>
   );
 }

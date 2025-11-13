@@ -27,8 +27,9 @@ import {
 import { Loader2, Star } from "lucide-react";
 import api from "@/lib/axios";
 import { format } from "date-fns";
-import { Label } from "@radix-ui/react-label";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface User {
     userID: string;
@@ -139,21 +140,24 @@ export default function FeedbackList() {
         return (
             <div className="flex justify-center p-8 min-h-[400px] items-center">
                 <Loader2 className="h-10 w-10 animate-spin mr-4" />
-                <p className="text-xl">Loading Feedback...</p>
+                <p className="text-xl text-muted-foreground">Loading Feedback...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex justify-center p-8 text-red-500 text-lg">
-                {error}
+            <div className="flex justify-center p-8">
+                <Alert variant="destructive" className="rounded-none">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
             </div>
         );
     }
 
     return (
-        <Card className="m-4">
+        <Card className="m-4 rounded-none">
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <div>
@@ -165,13 +169,13 @@ export default function FeedbackList() {
                     <div className="flex items-center space-x-2">
                         <Label>Filter by Role:</Label>
                         <Select onValueChange={setFilter} defaultValue="all">
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-[180px] rounded-none">
                                 <SelectValue placeholder="Filter by role" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="student">Students</SelectItem>
-                                <SelectItem value="company">Companies</SelectItem>
+                            <SelectContent className="rounded-none">
+                                <SelectItem value="all" className="rounded-none">All</SelectItem>
+                                <SelectItem value="student" className="rounded-none">Students</SelectItem>
+                                <SelectItem value="company" className="rounded-none">Companies</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -179,8 +183,8 @@ export default function FeedbackList() {
             </CardHeader>
             <CardContent>
                 {filteredFeedbacks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-16 text-gray-500">
-                        <Star className="h-12 w-12 text-gray-400 mb-4" />
+                    <div className="flex flex-col items-center justify-center p-16 text-muted-foreground">
+                        <Star className="h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="text-xl font-semibold">No Feedback Found</h3>
                         <p className="mt-2 text-center max-w-sm">
                             It seems there&apos;s no feedback to display for the selected filter.
@@ -211,7 +215,7 @@ export default function FeedbackList() {
                                             <p>
                                                 {feedback.user.first_name} {feedback.user.last_name}
                                             </p>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-muted-foreground">
                                                 {feedback.user.role === "company" &&
                                                     `Company: ${feedback.companyDetails?.companyName || "N/A"}`}
                                                 {feedback.user.role === "student" &&
@@ -225,6 +229,7 @@ export default function FeedbackList() {
                                                 variant={
                                                     feedback.user.role === "student" ? "default" : "secondary"
                                                 }
+                                                className="rounded-none"
                                             >
                                                 {feedback.user.role}
                                             </Badge>
@@ -235,7 +240,7 @@ export default function FeedbackList() {
                                                     <Star
                                                         key={i}
                                                         className={`h-4 w-4 ${
-                                                            i < feedback.rating ? "text-yellow-400" : "text-gray-300"
+                                                            i < feedback.rating ? "text-primary" : "text-muted-foreground"
                                                         }`}
                                                         fill={i < feedback.rating ? "currentColor" : "none"}
                                                     />
@@ -251,7 +256,7 @@ export default function FeedbackList() {
                                                     variant="link"
                                                     size="sm"
                                                     onClick={() => toggleExpand(feedback.feedbackID)}
-                                                    className="p-0 h-auto ml-2"
+                                                    className="p-0 h-auto ml-2 rounded-none"
                                                 >
                                                     {isExpanded ? "Show Less" : "Show More"}
                                                 </Button>

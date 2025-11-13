@@ -125,7 +125,7 @@ export default function CreateCompany() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto shadow-lg">
+    <Card className="h-full mx-auto shadow-lg rounded-none">
       <CardHeader>
         <CardTitle>Create Company</CardTitle>
         <CardDescription>
@@ -203,7 +203,7 @@ export default function CreateCompany() {
               placeholder="https://www.company.com"
             />
             <Field
-              label="Logo"
+              label="Logo URL"
               name="logo"
               type="text"
               value={formData.company.logo}
@@ -224,6 +224,7 @@ export default function CreateCompany() {
               required
               rows={4}
               placeholder="A brief description of your company..."
+              className="rounded-none"
             />
           </div>
 
@@ -236,7 +237,7 @@ export default function CreateCompany() {
 
           <Button
             type="submit"
-            className="w-full mt-4"
+            className="w-full mt-4 rounded-none"
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -274,10 +275,10 @@ function Field({
       <Label htmlFor={name}>{label}</Label>
       {isSelect ? (
         <Select value={value} onValueChange={onSelectChange}>
-          <SelectTrigger>
+          <SelectTrigger className="rounded-none">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-none">
             {companySponsorships.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
@@ -294,6 +295,7 @@ function Field({
           onChange={onChange}
           required={required}
           placeholder={placeholder}
+          className="rounded-none"
         />
       )}
     </div>

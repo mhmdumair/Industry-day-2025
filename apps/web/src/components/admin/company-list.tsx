@@ -150,7 +150,7 @@ export default function CompanyList() {
   };
 
   return (
-    <Card className="bg-white shadow-md">
+    <Card className="h-full shadow-md rounded-none">
       <CardHeader>
         <CardTitle>Company List</CardTitle>
         <CardDescription>Fetched from database</CardDescription>
@@ -160,13 +160,16 @@ export default function CompanyList() {
         {loading ? (
           <div className="p-4 text-center">Loading companies...</div>
         ) : error ? (
-          <div className="p-4 text-center text-red-600">{error}</div>
+          <div className="p-4 text-center text-destructive">{error}</div>
         ) : (
-          <table className="w-full text-sm border-collapse border border-gray-300">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                 {["Company", "Stream", "Email", "Actions"].map((h) => (
-                  <th key={h} className="border px-2 py-1">
+                  <th
+                    key={h}
+                    className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0"
+                  >
                     {h}
                   </th>
                 ))}
@@ -175,12 +178,20 @@ export default function CompanyList() {
             <tbody>
               {companies.length ? (
                 companies.map((c, i) => (
-                  <tr key={i}>
+                  <tr
+                    key={i}
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  >
                     <Td>{c.companyName}</Td>
                     <Td>{c.stream}</Td>
                     <Td>{c.user.email}</Td>
                     <Td>
-                      <Button size="sm" variant="ghost" onClick={() => handleEditClick(c)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-none"
+                        onClick={() => handleEditClick(c)}
+                      >
                         Edit
                       </Button>
                     </Td>
@@ -197,7 +208,7 @@ export default function CompanyList() {
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-none bg-background">
           <DialogHeader>
             <DialogTitle>Edit Company</DialogTitle>
           </DialogHeader>
@@ -205,24 +216,106 @@ export default function CompanyList() {
           {editingCompany && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputField label="Company Name" name="companyName" value={editingCompany.companyName} onChange={handleInputChange} section="company" />
-                <InputField label="Stream" name="stream" value={editingCompany.stream} onChange={handleInputChange} section="company" />
-                <InputField label="Sponsership" name="sponsership" value={editingCompany.sponsership} onChange={handleInputChange} section="company" />
-                <InputField label="Contact Person Name" name="contactPersonName" value={editingCompany.contactPersonName} onChange={handleInputChange} section="company" />
-                <InputField label="Contact Number" name="contactNumber" value={editingCompany.contactNumber} onChange={handleInputChange} section="company" />
-                <InputField label="Location" name="location" value={editingCompany.location} onChange={handleInputChange} section="company" />
-                <InputField label="Company Website" name="companyWebsite" value={editingCompany.companyWebsite} onChange={handleInputChange} section="company" />
-                <InputField label="Logo URL" name="logo" value={editingCompany.logo || ""} onChange={handleInputChange} section="company" />
-                <InputField label="Email" name="email" value={editingCompany.user.email} onChange={handleInputChange} section="user" />
-                <InputField label="First Name" name="first_name" value={editingCompany.user.first_name} onChange={handleInputChange} section="user" />
-                <InputField label="Last Name" name="last_name" value={editingCompany.user.last_name} onChange={handleInputChange} section="user" />
-                <InputField label="Profile Picture URL" name="profile_picture" value={editingCompany.user.profile_picture || ""} onChange={handleInputChange} section="user" />
+                <InputField
+                  label="Company Name"
+                  name="companyName"
+                  value={editingCompany.companyName}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Stream"
+                  name="stream"
+                  value={editingCompany.stream}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Sponsership"
+                  name="sponsership"
+                  value={editingCompany.sponsership}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Contact Person Name"
+                  name="contactPersonName"
+                  value={editingCompany.contactPersonName}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Contact Number"
+                  name="contactNumber"
+                  value={editingCompany.contactNumber}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Location"
+                  name="location"
+                  value={editingCompany.location}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Company Website"
+                  name="companyWebsite"
+                  value={editingCompany.companyWebsite}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Logo URL"
+                  name="logo"
+                  value={editingCompany.logo || ""}
+                  onChange={handleInputChange}
+                  section="company"
+                />
+                <InputField
+                  label="Email"
+                  name="email"
+                  value={editingCompany.user.email}
+                  onChange={handleInputChange}
+                  section="user"
+                />
+                <InputField
+                  label="First Name"
+                  name="first_name"
+                  value={editingCompany.user.first_name}
+                  onChange={handleInputChange}
+                  section="user"
+                />
+                <InputField
+                  label="Last Name"
+                  name="last_name"
+                  value={editingCompany.user.last_name}
+                  onChange={handleInputChange}
+                  section="user"
+                />
+                <InputField
+                  label="Profile Picture URL"
+                  name="profile_picture"
+                  value={editingCompany.user.profile_picture || ""}
+                  onChange={handleInputChange}
+                  section="user"
+                />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1" disabled={updateLoading}>
+                <Button
+                  type="submit"
+                  className="flex-1 rounded-none"
+                  disabled={updateLoading}
+                >
                   {updateLoading ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-none"
+                  onClick={handleDialogClose}
+                  disabled={updateLoading}
+                >
                   Cancel
                 </Button>
               </div>
@@ -234,10 +327,13 @@ export default function CompanyList() {
   );
 }
 
-const Td = ({ children, ...rest }: ComponentProps<'td'>) => (
-    <td className="border px-2 py-1" {...rest}>
-      {children}
-    </td>
+const Td = ({ children, ...rest }: ComponentProps<"td">) => (
+  <td
+    className="p-4 align-middle [&:has([role=checkbox])]:pr-0"
+    {...rest}
+  >
+    {children}
+  </td>
 );
 
 function InputField({
@@ -259,7 +355,12 @@ function InputField({
   return (
     <div>
       <Label>{label}</Label>
-      <Input name={name} value={value} onChange={(e) => onChange(e, section)} />
+      <Input
+        name={name}
+        value={value}
+        onChange={(e) => onChange(e, section)}
+        className="rounded-none"
+      />
     </div>
   );
 }

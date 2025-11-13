@@ -135,106 +135,110 @@ export default function CreateInterview({ companies, students }: InterviewFormPr
   }, [searchTerm, students]);
 
   return (
-    <Card className="w-full max-w-2xl shadow-md">
+    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh] flex flex-col">
       <CardHeader>
         <CardTitle>Create Interview</CardTitle>
         <CardDescription>
           Schedule a pre-listed or add a student to the walk-in queue.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="student-search">Student</Label>
-            <Input
-              id="student-search"
-              placeholder="Search by name, registration number, or email"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {selectedStudent ? (
-              <div className="mt-2 flex justify-between items-center p-3 border rounded-md bg-teal-50">
-                <div>
-                  <div className="font-medium">
-                    {selectedStudent.user.first_name} {selectedStudent.user.last_name}
+      <CardContent className="flex-grow">
+        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col h-full">
+          <div className="flex-grow space-y-4">
+            <div>
+              <Label className="mb-1" htmlFor="student-search">Student</Label>
+              <Input
+                id="student-search"
+                placeholder="Search by name, registration number, or email"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rounded-none"
+              />
+              {selectedStudent ? (
+                <div className="mt-2 flex justify-between items-center p-3 border rounded-none bg-teal-50">
+                  <div>
+                    <div className="font-medium">
+                      {selectedStudent.user.first_name} {selectedStudent.user.last_name}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {selectedStudent.regNo} | {selectedStudent.user.email}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {selectedStudent.regNo} | {selectedStudent.user.email}
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-none"
+                    onClick={() => {
+                      setSelectedStudent(null);
+                      setFormData((prev) => ({ ...prev, regNo: "" }));
+                    }}
+                  >
+                    <span className="text-sm text-red-500">Change</span>
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedStudent(null);
-                    setFormData((prev) => ({ ...prev, regNo: "" }));
-                  }}
-                >
-                  <span className="text-sm text-red-500">Change</span>
-                </Button>
-              </div>
-            ) : (
-              filteredStudents.length > 0 && (
-                <div className="mt-2 space-y-1 max-h-48 overflow-y-auto border rounded-md p-2">
-                  {filteredStudents.slice(0, 10).map((student) => (
-                    <Card
-                      key={student.studentID}
-                      className="cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleStudentSelect(student)}
-                    >
-                      <CardHeader className="p-3">
-                        <CardTitle className="text-sm">
-                          {student.user.first_name} {student.user.last_name}
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          {student.regNo} | {student.user.email}
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
+              ) : (
+                filteredStudents.length > 0 && (
+                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto border rounded-none p-2">
+                    {filteredStudents.slice(0, 10).map((student) => (
+                      <Card
+                        key={student.studentID}
+                        className="cursor-pointer hover:bg-gray-100 transition-colors rounded-none"
+                        onClick={() => handleStudentSelect(student)}
+                      >
+                        <CardHeader className="p-3">
+                          <CardTitle className="text-sm">
+                            {student.user.first_name} {student.user.last_name}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            {student.regNo} | {student.user.email}
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+
+            <div>
+              <Label className="mb-1" htmlFor="company">Company</Label>
+              <Select
+                value={formData.companyID}
+                onValueChange={(value) => handleChange("companyID", value)}
+              >
+                <SelectTrigger id="company" className="rounded-none w-full">
+                  <SelectValue placeholder="Select a company" />
+                </SelectTrigger>
+                <SelectContent className="rounded-none">
+                  {companies.map((company) => (
+                    <SelectItem key={company.companyID} value={company.companyID}>
+                      {company.companyName}
+                    </SelectItem>
                   ))}
-                </div>
-              )
-            )}
-          </div>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="company">Company</Label>
-            <Select
-              value={formData.companyID}
-              onValueChange={(value) => handleChange("companyID", value)}
-            >
-              <SelectTrigger id="company">
-                <SelectValue placeholder="Select a company" />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map((company) => (
-                  <SelectItem key={company.companyID} value={company.companyID}>
-                    {company.companyName}
+            <div>
+              <Label className="mb-1" htmlFor="interview-type">Interview Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleChange("type", value as InterviewType)}
+              >
+                <SelectTrigger id="interview-type" className="rounded-none w-full">
+                  <SelectValue placeholder="Select interview type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-none">
+                  <SelectItem value={InterviewType.PRE_LISTED}>
+                    Pre-listed
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  <SelectItem value={InterviewType.WALK_IN}>Walk-in</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="interview-type">Interview Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => handleChange("type", value as InterviewType)}
-            >
-              <SelectTrigger id="interview-type">
-                <SelectValue placeholder="Select interview type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={InterviewType.PRE_LISTED}>
-                  Pre-listed
-                </SelectItem>
-                <SelectItem value={InterviewType.WALK_IN}>Walk-in</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button type="submit" className="w-full mt-4" disabled={!selectedStudent}>
+          <Button type="submit" className="w-full mt-4 rounded-none" disabled={!selectedStudent}>
             Create Interview
           </Button>
         </form>
