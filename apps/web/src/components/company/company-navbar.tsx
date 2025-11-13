@@ -1,91 +1,81 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { useSearchParams } from "next/navigation"
-import api from "@/lib/axios"
-import { Button } from "../ui/button"
-import { Home } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ModeToggle } from "../common/mode-toggle"
-import Link from "next/link"
+import React, { useEffect, useState } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
+import Link from "next/link";
+import { ModeToggle } from "../common/mode-toggle";
+import { Home } from "lucide-react";
+import { Button } from "../ui/button";
+import api from "@/lib/axios";
+
+const navItems = [
+  { title: "Profile", url: "/company/profile" },
+  { title: "Pre-listed", url: "/company/pre-listed" },
+  { title: "Interviews", url: "/company/interviews" },
+  { title: "Announcements", url: "/company/announcements" },
+  { title: "Feedback", url: "/company/feedback" },
+];
 
 export default function CompanyNavbar() {
-  const searchParams = useSearchParams()
-  const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const companyId = searchParams.get("companyId");
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleHomeClick = async () => {
-    setIsLoading(true)
-
-    try {
-      const companyId = searchParams.get("companyId")
-      const studentId = searchParams.get("studentId")
-      const adminId = searchParams.get("adminId")
-
-      let userId: string | undefined
-
-      if (companyId) {
-        const { data } = await api.get(`/company/${companyId}`)
-        userId = data.user.userID
-      } else if (studentId) {
-        const { data } = await api.get(`/student/${studentId}`)
-        userId = data.user?.userID
-      } else if (adminId) {
-        const { data } = await api.get(`/admin/${adminId}`)
-        userId = data.user?.userID
-        console.log(data)
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/company/by-user");
+        setCompanyName(response.data.companyName);
+      } catch (error) {
+        console.error("Failed to fetch company name", error);
+        setCompanyName("Company");
+      } finally {
+        setLoading(false);
       }
-
-      if (userId) {
-        window.location.href = `/home`
-      } else {
-        console.warn("Unable to resolve userId — sending to generic /home")
-        console.log("problem")
-      }
-    } catch (err) {
-      console.error("Could not fetch userId:", err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    };
+    fetchCompanyName();
+  }, []);
 
   return (
     <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Title */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/unilogo.png"
-              alt="University Logo"
-              className="h-12 w-12"
-            />
-            <div className="flex flex-col">
-              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
-                INDUSTRY DAY 2025
-              </h1>
-              <span className="text-base font-bold text-gray-700 dark:text-gray-300">
-                FACULTY OF SCIENCE
+          {/* Left side - Company branding */}
+          <div className="flex items-center">
+            <div className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-none border-1 border-gray-100/50">
+              <span className="text-base font-semibold">
+                {loading ? "Loading..." : companyName}
               </span>
             </div>
-          </div>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
-            <ModeToggle />
-            <Link href={"/home"}>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"
-                disabled={isLoading}
-                title="Go to Home"
-              >
-                <Home className="h-5 w-5" />
-              </Button>
-            </Link>
+            {/* Navigation Links */}
+            <nav className="hidden lg:flex justify-start gap-6 ml-6">
+              {navItems.map((item) => {
+                const isActive = pathname === item.url;
+
+                return (
+                  <Link
+                    key={item.title}
+                    href={`${item.url}${
+                      companyId ? `?companyId=${companyId}` : ""
+                    }`}
+                    className={`relative text-sm font-medium transition-colors pb-1 ${
+                      isActive
+                        ? "text-black dark:text-white after:content-[''] after:absolute after:-bottom-[2px] after:left-0 after:w-full after:h-[2px] after:bg-black dark:after:bg-white"
+                        : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

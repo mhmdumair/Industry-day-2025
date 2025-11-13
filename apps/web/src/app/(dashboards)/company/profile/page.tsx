@@ -19,6 +19,7 @@ import { MapPin, Globe, Phone, User, Building } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 // Types
 export interface User {
@@ -172,7 +173,7 @@ export default function ProfileCard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
       </div>
     );
@@ -180,7 +181,7 @@ export default function ProfileCard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <div className="text-destructive text-center">
           <h2 className="text-2xl font-semibold mb-2">Error</h2>
           <p>{error}</p>
@@ -191,7 +192,7 @@ export default function ProfileCard() {
 
   if (!profileData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <div className="text-muted-foreground text-center">
           <h2 className="text-2xl font-semibold mb-2">No Data</h2>
           <p>No company data found.</p>
@@ -201,247 +202,176 @@ export default function ProfileCard() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-      <div className="max-w-4xl mx-auto">
-        <Card className="shadow-xl border-0 bg-card">
-          <CardHeader className="text-center pb-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-primary/10">
-                <AvatarImage
-                  src={profileData?.user?.profile_picture || profileData.logo || "/logo/c.png"}
-                  alt="Company Logo"
-                  className="object-cover"
-                />
-              </Avatar>
-              <div className="space-y-2">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
-                  {profileData.contactPersonName}
-                </CardTitle>
-                <CardDescription className="text-base sm:text-lg text-muted-foreground">
-                  {profileData.companyName}
-                </CardDescription>
+    <div className="mt-3 w-[65vh] mx-auto p-4 bg-blue-900/40 min-h-[80vh] flex items-center justify-center">
+      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="text-left">
+          <CardTitle className="text-4xl font-bold text-gray-800 dark:text-gray-100 leading-5 pt-3">
+            {profileData.contactPersonName}
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
+            {profileData.user.email}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-foreground mb-3">About Company</h3>
+            <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+              {profileData.description}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Phone:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.contactNumber}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Website:</span>
+                <a href={profileData.companyWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  {profileData.companyWebsite}
+                </a>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.location}</span>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Description */}
-            <div className="bg-muted/50 rounded-lg p-4 sm:p-6">
-              <h3 className="font-semibold text-foreground mb-3">About Company</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                {profileData.description}
-              </p>
-            </div>
-            {/* Contact Information Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Contact Details */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground mb-4 pb-2 border-b border-border">
-                  Contact Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <User className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Contact Person
-                      </div>
-                      <div className="text-sm font-medium text-foreground break-words">
-                        {profileData.contactPersonName}
-                      </div>
-                    </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="justify-center pt-6 rounded-none border-t border-gray-200 dark:border-gray-700">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button type="submit" className="rounded-none" onClick={handleEditOpen}>
+                Edit Profile
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-none dark:bg-black dark:text-gray-100">
+              <DialogHeader>
+                <DialogTitle>Edit Company Profile</DialogTitle>
+                <DialogDescription className="dark:text-gray-400">
+                  Update your company information.
+                </DialogDescription>
+              </DialogHeader>
+
+              {editData && (
+                <div className="grid gap-6 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="company-name" className="text-right font-medium dark:text-gray-300">
+                      Company Name
+                    </Label>
+                    <Input
+                      id="company-name"
+                      value={safeString(editData.companyName)}
+                      onChange={(e) => handleInputChange("companyName", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter company name"
+                    />
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <Building className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Designation
-                      </div>
-                      <div className="text-sm font-medium text-foreground break-words">
-                        {profileData.contactPersonDesignation}
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contact-person" className="text-right font-medium dark:text-gray-300">
+                      Contact Person
+                    </Label>
+                    <Input
+                      id="contact-person"
+                      value={safeString(editData.contactPersonName)}
+                      onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter contact person name"
+                    />
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <Phone className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Phone
-                      </div>
-                      <div className="text-sm font-medium text-foreground">
-                        <a href={`tel:${profileData.contactNumber}`} className="hover:text-primary transition-colors">
-                          {profileData.contactNumber}
-                        </a>
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="designation" className="text-right font-medium dark:text-gray-300">
+                      Designation
+                    </Label>
+                    <Input
+                      id="designation"
+                      value={safeString(editData.contactPersonDesignation)}
+                      onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter designation"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contact-number" className="text-right font-medium dark:text-gray-300">
+                      Contact Number
+                    </Label>
+                    <Input
+                      id="contact-number"
+                      value={safeString(editData.contactNumber)}
+                      onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter contact number"
+                      type="tel"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="location" className="text-right font-medium dark:text-gray-300">
+                      Location
+                    </Label>
+                    <Input
+                      id="location"
+                      value={safeString(editData.location)}
+                      onChange={(e) => handleInputChange("location", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter company location"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="website" className="text-right font-medium dark:text-gray-300">
+                      Website
+                    </Label>
+                    <Input
+                      id="website"
+                      value={safeString(editData.companyWebsite)}
+                      onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="https://www.company.com"
+                      type="url"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="description" className="text-right font-medium dark:text-gray-300 mt-2">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={safeString(editData.description)}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100 min-h-[120px]"
+                      placeholder="Enter company description"
+                    />
                   </div>
                 </div>
-              </div>
-              {/* Company Details */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground mb-4 pb-2 border-b border-border">
-                  Company Details
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Location
-                      </div>
-                      <div className="text-sm font-medium text-foreground break-words">
-                        {profileData.location}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Website
-                      </div>
-                      <div className="text-sm font-medium">
-                        <a
-                          href={profileData.companyWebsite}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 transition-colors break-all"
-                        >
-                          {profileData.companyWebsite}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="justify-center pt-6 pb-8">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
+              )}
+
+              <DialogFooter>
                 <Button
-                  onClick={handleEditOpen}
-                  className="w-full sm:w-auto px-8"
+                  type="button"
+                  variant="outline"
+                  className="rounded-none dark:border-gray-600 dark:text-gray-300"
+                  onClick={() => setIsDialogOpen(false)}
                 >
-                  Edit Profile
+                  Cancel
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto mx-4">
-                <DialogHeader>
-                  <DialogTitle>Edit Company Profile</DialogTitle>
-                  <DialogDescription>
-                    Update your company information. All fields are required unless marked optional.
-                  </DialogDescription>
-                </DialogHeader>
-                {editData && (
-                  <div className="grid gap-6 py-4">
-                    {/* Company Name */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="company-name" className="font-medium sm:text-right">
-                        Company Name
-                      </Label>
-                      <Input
-                        id="company-name"
-                        value={safeString(editData.companyName)}
-                        onChange={(e) => handleInputChange("companyName", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="Enter company name"
-                      />
-                    </div>
-                    {/* Contact Person Name */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="contact-person" className="font-medium sm:text-right">
-                        Contact Person
-                      </Label>
-                      <Input
-                        id="contact-person"
-                        value={safeString(editData.contactPersonName)}
-                        onChange={(e) => handleInputChange("contactPersonName", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="Enter contact person name"
-                      />
-                    </div>
-                    {/* Contact Person Designation */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="designation" className="font-medium sm:text-right">
-                        Designation
-                      </Label>
-                      <Input
-                        id="designation"
-                        value={safeString(editData.contactPersonDesignation)}
-                        onChange={(e) => handleInputChange("contactPersonDesignation", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="Enter designation"
-                      />
-                    </div>
-                    {/* Contact Number */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="contact-number" className="font-medium sm:text-right">
-                        Contact Number
-                      </Label>
-                      <Input
-                        id="contact-number"
-                        value={safeString(editData.contactNumber)}
-                        onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="Enter contact number"
-                        type="tel"
-                      />
-                    </div>
-                    {/* Location */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="location" className="font-medium sm:text-right">
-                        Location
-                      </Label>
-                      <Input
-                        id="location"
-                        value={safeString(editData.location)}
-                        onChange={(e) => handleInputChange("location", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="Enter company location"
-                      />
-                    </div>
-                    {/* Company Website */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
-                      <Label htmlFor="website" className="font-medium sm:text-right">
-                        Website
-                      </Label>
-                      <Input
-                        id="website"
-                        value={safeString(editData.companyWebsite)}
-                        onChange={(e) => handleInputChange("companyWebsite", e.target.value)}
-                        className="sm:col-span-3"
-                        placeholder="https://www.company.com"
-                        type="url"
-                      />
-                    </div>
-                    {/* Description */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-4">
-                      <Label htmlFor="description" className="font-medium sm:text-right mt-2">
-                        Description
-                      </Label>
-                      <Textarea
-                        id="description"
-                        value={safeString(editData.description)}
-                        onChange={(e) => handleInputChange("description", e.target.value)}
-                        className="sm:col-span-3 min-h-[120px]"
-                        placeholder="Enter company description"
-                      />
-                    </div>
-                  </div>
-                )}
-                <DialogFooter className="flex-col sm:flex-row gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
-                    Cancel
-                  </Button>
-                  <Button type="submit" onClick={handleSave} className="w-full sm:w-auto">
-                    Save Changes
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardFooter>
-        </Card>
-      </div>
+                <Button
+                  type="submit"
+                  onClick={handleSave}
+                  className="rounded-none"
+                  disabled={loading}
+                >
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

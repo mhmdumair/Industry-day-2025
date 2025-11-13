@@ -65,7 +65,7 @@ export default function FeedbackForm() {
 
   return (
     <div className="flex p-4 mx-auto bg-transparent">
-      <Card className="bg-slate-100/80 mb-2 last:mb-0 w-full max-w-[85vw] md:max-w-xl mx-auto">
+      <Card className="rounded-none bg-white dark:bg-black mb-2 last:mb-0 w-full max-w-[85vw] md:max-w-xl mx-auto">
         <CardHeader>
           <CardTitle>Provide Feedback</CardTitle>
           <CardDescription>
@@ -113,7 +113,7 @@ export default function FeedbackForm() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={5}
-                className="mt-2"
+                className="mt-2 rounded-none bg-card dark:bg-black dark:text-white"
               />
             </div>
             {/* Status Messages */}
@@ -126,7 +126,7 @@ export default function FeedbackForm() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-12 font-semibold"
+              className="w-full h-12 font-semibold rounded-none"
               disabled={submissionLoading || !rating || !comment.trim()}
             >
               {submissionLoading && (

@@ -1,5 +1,5 @@
 import AdminNavbar from "@/components/admin/admin-navbar";
-import CompanyNavbar from "@/components/company/company-navbar";
+import DashboardNavbar from "@/components/common/dashboard-navbar";
 import React from "react";
 
 export default async function AdminLayout({
@@ -9,7 +9,7 @@ export default async function AdminLayout({
 }) {
   return (
     <main className="flex flex-col min-h-screen w-full">
-      <CompanyNavbar/>
+      <DashboardNavbar/>
       <AdminNavbar />
       <div className="w-full p-2 sm:p-4">
         {children}
