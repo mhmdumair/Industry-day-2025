@@ -10,8 +10,8 @@ export class GoogleDriveService {
 
     constructor(private configService: ConfigService) {
         
-        const client_id = this.configService.get<string>('GOOGLE_CLIENT_ID');
-        const client_secret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+        const client_id = this.configService.get<string>('DRIVE_OAUTH_CLIENT_ID');
+        const client_secret = this.configService.get<string>('DRIVE_OAUTH_CLIENT_SECRET');
         const refresh_token = this.configService.get<string>('GOOGLE_REFRESH_TOKEN');
         const GOOGLE_DRIVE_FOLDER_ID = this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID');
 
