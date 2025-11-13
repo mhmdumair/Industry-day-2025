@@ -12,3 +12,4 @@ import { UserModule } from 'src/user/user.module';
   exports:[CompanyService]
 })
 export class CompanyModule {}
+

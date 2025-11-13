@@ -4,11 +4,17 @@ import { StudentController } from './student.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Student } from 'src/student/entities/student.entity';
 import { UserModule } from 'src/user/user.module';
+import { CvModule } from 'src/cv/cv.module';
+import { StudentCv } from 'src/typeorm/entities';
 
 @Module({
-  imports : [TypeOrmModule.forFeature([Student]),forwardRef(() => UserModule),],
-  controllers: [StudentController],
-  providers: [StudentService],
-  exports : [StudentService]
+imports : [
+TypeOrmModule.forFeature([Student, StudentCv]),
+forwardRef(() => UserModule),
+forwardRef(() => CvModule)
+],
+controllers: [StudentController],
+providers: [StudentService],
+exports : [StudentService]
 })
 export class StudentModule {}
