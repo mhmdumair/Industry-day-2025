@@ -67,7 +67,7 @@ async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     });
-  
+
   return {
     success: true,
     message: 'Login successful',
@@ -75,5 +75,19 @@ async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
     redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
   };
 }
+
+  @Post('logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Logout successful',
+    });
+  }
 
 }
