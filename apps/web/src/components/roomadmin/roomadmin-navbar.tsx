@@ -1,71 +1,79 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { useSearchParams } from "next/navigation"
-import api from "@/lib/axios"
+import React, { useEffect, useState } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
+import Link from "next/link";
+import api from "@/lib/axios";
 
-import { Button } from "../ui/button"
-import { Home } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+const navItems = [
+  { title: "Profile", url: "/room-admin/profile" },
+  { title: "Stalls", url: "/room-admin/stalls" },
+];
 
 export default function RoomAdminNavbar() {
-    const searchParams = useSearchParams()
-    const [isLoading, setIsLoading]= useState(false)
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const roomAdminId = searchParams.get("roomAdminId");
+  const [roomAdminName, setRoomAdminName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    const handleHomeClick = async () => {
-        setIsLoading(true)
+  useEffect(() => {
+    const fetchRoomAdminInfo = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/room-admin/by-user");
+        // Get the full name from the user object
+        const firstName = response.data.user?.first_name || "";
+        const lastName = response.data.user?.last_name || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+        setRoomAdminName(fullName || "Room Admin");
+      } catch (error) {
+        console.error("Failed to fetch room admin info", error);
+        setRoomAdminName("Room Admin");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRoomAdminInfo();
+  }, []);
 
-        try {
-            const roomAdminId = searchParams.get("roomAdminId")
-
-            let userId: string | undefined
-
-            if (roomAdminId) {
-                const { data } = await api.get(`/room-admin/${roomAdminId}`)
-                userId = data.user?.userID
-            }
-
-            if (userId) {
-                window.location.href = `/home?id=${userId}`
-            } else {
-                console.warn("Unable to resolve userId — sending to generic /home")
-            }
-        } catch (err) {
-            console.error("Could not fetch userId:", err)
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    return (
-        <header className="w-full shadow-sm bg-slate-100 border border-black rounded-md max-w-screen mt-2">
-            <div className="w-full mx-auto px-4 py-3 flex items-center justify-between relative">
-
-                <div className="flex items-center gap-3">
-                    <SidebarTrigger />
-
-                    <div className="flex items-center gap-2">
-                        <img src="/unilogo.png" alt="University Logo" className="h-10 sm:h-12 w-auto" />
-                        <div className="font-inter text-base sm:text-2xl font-bold leading-tight text-black">
-                            INDUSTRY DAY 2025<br />
-                            <span className="text-sm sm:text-xl font-normal">Faculty of Science</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="p-2 hover:bg-slate-200 rounded-md transition-colors"
-                        onClick={handleHomeClick}
-                        disabled={isLoading}
-                        title="Go to Home"
-                    >
-                        <Home className="h-5 w-5" />
-                    </Button>
-                </div>
+  return (
+    <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Left side - Room Admin branding */}
+          <div className="flex items-center">
+            <div className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-none border-1 border-gray-100/50">
+              <span className="text-base font-semibold">
+                {loading ? "Loading..." : roomAdminName}
+              </span>
             </div>
-        </header>
-    )
+
+            {/* Navigation Links */}
+            <nav className="hidden lg:flex justify-start gap-6 ml-6">
+              {navItems.map((item) => {
+                const isActive = pathname === item.url;
+
+                return (
+                  <Link
+                    key={item.title}
+                    href={`${item.url}${
+                      roomAdminId ? `?roomAdminId=${roomAdminId}` : ""
+                    }`}
+                    className={`relative text-sm font-medium transition-colors pb-1 ${
+                      isActive
+                        ? "text-black dark:text-white after:content-[''] after:absolute after:-bottom-[2px] after:left-0 after:w-full after:h-[2px] after:bg-black dark:after:bg-white"
+                        : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }

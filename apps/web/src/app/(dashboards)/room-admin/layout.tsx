@@ -1,8 +1,7 @@
-"use client"
+"use client";
 import React from "react";
-import RoomAdminSidebar from "@/components/roomadmin/roomadmin-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import RoomAdminNavbar from "@/components/roomadmin/roomadmin-navbar";
+import DashboardNavbar from "@/components/common/dashboard-navbar";
 
 export default function RoomAdminLayout({
   children,
@@ -10,16 +9,12 @@ export default function RoomAdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <div className="flex antialiased bg-transparent w-full ml-3 mr-3">
-        <RoomAdminSidebar />
-        <main className="flex flex-col min-h-screen w-full">
-          <RoomAdminNavbar />
-          <div className="w-full p-2 sm:p-4">
-            {children}
-          </div>
-        </main>
+    <main className="flex flex-col min-h-screen w-full">
+      <DashboardNavbar />
+      <RoomAdminNavbar />
+      <div className="w-full p-2 sm:p-4">
+        {children}
       </div>
-    </SidebarProvider>
+    </main>
   );
 }

@@ -279,7 +279,7 @@ const RegisteredQueues = () => {
           </div>
           <Button
             size="icon"
-            className="bg-red-500/80 dark:bg-red-600/50 dark:border-red-500 dark:text-white/70 rounded-none"
+            className="bg-red-500/80 dark:bg-red-600/50 dark:border-red-500 dark:text-white/7 rounded-none"
             onClick={() => cancelInterview(i.interviewID)}
           >
             ✕
