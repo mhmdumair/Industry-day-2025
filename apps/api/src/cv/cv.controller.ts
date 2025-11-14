@@ -8,9 +8,13 @@ import {
   Delete,
   ValidationPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CvService } from './cv.service';
-import { CreateCvDto, CreateCvByRegnoDto } from './dto/create-cv.dto';
 import { UpdateCvDto } from './dto/update-cv.dto';
 import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 
@@ -19,27 +23,38 @@ import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
 export class CvController {
   constructor(private readonly cvService: CvService) {}
 
-  @Post()
-  async create(@Body(ValidationPipe) createCvDto: CreateCvDto) {
-    return this.cvService.create(createCvDto);
-  }
-
-  @Post('by-regno')
-  async createByRegNo(@Body(ValidationPipe) createCvByRegnoDto: CreateCvByRegnoDto) {
-    return this.cvService.createByRegNo(createCvByRegnoDto);
-  }
-
-  @Post('bulk')
-  async bulkCreate(@Body(ValidationPipe) createCvDtos: CreateCvDto[]) {
-    return this.cvService.bulkCreate(createCvDtos);
-  }
-
-  @Post('bulk/by-regno')
-  async bulkCreateByRegNo(
-    @Body(ValidationPipe) createCvByRegnoDtos: CreateCvByRegnoDto[],
+  @Post('upload/:studentID')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCv(
+    @Param('studentID') studentID: string,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.cvService.bulkCreateByRegNo(createCvByRegnoDtos);
+    if (!file) {
+      throw new BadRequestException('CV file (field name "file") is required for upload.');
+    }
+    
+    return this.cvService.createWithFile(studentID, file);
   }
+
+  @Get(':cvId/link')
+  async getCvLink(@Param('cvId') cvId: string) {
+    const cv = await this.cvService.findOne(cvId);
+    
+    // Use cv.fileName as the Drive ID
+    const driveId = cv?.fileName; 
+    
+    if (!cv || !driveId) {
+      throw new NotFoundException('CV record or Drive ID not found.');
+    }
+    
+    return {
+      cvId,
+      // Note to client: The 'fileName' property here IS the Drive ID
+      driveId: driveId, 
+      shareLink: this.cvService.getDriveShareLink(driveId),
+    };
+  }
+
 
   @Get()
   async findAll() {
@@ -76,9 +91,8 @@ export class CvController {
   }
 
   @Delete(':cvId')
-
   async remove(@Param('cvId') cvId: string) {
     await this.cvService.remove(cvId);
-    return { message: 'CV deleted successfully' };
+    return { message: 'CV and corresponding Drive file deleted successfully' };
   }
 }

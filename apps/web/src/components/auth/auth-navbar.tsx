@@ -59,10 +59,10 @@ export default function AuthNavbar() {
               className="h-12 w-12"
             />
             <div className="flex flex-col">
-              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
+              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7 tracking-tight">
                 INDUSTRY DAY 2025
               </h1>
-              <span className="text-base font-bold text-gray-700 dark:text-gray-300">
+              <span className="text-base font-bold text-gray-700 dark:text-gray-300 tracking-tight">
                 FACULTY OF SCIENCE
               </span>
             </div>
@@ -74,13 +74,12 @@ export default function AuthNavbar() {
             <Link href={"/"}>
               <Button
                 variant="secondary"
-                size="icon"
-                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-normal break-words"
                 disabled={isLoading}
                 title="Go to Home"
-              >
-                <ArrowLeftFromLine className="h-5 w-5" />
-              </Button>
+                >
+                Back to SIIC Website
+                </Button>
             </Link>
           </div>
         </div>

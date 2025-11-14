@@ -14,7 +14,7 @@ export function StudentLoginForm() {
     };
 
     return (
-        <Card className="rounded-none bg-white dark:bg-gray-900 text-black dark:text-white w-full shadow-lg border-1">
+        <Card className="rounded-none bg-white dark:bg-black text-black dark:text-white w-full shadow-lg border-1">
             <CardHeader className="text-center">
                 <CardTitle className="text-xl">Student Login</CardTitle>
                 <CardDescription className="dark:text-gray-400">
@@ -69,7 +69,7 @@ export function CompanyLoginForm() {
     };
 
     return (
-        <Card className="rounded-none bg-white dark:bg-gray-900 text-black dark:text-white w-full shadow-lg border-1">
+        <Card className="rounded-none bg-white dark:bg-black text-black dark:text-white w-full shadow-lg border-1">
             <CardHeader className="text-center">
                 <CardTitle className="text-xl">Company Login</CardTitle>
                 <CardDescription className="dark:text-gray-400">
@@ -87,7 +87,7 @@ export function CompanyLoginForm() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="rounded-none border-1 dark:bg-gray-800 dark:border-gray-700"
+                                className="rounded-none border-1 dark:bg-black dark:border-gray-700"
                             />
                         </div>
                         <div className="grid gap-2">
@@ -98,7 +98,7 @@ export function CompanyLoginForm() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="rounded-none border-1 dark:bg-gray-800 dark:border-gray-700"
+                                className="rounded-none border-1 dark:bg-black dark:border-gray-700"
                             />
                         </div>
                         <Button type="submit" className="w-full rounded-none" disabled={isLoading}>

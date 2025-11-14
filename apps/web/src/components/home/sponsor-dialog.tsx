@@ -46,9 +46,6 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                     <DialogTitle className="text-lg font-medium">
                         {sponsor.name}
                     </DialogTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Add a comment on the student for later review.
-                    </p>
                 </div>
 
                 {/* Content */}
