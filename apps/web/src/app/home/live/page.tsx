@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, RefreshCw, Building, Users, Clock, MapPin } from 'lucide-react';
+import { RefreshCw, ChevronDown } from 'lucide-react';
 import api from '../../../lib/axios';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Company {
   companyID: string;
@@ -66,9 +66,21 @@ interface Interview {
   student: Student;
 }
 
+// Company brand colors mapping
+const COMPANY_COLORS: Record<string, string> = {
+  'MAS Holdings': 'red',
+  'Creative Software': 'pink',
+  'Aayu Technologies': 'orange',
+  'Octave': 'blue',
+  'Noritake Lanka Porcelain (Pvt) Limited':'blue',
+  'Hutch Telecommunications Lanka Pvt Ltd':'orange',
+  'Default': 'white'
+};
+
 const LiveQueueDisplay = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [selectedStall, setSelectedStall] = useState<string>('');
   const [prelistedInterviews, setPrelistedInterviews] = useState<Interview[]>([]);
   const [stalls, setStalls] = useState<Stall[]>([]);
   const [walkinQueues, setWalkinQueues] = useState<Record<string, Interview[]>>({});
@@ -76,6 +88,7 @@ const LiveQueueDisplay = () => {
   const [loadingCompanies, setLoadingCompanies] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('prelisted');
 
   // API function using axios
   const apiGet = async (endpoint: string): Promise<any> => {
@@ -97,7 +110,7 @@ const LiveQueueDisplay = () => {
         setCompanies(data || []);
       } catch (error: any) {
         console.error('Error fetching companies:', error);
-        setError('Failed to load companies. Please check your connection and try again.');
+        setError('Failed to load companies.');
         setCompanies([]);
       } finally {
         setLoadingCompanies(false);
@@ -122,15 +135,15 @@ const LiveQueueDisplay = () => {
     setError('');
 
     try {
-      // 1. Fetch prelisted interviews
+      // Fetch prelisted interviews
       const prelistedData = await apiGet(`/interview/company/${companyId}/prelisted/inqueue`);
       setPrelistedInterviews(prelistedData || []);
 
-      // 2. Fetch stalls for the company
+      // Fetch stalls for the company
       const stallsData = await apiGet(`/stall/company/${companyId}`);
       setStalls(stallsData || []);
 
-      // 3. Fetch walk-in interviews for each stall
+      // Fetch walk-in interviews for each stall
       const walkinData: Record<string, Interview[]> = {};
       if (stallsData && stallsData.length > 0) {
         for (const stall of stallsData) {
@@ -142,13 +155,17 @@ const LiveQueueDisplay = () => {
             walkinData[stall.stallID] = [];
           }
         }
+        // Select first stall by default if available
+        if (stallsData[0]) {
+          setSelectedStall(stallsData[0].stallID);
+        }
       }
       setWalkinQueues(walkinData);
       setLastUpdated(new Date());
 
     } catch (error: any) {
       console.error('Error fetching data:', error);
-      setError('Failed to load queue data. Please try again.');
+      setError('Failed to load queue data.');
       setPrelistedInterviews([]);
       setStalls([]);
       setWalkinQueues({});
@@ -164,316 +181,330 @@ const LiveQueueDisplay = () => {
     }
   };
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'in_queue': return 'default';
-      case 'in_progress': return 'secondary';
-      case 'completed': return 'outline';
-      case 'cancelled': return 'destructive';
-      default: return 'default';
-    }
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; className: string }> = {
+      'in_queue': { label: 'in-queue', className: 'bg-blue-500/50 border-1 border-blue-800 text-blue-950 dark:text-white rounded-full px-3 py-1' },
+      'in_progress': { label: 'in-progress', className: 'bg-green-500/50 border-1 border-green-800 dark:text-white rounded-full px-3 py-1' },
+      'completed': { label: 'finished', className: 'bg-orange-500/50 border-1 border-orange-800 dark:text-white rounded-full px-3 py-1' },
+      'cancelled': { label: 'cancelled', className: 'bg-red-500/50 border-1 border-red-800 dark:text-white rounded-full px-3 py-1' }
+    };
+    
+    const statusInfo = statusMap[status] || { label: status, className: 'bg-gray-500 text-white rounded-full px-3 py-1' };
+    return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
   };
 
-  const getSponsorshipVariant = (sponsorship: string) => {
-    switch (sponsorship) {
-      case 'MAIN': return 'default';
-      case 'GOLD': return 'secondary';
-      case 'SILVER': return 'outline';
-      case 'BRONZE': return 'destructive';
-      default: return 'default';
-    }
+  const formatStudentInfo = (student: Student) => {
+    return `S/${student.regNo.slice(-6)} • ${student.group} • ${student.level.replace('_', ' ')}`;
   };
 
-  const formatTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase();
   };
 
-  const selectedCompanyData = companies.find(c => c.companyID === selectedCompany);
-  
-  // Calculate total walk-in interviews
+  // Get company color classes based on company name
+  const getCompanyColorClasses = (companyName: string) => {
+    // Get color from mapping or default
+    const colorKey = COMPANY_COLORS[companyName] || COMPANY_COLORS['Default'];
+
+    // Map brand colors to Tailwind classes
+  const colorMap: Record<string, { trigger: string; border: string }> = {
+  red: {
+    trigger:
+      'bg-red-500/70 dark:bg-red-600/50 text-white hover:bg-red-600/70 dark:hover:bg-red-700/70 border-1 border-red-700 dark:border-red-800',
+    border: 'border-1 border-red-700 dark:border-red-800'
+  },
+  blue: {
+    trigger:
+      'bg-blue-500/70 dark:bg-blue-600/50 text-white hover:bg-blue-600/70 dark:hover:bg-blue-700/70 border-1 border-blue-700 dark:border-blue-800',
+    border: 'border-1 border-blue-700 dark:border-blue-800'
+  },
+  green: {
+    trigger:
+      'bg-green-500/70 dark:bg-green-600/50 text-white hover:bg-green-600/70 dark:hover:bg-green-700/70 border-1 border-green-700 dark:border-green-800',
+    border: 'border-1 border-green-700 dark:border-green-800'
+  },
+  purple: {
+    trigger:
+      'bg-purple-500/70 dark:bg-purple-600/50 text-white hover:bg-purple-600/70 dark:hover:bg-purple-700/70 border-1 border-purple-700 dark:border-purple-800',
+    border: 'border-1 border-purple-700 dark:border-purple-800'
+  },
+  orange: {
+    trigger:
+      'bg-orange-500/70 dark:bg-orange-600/50 text-white hover:bg-orange-600/70 dark:hover:bg-orange-700/70 border-1 border-orange-700 dark:border-orange-800',
+    border: 'border-1 border-orange-700 dark:border-orange-800'
+  },
+  yellow: {
+    trigger:
+      'bg-yellow-500/70 dark:bg-yellow-600/50 text-white hover:bg-yellow-600/70 dark:hover:bg-yellow-700/70 border-1 border-yellow-700 dark:border-yellow-800',
+    border: 'border-1 border-yellow-700 dark:border-yellow-800'
+  },
+  pink: {
+    trigger:
+      'bg-pink-500/70 dark:bg-pink-600/50 text-white hover:bg-pink-600/70 dark:hover:bg-pink-700/70 border-1 border-pink-800 dark:border-pink-700',
+    border: 'border-1 border-pink-800 dark:border-pink-700'
+  },
+  indigo: {
+    trigger:
+      'bg-indigo-500/70 dark:bg-indigo-600/50 text-white hover:bg-indigo-600/70 dark:hover:bg-indigo-700/70 border-1 border-indigo-700 dark:border-indigo-800',
+    border: 'border-1 border-indigo-700 dark:border-indigo-800'
+  },
+  teal: {
+    trigger:
+      'bg-teal-500/70 dark:bg-teal-600/50 text-white hover:bg-teal-600/70 dark:hover:bg-teal-700/70 border-1 border-teal-700 dark:border-teal-800',
+    border: 'border-1 border-teal-700 dark:border-teal-800'
+  },
+  white: {
+    trigger:
+      'bg-transparent dark:text-white hover:bg-gray-600/5 dark:hover:bg-white/5 border-1 border-black dark:border-gray-400',
+    border: 'border-1 border-black dark:border-gray-400'
+  }
+  };
+
+    return colorMap[colorKey.toLowerCase()] || colorMap.orange;
+  };
+
+  // Calculate statistics
   const totalWalkinInterviews = Object.values(walkinQueues).reduce((total, interviews) => total + interviews.length, 0);
-  const totalInterviews = prelistedInterviews.length + totalWalkinInterviews;
+  const currentStallInterviews = selectedStall ? (walkinQueues[selectedStall] || []) : [];
+
+  // Get current company
+  const currentCompany = companies.find(c => c.companyID === selectedCompany);
+  const companyColors = getCompanyColorClasses(currentCompany?.companyName || 'Default');
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <Card className="text-center space-y-2 bg-slate-100/80">
-        <CardHeader>
-        <CardTitle className="text-2xl font-bold">Live Queue Dashboard</CardTitle>
-        {lastUpdated && (
-          <p className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </p>
-        )}
-        </CardHeader>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <Card className="rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
+          <CardHeader className="border-b border-gray-200 dark:border-gray-800 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-semibold">Live Queues</h1>
+                {lastUpdated && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Last updated : {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} pm
+                  </p>
+                )}
+              </div>
+              {selectedCompany && (
+                <Button
+                  onClick={refreshData}
+                  disabled={loading}
+                  className="rounded-none"
+                  variant="secondary"
+                >
+                  Refresh
+                  <RefreshCw className={`h-4 w-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
 
-        <CardContent>
-      {/* Company Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              Select Company
-            </div>
-            {selectedCompany && (
-              <Button onClick={refreshData} disabled={loading} variant="outline" size="sm">
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingCompanies ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Loading companies...
-            </div>
-          ) : (
-              <Select value={selectedCompany} onValueChange={handleCompanyChange}>
-                <SelectTrigger className="max-w-full truncate">
-                  <SelectValue
-                      placeholder="Choose a company"
-                      className="truncate"
-                  />
-                </SelectTrigger>
-                <SelectContent className="selected">
-                  {companies.map((company) => (
+          <CardContent className="p-6 space-y-6">
+            {/* Company Selection */}
+            <div className="w-full">
+              {loadingCompanies ? (
+                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                  Loading companies...
+                </div>
+              ) : (
+                <Select value={selectedCompany} onValueChange={handleCompanyChange}>
+                  <SelectTrigger className={`w-full md:w-96 ${companyColors.trigger} rounded-none border-1`}>
+                    <SelectValue placeholder="Select Company" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800">
+                    {companies.map((company) => (
                       <SelectItem
-                          key={company.companyID}
-                          value={company.companyID}
-                          className="max-w-full truncate"
+                        key={company.companyID}
+                        value={company.companyID}
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
-                        {company.companyName} ({company.sponsership})
+                        {company.companyName}
                       </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-          )}
-          
-          {companies.length === 0 && !loadingCompanies && (
-            <Alert>
-              <AlertDescription>
-                No companies found. Please check your API connection.
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Company Information */}
-      {selectedCompanyData && (
-        <Card className="mt-2 mb-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {selectedCompanyData.companyName}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>Contact: {selectedCompanyData.contactPersonName} ({selectedCompanyData.contactPersonDesignation})</div>
-              <div>Phone: {selectedCompanyData.contactNumber}</div>
-              <div>Email: {selectedCompanyData.user.email}</div>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Error State */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          Loading queue data...
-        </div>
-      )}
-
-      {/* Statistics */}
-      {selectedCompany && !loading && !error && (
-        <div className="flex ">
-          <Card className="mt-2 mb-2 flex flex-col gap-4 items-center justify-center w-full">
-            <CardContent className="flex items-center gap-4 p-6">
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{totalInterviews}</p>
-              </div>
-              <div>
-              <p className="text-sm text-muted-foreground">Pre-listed</p>
-              <p className="text-2xl font-bold">{prelistedInterviews.length}</p>
-            </div>
-              <div>
-              <p className="text-sm text-muted-foreground">Walk-in</p>
-              <p className="text-2xl font-bold">{totalWalkinInterviews}</p>
-            </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Pre-listed Interviews */}
-      {selectedCompany && !loading && !error && (
-        <Card className="mt-2 mb-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Pre-listed Interviews ({prelistedInterviews.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {prelistedInterviews.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Registration</TableHead>
-                    <TableHead>Group/Level</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {prelistedInterviews.map((interview) => (
-                    <TableRow key={interview.interviewID}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {interview.student.user.first_name} {interview.student.user.last_name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">{interview.student.user.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono">{interview.student.regNo}</TableCell>
-                      <TableCell>
-                        <div>{interview.student.group}</div>
-                        <div className="text-sm text-muted-foreground">{interview.student.level.replace('_', ' ')}</div>
-                      </TableCell>
-                      <TableCell>{interview.student.contact}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">#{interview.company_preference}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatTime(interview.created_at)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(interview.status)}>
-                          {interview.status.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No pre-listed interviews in queue
+            {/* Statistics Cards */}
+            {selectedCompany && !loading && (
+              <div className="grid grid-cols-3 gap-4">
+                <Card className="rounded-none border-gray-200 dark:border-gray-800 bg-card">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                    <p className="text-3xl font-bold">{prelistedInterviews.length + totalWalkinInterviews}</p>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-none border-gray-200 dark:border-gray-800 bg-card">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Pre-listed</p>
+                    <p className="text-3xl font-bold">{prelistedInterviews.length}</p>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-none border-gray-200 dark:border-gray-800 bg-card">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Walk-in</p>
+                    <p className="text-3xl font-bold">{totalWalkinInterviews}</p>
+                  </CardContent>
+                </Card>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Walk-in Interviews */}
-      {selectedCompany && !loading && !error && (
-        <Card className="mt-2 mb-2">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              Walk-in Interviews ({totalWalkinInterviews})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {stalls.length > 0 ? (
-              stalls.map((stall) => {
-                const stallInterviews = walkinQueues[stall.stallID] || [];
-                return (
-                  <Card key={stall.stallID}>
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        {stall.title} ({stallInterviews.length} students)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {stallInterviews.length > 0 ? (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Student</TableHead>
-                              <TableHead>Registration</TableHead>
-                              <TableHead>Group/Level</TableHead>
-                              <TableHead>Contact</TableHead>
-                              <TableHead>Time</TableHead>
-                              <TableHead>Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {stallInterviews.map((interview) => (
-                              <TableRow key={interview.interviewID}>
-                                <TableCell>
-                                  <div>
-                                    <div className="font-medium">
-                                      {interview.student.user.first_name} {interview.student.user.last_name}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground">{interview.student.user.email}</div>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="font-mono">{interview.student.regNo}</TableCell>
-                                <TableCell>
-                                  <div>{interview.student.group}</div>
-                                  <div className="text-sm text-muted-foreground">{interview.student.level.replace('_', ' ')}</div>
-                                </TableCell>
-                                <TableCell>{interview.student.contact}</TableCell>
-                                <TableCell className="text-sm text-muted-foreground">
-                                  {formatTime(interview.created_at)}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant={getStatusVariant(interview.status)}>
-                                    {interview.status.replace('_', ' ')}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      ) : (
-                        <div className="text-center py-4 text-muted-foreground">
-                          No walk-in interviews for this stall
+            {/* Tabs for Pre-listed and Walk-in */}
+            {selectedCompany && !loading && (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="w-full md:w-auto bg-gray-100 dark:bg-gray-900 rounded-none p-0 h-auto">
+                  <TabsTrigger
+                    value="prelisted"
+                    className="text-black dark:text-white rounded-none px-6 py-3 ml-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800/50 data-[state=active]:border-1 data-[state=active]:border-gray-400 dark:data-[state=active]:border-gray-600"
+                  >
+                    Pre-listed
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="walkin"
+                    className="text-black dark:text-white rounded-none px-6 py-3 ml-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800/50 data-[state=active]:border-1 data-[state=active]:border-gray-400 dark:data-[state=active]:border-gray-600"
+                  >
+                    Walk-in
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Pre-listed Content */}
+                <TabsContent value="prelisted" className="mt-6 space-y-4">
+                  {prelistedInterviews.length > 0 ? (
+                    <>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                          <div>Student</div>
+                          <div className="text-center">Priority</div>
+                          <div className="text-right">Status</div>
+                        </div>
+                        {prelistedInterviews.map((interview) => (
+                          <div key={interview.interviewID} className="grid grid-cols-3 items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                  {getInitials(interview.student.user.first_name, interview.student.user.last_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {interview.student.user.first_name} {interview.student.user.last_name}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {formatStudentInfo(interview.student)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <span className="font-semibold">{interview.company_preference || '-'}</span>
+                            </div>
+                            <div className="text-right">
+                              {getStatusBadge(interview.status)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
+                        A list of all pre-listed students.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      No pre-listed interviews in queue
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Walk-in Content */}
+                <TabsContent value="walkin" className="mt-6 space-y-4">
+                  {stalls.length > 0 && (
+                    <>
+                      <Select value={selectedStall} onValueChange={setSelectedStall}>
+                        <SelectTrigger className="w-full md:w-96 text-black dark:text-white bg-white dark:bg-gray-800 border-1 border-gray-400 dark:border-gray-600 rounded-none px-6 py-3 ml-1">
+                          <SelectValue placeholder="Select Stall" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-none bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800">
+                          {stalls.map((stall) => (
+                            <SelectItem
+                              key={stall.stallID}
+                              value={stall.stallID}
+                              className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                            >
+                              {stall.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {selectedStall && (
+                        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-none">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Queue Length: <span className="font-bold text-sm">{currentStallInterviews.length}</span>
+                          </p>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                );
-              })
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No stalls available for this company
+                    </>
+                  )}
+
+                  {currentStallInterviews.length > 0 ? (
+                    <>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                          <div>Student</div>
+                          <div className="text-right">Status</div>
+                        </div>
+                        {currentStallInterviews.map((interview) => (
+                          <div key={interview.interviewID} className="grid grid-cols-2 items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                  {getInitials(interview.student.user.first_name, interview.student.user.last_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {interview.student.user.first_name} {interview.student.user.last_name}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {formatStudentInfo(interview.student)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              {getStatusBadge(interview.status)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
+                        A list of all walk-in students sorted by time of registration.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      {stalls.length === 0 ? 'No stalls available for this company' : 'No walk-in interviews for this stall'}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                Loading queue data...
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-12 text-red-500 dark:text-red-400">
+                {error}
               </div>
             )}
           </CardContent>
         </Card>
-      )}
-
-      {/* Empty State */}
-        {selectedCompany && !loading && !error && totalInterviews === 0 && (
-          <Card>
-            <CardDescription className="text-center py-12 px-2">
-              <CardTitle className="text-lg text-black mb-2">No interviews scheduled</CardTitle>
-              <p className="text-muted-foreground">This company currently has no interviews in their queue</p>
-            </CardDescription>
-          </Card>
-        )}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };

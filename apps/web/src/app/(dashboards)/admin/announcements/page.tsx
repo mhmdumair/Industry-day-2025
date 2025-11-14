@@ -43,7 +43,7 @@ export default function AnnouncementBoard() {
     const [description, setDescription] = useState<string>("");
     const [audience, setAudience] = useState<string>("");
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [adminUserId, setAdminUserId] = useState<string | null>(null);
+    const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null); // New state for editing
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +54,7 @@ export default function AnnouncementBoard() {
                 const adminRes = await api.get<AdminResponse>("/admin/by-user");
                 const fetchedAdmin: AdminResponse = adminRes.data;
                 const userId = fetchedAdmin.userID;
-                setAdminUserId(userId);
+                // setAdminUserId(userId); // Removed as it's unused
 
                 // Use the user ID to fetch their announcements
                 const announcementsRes = await api.get(`/announcement/user`);
@@ -96,27 +96,46 @@ export default function AnnouncementBoard() {
         };
 
         try {
-            const res = await api.post("/announcement", payload);
-            const newAnnouncement: Announcement = {
-                announcementID: res.data.announcementID,
-                title: res.data.title,
-                description: res.data.content,
-                audience: res.data.audienceType,
-                timestamp: new Date(res.data.created_at).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }),
-            };
-            setAnnouncements([newAnnouncement, ...announcements]);
+            if (editingAnnouncementId) {
+                // Update existing announcement
+                const res = await api.patch(`/announcement/${editingAnnouncementId}`, payload);
+                const updatedAnnouncement: Announcement = {
+                    announcementID: res.data.announcementID,
+                    title: res.data.title,
+                    description: res.data.content,
+                    audience: res.data.audienceType,
+                    timestamp: new Date(res.data.updated_at).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
+                };
+                setAnnouncements(announcements.map(ann => ann.announcementID === editingAnnouncementId ? updatedAnnouncement : ann));
+                setEditingAnnouncementId(null);
+                alert("Announcement updated successfully!");
+            } else {
+                // Create new announcement
+                const res = await api.post("/announcement", payload);
+                const newAnnouncement: Announcement = {
+                    announcementID: res.data.announcementID,
+                    title: res.data.title,
+                    description: res.data.content,
+                    audience: res.data.audienceType,
+                    timestamp: new Date(res.data.created_at).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
+                };
+                setAnnouncements([newAnnouncement, ...announcements]);
+                alert("Announcement posted successfully!");
+            }
 
             setTitle("");
             setDescription("");
             setAudience("");
-            alert("Announcement posted successfully!");
 
         } catch (error) {
-            console.error("Failed to post announcement:", error);
-            alert("Failed to post announcement.");
+            console.error("Failed to post/update announcement:", error);
+            alert("Failed to post/update announcement.");
         }
     };
 
@@ -140,8 +159,15 @@ export default function AnnouncementBoard() {
             setTitle(toEdit.title);
             setDescription(toEdit.description);
             setAudience(toEdit.audience);
-            setAnnouncements(announcements.filter(a => a.announcementID !== id));
+            setEditingAnnouncementId(id); // Set editing mode
         }
+    };
+
+    const handleCancelEdit = () => {
+        setTitle("");
+        setDescription("");
+        setAudience("");
+        setEditingAnnouncementId(null);
     };
 
     if (loading) return <div className="text-center py-8">Loading announcements...</div>;
@@ -151,12 +177,14 @@ export default function AnnouncementBoard() {
         <div className="min-h-screen bg-transparent">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
                 <div className="grid gap-6 lg:gap-8">
-                    <Card className="bg-slate-100/80 border-bulletin-shadow shadow-lg ">
+                    <Card className="border-bulletin-shadow shadow-lg rounded-none">
                         <CardHeader className="pb-4">
                             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                                Post Announcements
+                                {editingAnnouncementId ? "Edit Announcement" : "Post Announcements"}
                             </CardTitle>
-                            <CardDescription>Fill the fields below to add a new announcement</CardDescription>
+                            <CardDescription>
+                                {editingAnnouncementId ? "Edit the fields below to update the announcement" : "Fill the fields below to add a new announcement"}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -168,17 +196,17 @@ export default function AnnouncementBoard() {
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             placeholder="Enter announcement title"
-                                            className="bg-card"
+                                            className="bg-card rounded-none"
                                             required
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="audience" className="text-sm font-medium">Audience</Label>
                                         <Select value={audience} onValueChange={setAudience} required>
-                                            <SelectTrigger className="bg-card">
+                                            <SelectTrigger className="bg-card rounded-none">
                                                 <SelectValue placeholder="Select audience" />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent className="rounded-none">
                                                 <SelectItem value="ALL">All</SelectItem>
                                                 <SelectItem value="STUDENTS">Students</SelectItem>
                                                 <SelectItem value="COMPANIES">Companies</SelectItem>
@@ -193,44 +221,59 @@ export default function AnnouncementBoard() {
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Enter announcement details"
-                                        className="bg-card min-h-[100px] resize-none"
+                                        className="bg-card min-h-[100px] resize-none rounded-none"
                                         required
                                     />
                                 </div>
-                                <Button variant="outline" className="w-full sm:w-auto">
-                                    Post Announcement
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button type="submit" className="w-full sm:w-auto rounded-none">
+                                        {editingAnnouncementId ? "Update Announcement" : "Post Announcement"}
+                                    </Button>
+                                    {editingAnnouncementId && (
+                                        <Button type="button" variant="outline" onClick={handleCancelEdit} className="w-full sm:w-auto rounded-none">
+                                            Cancel Edit
+                                        </Button>
+                                    )}
+                                </div>
                             </form>
                         </CardContent>
                     </Card>
                     {announcements.length > 0 && (
-                        <Card className="bg-secondary border-bulletin-shadow shadow-lg">
+                        <Card className="border-bulletin-shadow shadow-lg rounded-none">
                             <CardHeader className="text-center pb-4">
-                                <CardTitle className="text-lg sm:text-xl flex items-center justify-center gap-2">
-                                    <div className="w-3 h-3 bg-bulletin-pin rounded-full shadow-sm"></div>
+                                <CardTitle className="text-lg sm:text-xl flex gap-2">
                                     Recent Announcements
                                 </CardTitle>
-                                <CardDescription>Your posted updates and announcements</CardDescription>
+                                <CardDescription className='text-left'>Your posted updates and announcements</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid gap-4 sm:gap-5">
                                     {announcements.map((announcement) => (
                                         <div
                                             key={announcement.announcementID}
-                                            className="bg-bulletin-paper p-4 sm:p-5 rounded-lg border border-bulletin-shadow relative shadow-sm hover:shadow-md transition-shadow"
+                                            className="bg-bulletin-paper p-4 sm:p-5 border border-bulletin-shadow relative shadow-sm hover:shadow-md transition-shadow rounded-none"
                                         >
                                             <Button
+                                                onClick={() => handleEdit(announcement.announcementID)}
+                                                className="absolute top-3 right-12 w-8 h-8 p-0 rounded-none"
+                                                variant="outline"
+                                                size="sm"
+                                                aria-label="Edit announcement"
+                                            >
+                                                <Edit3 className="w-4 h-4" />
+                                            </Button>
+                                            <Button
                                                 onClick={() => handleDelete(announcement.announcementID)}
-                                                className="absolute top-3 right-3 w-8 h-8 p-0"
+                                                className="absolute top-3 right-3 w-8 h-8 p-0 rounded-none"
                                                 variant="destructive"
                                                 size="sm"
                                                 aria-label="Delete announcement"
                                             >
                                                 <X className="w-4 h-4" />
                                             </Button>
-                                            <div className="pr-12">
+                                            <div className="pr-24">
                                                 <div className="flex items-start gap-2 mb-2">
-                                                    <div className="w-2 h-2 bg-bulletin-pin rounded-full mt-2 shrink-0"></div>
+
                                                     <h3 className="text-base sm:text-lg font-semibold leading-tight">
                                                         {announcement.title}
                                                     </h3>
@@ -243,15 +286,6 @@ export default function AnnouncementBoard() {
                                                         <span className="font-medium">To: {announcement.audience}</span>
                                                         <span>Posted at {announcement.timestamp}</span>
                                                     </div>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => handleEdit(announcement.announcementID)}
-                                                        className="self-start sm:self-auto"
-                                                    >
-                                                        <Edit3 className="w-3 h-3 mr-1" />
-                                                        Edit
-                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>

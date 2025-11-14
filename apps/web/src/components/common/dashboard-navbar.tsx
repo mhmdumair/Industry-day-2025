@@ -4,11 +4,12 @@ import React, { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import api from "@/lib/axios"
 import { Button } from "../ui/button"
-import { ArrowLeftFromLine, Home, StepBack } from "lucide-react"
+import { Home } from "lucide-react"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ModeToggle } from "./mode-toggle"
 import Link from "next/link"
-import { ModeToggle } from "../common/mode-toggle"
 
-export default function AuthNavbar() {
+export default function DashboardNavbar() {
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -71,7 +72,7 @@ export default function AuthNavbar() {
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             <ModeToggle />
-            <Link href={"/"}>
+            <Link href={"/home"}>
               <Button
                 variant="secondary"
                 size="icon"
@@ -79,7 +80,7 @@ export default function AuthNavbar() {
                 disabled={isLoading}
                 title="Go to Home"
               >
-                <ArrowLeftFromLine className="h-5 w-5" />
+                <Home className="h-5 w-5" />
               </Button>
             </Link>
           </div>
