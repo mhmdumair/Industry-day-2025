@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, Suspense } from 'react';
 import api from '@/lib/axios';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,7 +134,9 @@ const RegisterPage = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-white dark:bg-black">
-            <AuthNavbar />
+            <Suspense fallback={<div className="h-16 border-b border-gray-200 dark:border-gray-800" />}>
+                <AuthNavbar />
+            </Suspense>
             <div className="flex-1 flex items-center justify-center p-6">
                 <Card className="w-full max-w-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none shadow-lg">
                     <CardHeader className="space-y-1">
@@ -190,30 +192,14 @@ const RegisterPage = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="user.email" className="text-gray-700 dark:text-gray-300">
-                                        Email
+                                        University Email
                                     </Label>
                                     <Input
                                         id="user.email"
                                         name="user.email"
                                         type="email"
-                                        placeholder="alex.johnson@uni.edu"
+                                        placeholder="sXXXXX@sci.pdn.ac.lk"
                                         value={formData.user.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="user.password" className="text-gray-700 dark:text-gray-300">
-                                        Password
-                                    </Label>
-                                    <Input
-                                        id="user.password"
-                                        name="user.password"
-                                        type="password"
-                                        placeholder="Enter password"
-                                        value={formData.user.password}
                                         onChange={handleChange}
                                         required
                                         className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -240,7 +226,7 @@ const RegisterPage = () => {
                                             value={formData.student.regNo}
                                             onChange={handleChange}
                                             required
-                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:tex-gray-100"
                                         />
                                     </div>
 
@@ -248,16 +234,32 @@ const RegisterPage = () => {
                                         <Label htmlFor="student.group" className="text-gray-700 dark:text-gray-300">
                                             Group
                                         </Label>
-                                        <Input
-                                            id="student.group"
-                                            name="student.group"
-                                            type="text"
-                                            placeholder="CS"
+                                        <Select
                                             value={formData.student.group}
-                                            onChange={handleChange}
-                                            required
-                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                        />
+                                            onValueChange={(value) => handleSelectChange('student.group', value)}
+                                        >
+                                            <SelectTrigger className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
+                                                <SelectValue placeholder="Select your group" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-none dark:bg-gray-800 dark:border-gray-600">
+                                                <SelectItem value="BT" className="dark:text-gray-100">BT - Botany</SelectItem>
+                                                <SelectItem value="ZL" className="dark:text-gray-100">ZL - Zoology</SelectItem>
+                                                <SelectItem value="CH" className="dark:text-gray-100">CH - Chemistry</SelectItem>
+                                                <SelectItem value="MT" className="dark:text-gray-100">MT - Mathematics</SelectItem>
+                                                <SelectItem value="BMS" className="dark:text-gray-100">BMS - Biomedical Science</SelectItem>
+                                                <SelectItem value="ST" className="dark:text-gray-100">ST - Statistics</SelectItem>
+                                                <SelectItem value="GL" className="dark:text-gray-100">GL - Geology</SelectItem>
+                                                <SelectItem value="CS" className="dark:text-gray-100">CS - Computer Science</SelectItem>
+                                                <SelectItem value="DS" className="dark:text-gray-100">DS - Data Science</SelectItem>
+                                                <SelectItem value="ML" className="dark:text-gray-100">ML - Microbiology</SelectItem>
+                                                <SelectItem value="CM" className="dark:text-gray-100">CM - Computation and Management</SelectItem>
+                                                <SelectItem value="ES" className="dark:text-gray-100">ES - Environmental Science</SelectItem>
+                                                <SelectItem value="MB" className="dark:text-gray-100">MB - Molecular Biology</SelectItem>
+                                                <SelectItem value="PH" className="dark:text-gray-100">PH - Physics</SelectItem>
+                                                <SelectItem value="GN" className="dark:text-gray-100">GN - General</SelectItem>
+                                                <SelectItem value="SOR" className="dark:text-gray-100">SOR - Statistics and Operational Research</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
 
