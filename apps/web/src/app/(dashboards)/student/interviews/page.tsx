@@ -46,22 +46,22 @@ const statusMap: Record<
   { class: string; text: string; icon: React.ReactNode }
 > = {
   scheduled: {
-    class: "border-amber-400 bg-amber-100 w-full",
+    class: "border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700/20 dark:text-amber-300 w-full",
     text: "Scheduled",
     icon: <Clock className="mr-2 w-4 h-4" />,
   },
   in_queue: {
-    class: "border-amber-400 bg-amber-100 w-full",
+    class: "border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700/20 dark:text-amber-300 w-full",
     text: "In Queue",
     icon: <Clock className="mr-2 w-4 h-4" />,
   },
   completed: {
-    class: "border-green-600 bg-green-100 w-full",
+    class: "border-green-600 bg-green-100 text-green-800 dark:bg-green-900/30 dark:border-green-700/20 dark:text-green-400 w-full",
     text: "Completed",
     icon: <CheckCircle className="mr-2 w-4 h-4" />,
   },
   cancelled: {
-    class: "border-red-400 bg-red-100 w-full",
+    class: "border-red-400 bg-red-100 text-red-800 dark:bg-red-900/30 dark:border-red-700/20 dark:text-red-400 w-full",
     text: "Cancelled",
     icon: null,
   },
@@ -69,7 +69,7 @@ const statusMap: Record<
 
 const btnForStatus = (s: string) =>
   statusMap[s] ?? {
-    class: "border-gray-400 bg-gray-100 w-full",
+    class: "border-gray-400 bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:border-gray-600/20 dark:text-gray-400 w-full",
     text: "Unknown",
     icon: null,
   };
@@ -194,7 +194,9 @@ const RegisteredQueues = () => {
   /* ----------  render helpers ---------- */
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center">Loading...</div>
+      <div className="flex h-64 items-center justify-center dark:text-gray-200">
+        Loading...
+      </div>
     );
 
   const renderPrelistCard = (i: Interview) => {
@@ -203,14 +205,14 @@ const RegisteredQueues = () => {
     const isUpdating = updatingPreference === i.interviewID;
 
     return (
-      <Card key={i.companyID} className="mb-2 last:mb-0">
+      <Card key={i.companyID} className="mb-4 last:mb-0 bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none">
         <CardHeader>
-          <CardTitle>{c.companyName}</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-gray-100">{c.companyName}</CardTitle>
         </CardHeader>
         <div className="p-6 pt-0 space-y-3">
           {/* Preference Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">My Preference:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">My Preference:</span>
             <Select
               value={i.student_preference?.toString() || ""}
               onValueChange={(val) =>
@@ -218,19 +220,19 @@ const RegisteredQueues = () => {
               }
               disabled={isUpdating}
             >
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-20 rounded-none bg-white dark:bg-black dark:border-gray-600 dark:text-gray-100">
                 <SelectValue placeholder="Set" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none bg-white dark:bg-black dark:border-gray-600">
                 {getAvailablePreferences().map((p) => (
-                  <SelectItem key={p} value={p.toString()}>
+                  <SelectItem key={p} value={p.toString()} className="dark:text-gray-100">
                     {p}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {isUpdating && (
-              <span className="text-xs text-gray-500">Updating...</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Updating...</span>
             )}
           </div>
 
@@ -238,7 +240,7 @@ const RegisteredQueues = () => {
           <Button
             variant="secondary"
             disabled
-            className={`w-full ${cfg.class}`}
+            className={`w-full rounded-none ${cfg.class}`}
           >
             {cfg.icon}
             {cfg.text}
@@ -269,15 +271,15 @@ const RegisteredQueues = () => {
     }
 
     return (
-      <Card key={i.companyID} className="mb-2 last:mb-0">
+      <Card key={i.companyID} className="mb-4 last:mb-0 bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>{c.companyName}</CardTitle>
+            <CardTitle className="text-gray-900 dark:text-gray-100">{c.companyName}</CardTitle>
             <CardDescription></CardDescription>
           </div>
           <Button
             size="icon"
-            className="bg-red-500/80 border border-red-600"
+            className="bg-red-500/80 dark:bg-red-600/50 dark:border-red-500 dark:text-white/70 rounded-none"
             onClick={() => cancelInterview(i.interviewID)}
           >
             ✕
@@ -287,7 +289,7 @@ const RegisteredQueues = () => {
           <Button
             variant="secondary"
             disabled
-            className={`w-full ${cfg.class}`}
+            className={`w-full rounded-none ${cfg.class}`}
           >
             {cfg.icon}
             {cfg.text}
@@ -301,47 +303,54 @@ const RegisteredQueues = () => {
 
   /* ----------  render ---------- */
   return (
-    <div className="mt-3 mx-auto p-4">
-      {/* Pre-Listed */}
-      <Card className="bg-slate-100/80">
-        <CardHeader>
-          <CardTitle>Pre-Listed Interviews</CardTitle>
-          <CardDescription>
-            Set your preference order (1 = highest priority)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {prelist.length === 0 ? (
-            <p className="text-center py-8 text-gray-500">
-              No pre-listed interviews
-            </p>
-          ) : (
-            prelist.map(renderPrelistCard)
-          )}
-        </CardContent>
-      </Card>
+    <div className="w-full p-6">
+      {/* 2-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Pre-Listed Interviews */}
+        <div>
+          <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Pre-Listed Interviews</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Set your preference order (1 = highest priority)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {prelist.length === 0 ? (
+                <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No pre-listed interviews
+                </p>
+              ) : (
+                prelist.map(renderPrelistCard)
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Walk-In */}
-      <Card className="bg-slate-100/80 mt-4">
-        <CardHeader>
-          <CardTitle>Walk-In Interviews</CardTitle>
-          <CardDescription>Earliest registrations first</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {walkin.length === 0 ? (
-            <p className="text-center py-8 text-gray-500">
-              No walk-in interviews
-            </p>
-          ) : (
-            walkin.map(renderWalkinCard)
-          )}
-        </CardContent>
-        <CardFooter>
-          <CardDescription>
-            To register for more companies, visit “Interviews › Register”.
-          </CardDescription>
-        </CardFooter>
-      </Card>
+        {/* Right Column - Walk-In Interviews */}
+        <div>
+          <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Walk-In Interviews</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">Earliest registrations first</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {walkin.length === 0 ? (
+                <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No walk-in interviews
+                </p>
+              ) : (
+                walkin.map(renderWalkinCard)
+              )}
+            </CardContent>
+            <CardFooter className="border-t border-gray-200 dark:border-gray-700/50">
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                To register for more companies, visit "Register" tab.
+              </CardDescription>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

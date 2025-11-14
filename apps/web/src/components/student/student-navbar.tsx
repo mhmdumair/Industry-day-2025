@@ -19,24 +19,23 @@ export default function StudentNavbar() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const studentId = searchParams.get("studentId");
-  const [studentName, setStudentName] = useState<string | null>(null);
+  const [studentRegNo, setStudentRegNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStudentName = async () => {
+    const fetchStudentInfo = async () => {
       try {
         setLoading(true);
         const response = await api.get("/student/by-user");
-        const fullName = `${response.data.user.first_name} ${response.data.user.last_name}`;
-        setStudentName(fullName);
+        setStudentRegNo(response.data.regNo);
       } catch (error) {
-        console.error("Failed to fetch student name", error);
-        setStudentName("Student");
+        console.error("Failed to fetch student info", error);
+        setStudentRegNo("Student");
       } finally {
         setLoading(false);
       }
     };
-    fetchStudentName();
+    fetchStudentInfo();
   }, []);
 
   return (
@@ -47,7 +46,7 @@ export default function StudentNavbar() {
           <div className="flex items-center">
             <div className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-none border-1 border-gray-100/50">
               <span className="text-base font-semibold">
-                {loading ? "Loading..." : studentName}
+                {loading ? "Loading..." : studentRegNo}
               </span>
             </div>
 
