@@ -7,16 +7,16 @@ export default function LoginPage() {
         <div className="min-h-screen flex flex-col bg-white dark:bg-black">
             <AuthNavbar/>
             <div className="flex-1 flex items-center justify-center p-6 md:p-10">
-                <div className="max-w-7xl w-full">
-                    {/* 2 Column Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Left Column - Student Login */}
-                        <div className="flex flex-col">
+                <div className="w-full max-w-5xl mx-auto">
+                    {/* 2 Column Grid - Centered */}
+                    <div className="grid grid-cols-1 gap-8 items-center justify-items-center">
+                       {/* Left Column - Student Login */}
+                        <div className="w-full max-w-md">
                             <StudentLoginForm />
                         </div>
 
                         {/* Right Column - Company Login */}
-                        <div className="flex flex-col">
+                        <div className="w-full max-w-md">
                             <CompanyLoginForm />
                         </div>
                     </div>

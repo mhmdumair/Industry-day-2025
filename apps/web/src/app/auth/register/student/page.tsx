@@ -1,11 +1,18 @@
-'use client'; 
+'use client';
 
-import React, { useState, ChangeEvent, FormEvent, CSSProperties } from 'react';
-import api from '@/lib/axios'; 
-import axios from 'axios'; 
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import api from '@/lib/axios';
+import axios from 'axios';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, XCircle, Upload } from 'lucide-react';
+import AuthNavbar from '@/components/auth/auth-navbar';
 
-// Assuming UserRole enum value for a student is 'student' (lowercase)
-type UserRole = 'student' | 'admin' | 'lecturer'; 
+type UserRole = 'student' | 'admin' | 'lecturer';
 type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
 
 interface CreateUserDto {
@@ -13,14 +20,14 @@ interface CreateUserDto {
     password: string;
     firstName: string;
     lastName: string;
-    role: UserRole; 
+    role: UserRole;
 }
 
 interface StudentDto {
     regNo: string;
-    nic?: string; 
-    contact?: string; 
-    linkedin?: string; 
+    nic?: string;
+    contact?: string;
+    linkedin?: string;
     group: string;
     level: StudentLevel;
 }
@@ -34,37 +41,37 @@ interface StudentResponse {
     studentID: string;
 }
 
-type StyleObject = {
-    [key: string]: CSSProperties;
-};
-
-const styles: StyleObject = {
-    container: { padding: '2rem', maxWidth: '500px', margin: '2rem auto', border: '1px solid #ddd', borderRadius: '8px' } as CSSProperties,
-    input: { display: 'block', width: '100%', padding: '0.5rem', margin: '0.5rem 0', boxSizing: 'border-box' } as CSSProperties,
-    select: { display: 'block', width: '100%', padding: '0.5rem', margin: '0.5rem 0', boxSizing: 'border-box' } as CSSProperties,
-    button: { padding: '0.75rem 1.5rem', marginTop: '1rem', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' } as CSSProperties,
-    message: { marginTop: '1rem', padding: '1rem', border: '1px solid #ccc', whiteSpace: 'pre-wrap' } as CSSProperties
-};
-
 const RegisterPage = () => {
     const [formData, setFormData] = useState<CreateStudentDto>({
-        // 💡 FIXED: Role set to lowercase 'student'
         user: { email: '', password: '', firstName: '', lastName: '', role: 'student' as UserRole },
-        student: { regNo: '', nic: '', contact: '', linkedin: '', group: 'A', level: 'level_4' }
+        student: { regNo: '', nic: '', contact: '', linkedin: '', group: '', level: 'level_4' }
     });
     const [cvFile, setCvFile] = useState<File | null>(null);
     const [message, setMessage] = useState<string>('');
+    const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        const [parent, field] = name.split('.') as ['user' | 'student', keyof CreateUserDto | keyof StudentDto]; 
+        const [parent, field] = name.split('.') as ['user' | 'student', keyof CreateUserDto | keyof StudentDto];
 
         setFormData(prevData => ({
             ...prevData,
-            [parent]: { 
-                ...prevData[parent], 
-                [field]: value 
+            [parent]: {
+                ...prevData[parent],
+                [field]: value
+            }
+        }));
+    };
+
+    const handleSelectChange = (name: string, value: string) => {
+        const [parent, field] = name.split('.') as ['user' | 'student', keyof CreateUserDto | keyof StudentDto];
+
+        setFormData(prevData => ({
+            ...prevData,
+            [parent]: {
+                ...prevData[parent],
+                [field]: value
             }
         }));
     };
@@ -73,27 +80,31 @@ const RegisterPage = () => {
         const file = e.target.files ? e.target.files[0] : null;
 
         if (file && file.type !== 'application/pdf') {
-            setMessage('Error: Only PDF files are allowed for CV.');
+            setMessage('Only PDF files are allowed for CV.');
+            setMessageType('error');
             setCvFile(null);
             return;
         }
         setMessage('');
+        setMessageType(null);
         setCvFile(file);
     };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!cvFile) {
-            setMessage('Error: CV file is required.');
+            setMessage('CV file is required.');
+            setMessageType('error');
             return;
         }
-        
+
         const jsonPayload = JSON.stringify(formData, null, 2);
         console.log("--- JSON PAYLOAD SENT TO NESTJS ---");
         console.log(jsonPayload);
 
         setLoading(true);
         setMessage('Registering...');
+        setMessageType(null);
 
         const dataToSend = new FormData();
         dataToSend.append('cv_file', cvFile);
@@ -102,60 +113,327 @@ const RegisterPage = () => {
         try {
             const response = await api.post<StudentResponse>('/student/register', dataToSend);
 
-            setMessage(`✅ Registration successful! Student ID: ${response.data.studentID}`);
-            
+            setMessage(`Registration successful! Student ID: ${response.data.studentID}`);
+            setMessageType('success');
+
         } catch (error) {
-            const status = axios.isAxiosError(error) && error.response 
-                ? error.response.status 
+            const status = axios.isAxiosError(error) && error.response
+                ? error.response.status
                 : 'N/A';
             const errorMessage = axios.isAxiosError(error) && error.response?.data?.message
                 ? error.response.data.message
                 : 'Network or unhandled server error.';
-            
-            setMessage(`❌ Error (Status: ${status}):\n${errorMessage}`);
-            
+
+            setMessage(`Error (Status: ${status}): ${errorMessage}`);
+            setMessageType('error');
+
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={styles.container}>
-            <h2>Student Registration (TS)</h2>
-            <form onSubmit={handleSubmit}>
-                
-                <h3>User Credentials</h3>
-                <input style={styles.input} type="text" name="user.firstName" placeholder="Alex" value={formData.user.firstName} onChange={handleChange} required />
-                <input style={styles.input} type="text" name="user.lastName" placeholder="Johnson" value={formData.user.lastName} onChange={handleChange} required />
-                <input style={styles.input} type="text" name="user.email" placeholder="alex.johnson@uni.edu" value={formData.user.email} onChange={handleChange} required />
-                <input style={styles.input} type="password" name="user.password" placeholder="********" value={formData.user.password} onChange={handleChange} required />
-                {/* Role field is now implicitly set to 'student' in the state */}
+        <div className="min-h-screen flex flex-col bg-white dark:bg-black">
+            <AuthNavbar />
+            <div className="flex-1 flex items-center justify-center p-6">
+                <Card className="w-full max-w-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none shadow-lg">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            Student Registration
+                        </CardTitle>
+                        <CardDescription className="text-gray-600 dark:text-gray-400">
+                            Create your student account to access the platform
+                        </CardDescription>
+                    </CardHeader>
 
-                <h3>Student Information</h3>
-                <input style={styles.input} type="text" name="student.regNo" placeholder="S2024001" value={formData.student.regNo} onChange={handleChange} required />
-                <input style={styles.input} type="text" name="student.group" placeholder="Group A" value={formData.student.group} onChange={handleChange} required />
-                
-                <input style={styles.input} type="text" name="student.nic" placeholder="987654321V" value={formData.student.nic} onChange={handleChange} required />
-                <input style={styles.input} type="text" name="student.contact" placeholder="0771234567" value={formData.student.contact} onChange={handleChange} required />
-                <input style={styles.input} type="text" name="student.linkedin" placeholder="https://linkedin.com/in/profile" value={formData.student.linkedin} onChange={handleChange} />
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="space-y-6">
+                            {/* User Credentials Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    User Credentials
+                                </h3>
 
-                <select style={styles.select} name="student.level" value={formData.student.level} onChange={handleChange} required>
-                    <option value="level_4">Level 4</option>
-                    <option value="level_3">Level 3</option>
-                    <option value="level_2">Level 2</option>
-                    <option value="level_1">Level 1</option>
-                </select>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="user.firstName" className="text-gray-700 dark:text-gray-300">
+                                            First Name
+                                        </Label>
+                                        <Input
+                                            id="user.firstName"
+                                            name="user.firstName"
+                                            type="text"
+                                            placeholder="Alex"
+                                            value={formData.user.firstName}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
 
-                <h3>CV Upload (PDF Only)</h3>
-                <input type="file" name="cv_file" accept="application/pdf" onChange={handleFileChange} required />
-                
-                <button type="submit" style={styles.button} disabled={loading || !cvFile}>
-                    {loading ? 'Processing...' : 'Register'}
-                </button>
-            </form>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="user.lastName" className="text-gray-700 dark:text-gray-300">
+                                            Last Name
+                                        </Label>
+                                        <Input
+                                            id="user.lastName"
+                                            name="user.lastName"
+                                            type="text"
+                                            placeholder="Johnson"
+                                            value={formData.user.lastName}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
+                                </div>
 
-            <div style={styles.message}>
-                {message || 'Awaiting registration data...'}
+                                <div className="space-y-2">
+                                    <Label htmlFor="user.email" className="text-gray-700 dark:text-gray-300">
+                                        Email
+                                    </Label>
+                                    <Input
+                                        id="user.email"
+                                        name="user.email"
+                                        type="email"
+                                        placeholder="alex.johnson@uni.edu"
+                                        value={formData.user.email}
+                                        onChange={handleChange}
+                                        required
+                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="user.password" className="text-gray-700 dark:text-gray-300">
+                                        Password
+                                    </Label>
+                                    <Input
+                                        id="user.password"
+                                        name="user.password"
+                                        type="password"
+                                        placeholder="Enter password"
+                                        value={formData.user.password}
+                                        onChange={handleChange}
+                                        required
+                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Student Information Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    Student Information
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="student.regNo" className="text-gray-700 dark:text-gray-300">
+                                            Registration Number
+                                        </Label>
+                                        <Input
+                                            id="student.regNo"
+                                            name="student.regNo"
+                                            type="text"
+                                            placeholder="S2024001"
+                                            value={formData.student.regNo}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="student.group" className="text-gray-700 dark:text-gray-300">
+                                            Group
+                                        </Label>
+                                        <Input
+                                            id="student.group"
+                                            name="student.group"
+                                            type="text"
+                                            placeholder="CS"
+                                            value={formData.student.group}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="student.nic" className="text-gray-700 dark:text-gray-300">
+                                            NIC
+                                        </Label>
+                                        <Input
+                                            id="student.nic"
+                                            name="student.nic"
+                                            type="text"
+                                            placeholder="987654321V"
+                                            value={formData.student.nic}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="student.contact" className="text-gray-700 dark:text-gray-300">
+                                            Contact Number
+                                        </Label>
+                                        <Input
+                                            id="student.contact"
+                                            name="student.contact"
+                                            type="tel"
+                                            placeholder="0771234567"
+                                            value={formData.student.contact}
+                                            onChange={handleChange}
+                                            required
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="student.linkedin" className="text-gray-700 dark:text-gray-300">
+                                        LinkedIn (Optional)
+                                    </Label>
+                                    <Input
+                                        id="student.linkedin"
+                                        name="student.linkedin"
+                                        type="url"
+                                        placeholder="https://linkedin.com/in/profile"
+                                        value={formData.student.linkedin}
+                                        onChange={handleChange}
+                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="student.level" className="text-gray-700 dark:text-gray-300">
+                                        Level
+                                    </Label>
+                                    <Select
+                                        value={formData.student.level}
+                                        onValueChange={(value) => handleSelectChange('student.level', value)}
+                                    >
+                                        <SelectTrigger className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
+                                            <SelectValue placeholder="Select level" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-none dark:bg-gray-800 dark:border-gray-600">
+                                            <SelectItem value="level_4" className="dark:text-gray-100">Level 4</SelectItem>
+                                            <SelectItem value="level_3" className="dark:text-gray-100">Level 3</SelectItem>
+                                            <SelectItem value="level_2" className="dark:text-gray-100">Level 2</SelectItem>
+                                            <SelectItem value="level_1" className="dark:text-gray-100">Level 1</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            {/* CV Upload Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    CV Upload
+                                </h3>
+
+                                <div className="space-y-3">
+                                    <Label htmlFor="cv_file" className="text-gray-700 dark:text-gray-300">
+                                        Upload CV (PDF Only) *
+                                    </Label>
+
+                                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-none p-6 bg-gray-50 dark:bg-gray-900/50 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                                        <div className="flex flex-col items-center justify-center space-y-3">
+                                            <div className="p-3 rounded-none">
+                                                <Upload className="h-8 w-8" />
+                                            </div>
+
+                                            <div className="text-center">
+                                                <Label htmlFor="cv_file" className="cursor-pointer">
+                                                    <span className="text-sm font-medium underline">
+                                                        Click to upload
+                                                    </span>
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400"> or drag and drop</span>
+                                                </Label>
+                                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                                    PDF files only (Max 10MB)
+                                                </p>
+                                            </div>
+
+                                            <Input
+                                                id="cv_file"
+                                                name="cv_file"
+                                                type="file"
+                                                accept="application/pdf"
+                                                onChange={handleFileChange}
+                                                required
+                                                className="hidden"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {cvFile && (
+                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-none">
+                                            <div className="flex-shrink-0">
+                                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                                                    File selected
+                                                </p>
+                                                <p className="text-xs text-green-700 dark:text-green-300 truncate">
+                                                    {cvFile.name}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setCvFile(null);
+                                                    setMessage('');
+                                                    setMessageType(null);
+                                                    const fileInput = document.getElementById('cv_file') as HTMLInputElement;
+                                                    if (fileInput) fileInput.value = '';
+                                                }}
+                                                className="rounded-none text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 hover:bg-green-100 dark:hover:bg-green-900/40"
+                                            >
+                                                <XCircle className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Message Display */}
+                            {message && (
+                                <Alert className={`rounded-none ${messageType === 'success' ? 'border-green-600 dark:border-green-500 bg-green-50 dark:bg-green-900/30' : messageType === 'error' ? 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-900/30' : 'border-gray-300 dark:border-gray-600'}`}>
+                                    <div className="flex items-center gap-2">
+                                        {messageType === 'success' && (
+                                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                        )}
+                                        {messageType === 'error' && (
+                                            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                        )}
+                                        <AlertDescription className={`${messageType === 'success' ? 'text-green-800 dark:text-green-200' : messageType === 'error' ? 'text-red-800 dark:text-red-200' : 'text-gray-700 dark:text-gray-300'}`}>
+                                            {message}
+                                        </AlertDescription>
+                                    </div>
+                                </Alert>
+                            )}
+                        </CardContent>
+
+                        <CardFooter className="flex justify-center border-t border-gray-200 dark:border-gray-700">
+                            <Button
+                                type="submit"
+                                disabled={loading || !cvFile}
+                                className="w-full md:w-auto rounded-none"
+                            >
+                                {loading ? 'Processing...' : 'Register'}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
             </div>
         </div>
     );
