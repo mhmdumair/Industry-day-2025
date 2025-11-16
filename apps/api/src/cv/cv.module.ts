@@ -6,15 +6,17 @@ import { Student, StudentCv } from '../typeorm/entities';
 import { StudentModule } from 'src/student/student.module';
 import { GoogleDriveService } from 'src/google-drive/google-drive.service';
 import { ConfigModule } from '@nestjs/config';
+import { GoogleDriveModule } from 'src/google-drive/google-drive.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([StudentCv, Student]), 
     forwardRef(() => StudentModule), 
-    ConfigModule
+    ConfigModule,
+    GoogleDriveModule
 ],
   controllers: [CvController],
-  providers: [CvService, GoogleDriveService],
+  providers: [CvService],
   exports:[
       CvService, 
       TypeOrmModule.forFeature([StudentCv]) 
