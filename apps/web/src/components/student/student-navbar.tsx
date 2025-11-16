@@ -7,6 +7,7 @@ import { ModeToggle } from "../common/mode-toggle";
 import { Home } from "lucide-react";
 import { Button } from "../ui/button";
 import api from "@/lib/axios";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   { title: "Profile", url: "/student/profile" },
@@ -21,6 +22,7 @@ export default function StudentNavbar() {
   const studentId = searchParams.get("studentId");
   const [studentRegNo, setStudentRegNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchStudentInfo = async () => {
@@ -72,8 +74,41 @@ export default function StudentNavbar() {
                 );
               })}
             </nav>
+            
+          </div>
+          <div className="ml-auto">
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden text-gray-700 dark:text-gray-200"
+             onClick={() => setMenuOpen((prev) => !prev)}
+            >
+             {menuOpen ? <X size={26} /> : <Menu size={26} />}
+           </button>
           </div>
         </div>
+         {/* Mobile Dropdown Menu */}
+        {menuOpen && (
+          <div className="lg:hidden absolute top-20 left-0 w-full bg-white dark:bg-gray-900 z-50 flex flex-col gap-4 p-4 shadow-md animate-slide-down">
+            {navItems.map((item) => {
+              const isActive = pathname === item.url;
+
+              return (
+                <Link
+                  key={item.title}
+                  href={`${item.url}${studentId ? `?studentId=${studentId}` : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                  className={`text-sm font-medium py-2 ${
+                    isActive
+                      ? "text-black dark:text-white font-semibold"
+                      : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                  }`}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </header>
   );

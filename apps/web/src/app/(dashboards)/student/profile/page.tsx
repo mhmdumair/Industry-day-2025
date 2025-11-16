@@ -211,7 +211,7 @@ export default function StudentProfileCard() {
   const levelDisplay = profileData.level.replace('level_', 'Level ');
 
   return (
-    <div className="mt-3 w-[65vh] mx-auto p-4 bg-teal-900/40 min-h-[80vh] flex items-center justify-center">
+    <div className="mt-3 w-full max-w-[65vh] mx-auto p-4 bg-teal-900/40 flex items-center justify-center">
       <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
           <div className="flex items-center gap-2 mx-auto mb-3">

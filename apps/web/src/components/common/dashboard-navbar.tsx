@@ -51,7 +51,7 @@ export default function DashboardNavbar() {
   return (
     <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo and Title */}
           <div className="flex items-center gap-3">
             <img
@@ -60,7 +60,7 @@ export default function DashboardNavbar() {
               className="h-12 w-12"
             />
             <div className="flex flex-col">
-              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-black dark:text-white leading-7">
                 INDUSTRY DAY 2025
               </h1>
               <span className="text-base font-bold text-gray-700 dark:text-gray-300">
