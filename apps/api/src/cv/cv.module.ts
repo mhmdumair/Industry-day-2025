@@ -13,13 +13,12 @@ import { GoogleDriveModule } from 'src/google-drive/google-drive.module';
     TypeOrmModule.forFeature([StudentCv, Student]), 
     forwardRef(() => StudentModule), 
     ConfigModule,
-    GoogleDriveModule
+    forwardRef(() => GoogleDriveModule)
+    
 ],
   controllers: [CvController],
   providers: [CvService],
   exports:[
-      CvService, 
-      TypeOrmModule.forFeature([StudentCv]) 
-  ] 
+      CvService,   ] 
 })
 export class CvModule {}
