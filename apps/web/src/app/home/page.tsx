@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import HomeAnnouncement from "../../components/home/home-announcement";
 import SponsorDialog from "../../components/home/sponsor-dialog";
 import api from "../../lib/axios";
+import { Spinner } from "@/components/ui/spinner";
 
 // Interface definitions for data types
 interface User {
@@ -85,11 +86,9 @@ export default function AnnouncementsPage() {
     // Loading state
     if (loading) {
         return (
-            <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4 bg-background text-foreground">
-                <div className="flex items-center justify-center h-64">
-                    <div className="text-lg">Loading companies...</div>
+                <div className="flex items-center justify-center min-h-screen">
+                    <Spinner className="h-6 w-auto -mt-30"/>
                 </div>
-            </div>
         );
     }
 
@@ -113,18 +112,18 @@ export default function AnnouncementsPage() {
 
             <div className="flex flex-col items-center min-h-screen w-full mx-auto p-4 bg-background text-foreground">
                 {/* Announcements Section */}
-                <div className="w-full max-w-6xl mb-8">
+                <div className="w-full max-w-6xl mb-6 sm:mb-8">
                     <HomeAnnouncement />
                 </div>
 
                 {/* Companies Section */}
-                <Card className="w-full max-w-6xl rounded-none border-gray-200 dark:border-gray-800 p-6 bg-card text-card-foreground">
+                <Card className="w-full max-w-6xl rounded-none border-gray-200 dark:border-gray-800 p-4 sm:p-6 bg-card text-card-foreground">
                     <div className="mb-4">
-                        <h2 className="text-2xl font-semibold">Companies</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All the companies participating and their vacancies.</p>
+                        <h2 className="text-xl sm:text-2xl font-semibold">Companies</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">All the companies participating and their vacancies.</p>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="space-y-6 sm:space-y-8">
                         {/* Main Sponsor - Full width large card */}
                         {mainSponsor && (
                             <div className="flex justify-center">
@@ -132,19 +131,19 @@ export default function AnnouncementsPage() {
                                     sponsor={transformSponsorData(mainSponsor)}
                                     onOpenChange={setDialogOpen}
                                     triggerComponent={
-                                        <div className="w-full aspect-[3/1] bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700">
+                                        <div className="w-full aspect-[2/1] sm:aspect-[3/1] bg-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                             {mainSponsor.logo ? (
                                                 <img
                                                     src={`/logo/${mainSponsor.logo}`}
                                                     alt={`${mainSponsor.companyName} logo`}
-                                                    className="max-w-[80%] max-h-[80%] object-contain"
+                                                    className="max-w-[60%] sm:max-w-[80%] max-h-[60%] sm:max-h-[80%] object-contain"
                                                     onError={(e) => {
                                                         e.currentTarget.onerror = null;
                                                         e.currentTarget.src = 'https://placehold.co/400x200/CCCCCC/666666?text=' + mainSponsor.companyName;
                                                     }}
                                                 />
                                             ) : (
-                                                <span className="text-2xl font-medium text-gray-600 dark:text-gray-300">
+                                                <span className="text-lg sm:text-2xl font-medium text-gray-600 dark:text-gray-300">
                                                     {mainSponsor.companyName}
                                                 </span>
                                             )}
@@ -154,28 +153,34 @@ export default function AnnouncementsPage() {
                             </div>
                         )}
 
-                        {/* Silver Sponsors - 3 medium cards in a row */}
+                        {/* Silver Sponsors - Responsive grid */}
                         {silverSponsors.length > 0 && (
-                            <div className={silverSponsors.length < 3 ? "flex justify-center gap-6 items-center" : "grid grid-cols-3 gap-6 items-center"}>
+                            <div className={`grid gap-4 sm:gap-6 ${
+                                silverSponsors.length === 1 
+                                    ? 'grid-cols-1 max-w-sm mx-auto' 
+                                    : silverSponsors.length === 2 
+                                        ? 'grid-cols-2' 
+                                        : 'grid-cols-2 sm:grid-cols-3'
+                            }`}>
                                 {silverSponsors.map((sponsor) => (
                                     <SponsorDialog
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
                                         onOpenChange={setDialogOpen}
                                         triggerComponent={
-                                            <div className={`aspect-square bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700 ${silverSponsors.length < 3 ? "w-[23rem]" : ""}`}>
+                                            <div className="aspect-square bg-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
-                                                        className="max-w-[70%] max-h-[70%] object-contain"
+                                                        className="max-w-[60%] sm:max-w-[70%] max-h-[60%] sm:max-h-[70%] object-contain"
                                                         onError={(e) => {
                                                             e.currentTarget.onerror = null;
                                                             e.currentTarget.src = 'https://placehold.co/300x300/CCCCCC/666666?text=' + sponsor.companyName;
                                                         }}
                                                     />
                                                 ) : (
-                                                    <span className="text-lg font-medium text-gray-600 dark:text-gray-300 text-center px-4">
+                                                    <span className="text-sm sm:text-lg font-medium text-gray-600 dark:text-gray-300 text-center px-2 sm:px-4">
                                                         {sponsor.companyName}
                                                     </span>
                                                 )}
@@ -186,28 +191,28 @@ export default function AnnouncementsPage() {
                             </div>
                         )}
 
-                        {/* Bronze Sponsors - 5 columns x 2 rows of smaller cards */}
+                        {/* Bronze Sponsors - Responsive grid */}
                         {bronzeSponsors.length > 0 && (
-                            <div className="grid grid-cols-5 gap-4">
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4">
                                 {bronzeSponsors.map((sponsor) => (
                                     <SponsorDialog
                                         key={sponsor.companyID}
                                         sponsor={transformSponsorData(sponsor)}
                                         onOpenChange={setDialogOpen}
                                         triggerComponent={
-                                            <div className="aspect-square bg-transparent dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none border border-gray-200 dark:border-gray-700">
+                                            <div className="aspect-square bg-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
                                                         src={`/logo/${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
-                                                        className="max-w-[60%] max-h-[60%] object-contain"
+                                                        className="max-w-[50%] sm:max-w-[60%] max-h-[50%] sm:max-h-[60%] object-contain"
                                                         onError={(e) => {
                                                             e.currentTarget.onerror = null;
                                                             e.currentTarget.src = 'https://placehold.co/200x200/CCCCCC/666666?text=' + sponsor.companyName;
                                                         }}
                                                     />
                                                 ) : (
-                                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-center px-2">
+                                                    <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 text-center px-1 sm:px-2">
                                                         {sponsor.companyName}
                                                     </span>
                                                 )}

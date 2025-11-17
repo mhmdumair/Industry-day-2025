@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, ChevronDown } from 'lucide-react';
 import api from '../../../lib/axios';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -276,9 +276,10 @@ const LiveQueueDisplay = () => {
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <Card className="rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
           <CardHeader className="border-b border-gray-200 dark:border-gray-800 pb-4">
+            <CardTitle className="text-2xl font-semibold">Live Queues</CardTitle>
+            <CardDescription>Select company to view live queue</CardDescription>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-semibold">Live Queues</h1>
                 {lastUpdated && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Last updated : {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} pm

@@ -6,6 +6,7 @@ import { Plus, Check } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 /* ----------  types  ---------- */
 interface Company {
@@ -129,7 +130,7 @@ const InterviewRegistration = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <p>Loading companies and interviews...</p>
+                <Spinner/>
             </div>
         );
     }
