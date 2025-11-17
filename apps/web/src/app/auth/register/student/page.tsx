@@ -222,7 +222,7 @@ const RegisterPage = () => {
                                             id="student.regNo"
                                             name="student.regNo"
                                             type="text"
-                                            placeholder="S2024001"
+                                            placeholder="SXXXXX"
                                             value={formData.student.regNo}
                                             onChange={handleChange}
                                             required
@@ -350,12 +350,11 @@ const RegisterPage = () => {
                                                 <Upload className="h-8 w-8" />
                                             </div>
 
-                                            <div className="text-center">
+                                            <div className="text-center bg-amber-100 justify-center items-center">
                                                 <Label htmlFor="cv_file" className="cursor-pointer">
                                                     <span className="text-sm font-medium underline">
                                                         Click to upload
                                                     </span>
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400"> or drag and drop</span>
                                                 </Label>
                                                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                                                     PDF files only (Max 10MB)
