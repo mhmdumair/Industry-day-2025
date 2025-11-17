@@ -79,12 +79,12 @@ export default function HomeNavbar() {
                             className="h-12 w-12"
                         />
                         <div className="flex flex-col">
-                            <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
+                        <h1 className="lg:text-3xl md:text-4xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
                             INDUSTRY DAY 2025
-                            </h1>
-                            <span className="text-base font-bold text-gray-700 dark:text-gray-300">
+                        </h1>
+                        <span className="text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
                             FACULTY OF SCIENCE
-                            </span>
+                        </span>
                         </div>
                     </div>
 
