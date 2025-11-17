@@ -4,11 +4,12 @@ import React, { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import api from "@/lib/axios"
 import { Button } from "../ui/button"
-import { ArrowLeftFromLine, Home, StepBack } from "lucide-react"
+import { Home } from "lucide-react"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ModeToggle } from "./mode-toggle"
 import Link from "next/link"
-import { ModeToggle } from "../common/mode-toggle"
 
-export default function AuthNavbar() {
+export default function DashboardNavbar() {
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -59,10 +60,10 @@ export default function AuthNavbar() {
               className="h-12 w-12"
             />
             <div className="flex flex-col">
-              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7 tracking-tight">
+              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
                 INDUSTRY DAY 2025
               </h1>
-              <span className="text-base font-bold text-gray-700 dark:text-gray-300 tracking-tight">
+              <span className="text-base font-bold text-gray-700 dark:text-gray-300">
                 FACULTY OF SCIENCE
               </span>
             </div>
@@ -71,15 +72,16 @@ export default function AuthNavbar() {
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             <ModeToggle />
-            <Link href={"/"}>
+            <Link href={"/home"}>
               <Button
                 variant="secondary"
-                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-normal break-words"
+                size="icon"
+                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"
                 disabled={isLoading}
                 title="Go to Home"
-                >
-                Back to SIIC Website
-                </Button>
+              >
+                <Home className="h-5 w-5" />
+              </Button>
             </Link>
           </div>
         </div>

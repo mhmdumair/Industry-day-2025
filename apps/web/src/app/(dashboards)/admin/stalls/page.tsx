@@ -27,6 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Stall {
   stallID: string;
@@ -34,7 +44,7 @@ interface Stall {
   companyID: string;
   preference: string;
   company?: { companyName: string };
-  roomID : string
+  roomID: string;
 }
 
 interface Company {
@@ -77,12 +87,26 @@ const StallsGroupCard = () => {
   const [editingStall, setEditingStall] = useState<Stall | null>(null);
   const [newCompanyID, setNewCompanyID] = useState<string>();
   const [newTitle, setNewTitle] = useState("");
-  const [newPreference, setNewPreference] = useState<Preference>(Preference.ALL);
+  const [newPreference, setNewPreference] = useState<Preference>(
+    Preference.ALL
+  );
   const [creating, setCreating] = useState(false);
 
   /* room state */
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoomID, setSelectedRoomID] = useState<string>();
+
+  /* alert dialog state */
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+  const [alertDialogTitle, setAlertDialogTitle] = useState("");
+  const [alertDialogDescription, setAlertDialogDescription] = useState("");
+
+  /* delete confirmation dialog state */
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [stallToDelete, setStallToDelete] = useState<{
+    stallID: string;
+    companyID: string;
+  } | null>(null);
 
   /* ---------- initial load ---------- */
   useEffect(() => {
@@ -110,7 +134,11 @@ const StallsGroupCard = () => {
         setCompaniesWithStalls(companiesWithStallsData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        alert("Failed to load data. Please check your network connection and try again.");
+        setAlertDialogTitle("Error");
+        setAlertDialogDescription(
+          "Failed to load data. Please check your network connection and try again."
+        );
+        setAlertDialogOpen(true);
       } finally {
         setLoading(false);
       }
@@ -120,31 +148,37 @@ const StallsGroupCard = () => {
   }, []);
 
   /* ---------- actions ---------- */
-  const handleRemove = async (stallID: string, companyID: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this stall? This action cannot be undone."
-      )
-    ) {
-      try {
-        await api.delete(`/stall/${stallID}`);
-        setCompaniesWithStalls((prev) =>
-          prev.map((company) => {
-            if (company.companyID === companyID) {
-              return {
-                ...company,
-                stalls: company.stalls.filter(
-                  (stall) => stall.stallID !== stallID
-                ),
-              };
-            }
-            return company;
-          })
-        );
-      } catch (error) {
-        console.error("Error deleting stall:", error);
-        alert("Failed to delete stall. Please try again.");
-      }
+  const confirmRemove = (stallID: string, companyID: string) => {
+    setStallToDelete({ stallID, companyID });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleRemove = async () => {
+    if (!stallToDelete) return;
+    const { stallID, companyID } = stallToDelete;
+    try {
+      await api.delete(`/stall/${stallID}`);
+      setCompaniesWithStalls((prev) =>
+        prev.map((company) => {
+          if (company.companyID === companyID) {
+            return {
+              ...company,
+              stalls: company.stalls.filter(
+                (stall) => stall.stallID !== stallID
+              ),
+            };
+          }
+          return company;
+        })
+      );
+    } catch (error) {
+      console.error("Error deleting stall:", error);
+      setAlertDialogTitle("Error");
+      setAlertDialogDescription("Failed to delete stall. Please try again.");
+      setAlertDialogOpen(true);
+    } finally {
+      setDeleteDialogOpen(false);
+      setStallToDelete(null);
     }
   };
 
@@ -168,7 +202,9 @@ const StallsGroupCard = () => {
 
   const handleCreateStall = async () => {
     if (!selectedRoomID || !newCompanyID || !newTitle.trim()) {
-      alert("Missing information to create a stall.");
+      setAlertDialogTitle("Missing Information");
+      setAlertDialogDescription("Please fill all the required fields.");
+      setAlertDialogOpen(true);
       return;
     }
     setCreating(true);
@@ -199,14 +235,19 @@ const StallsGroupCard = () => {
       resetDialogState();
     } catch (error) {
       console.error("Error creating stall:", error);
-      alert("Failed to create stall. Please check the console for details.");
+      setAlertDialogTitle("Error");
+      setAlertDialogDescription(
+        "Failed to create stall. Please check the console for details."
+      );
+      setAlertDialogOpen(true);
     } finally {
       setCreating(false);
     }
   };
 
   const handleUpdateStall = async () => {
-    if (!editingStall || !selectedRoomID || !newCompanyID || !newTitle.trim()) return;
+    if (!editingStall || !selectedRoomID || !newCompanyID || !newTitle.trim())
+      return;
     setCreating(true);
 
     try {
@@ -238,7 +279,11 @@ const StallsGroupCard = () => {
       resetDialogState();
     } catch (error) {
       console.error("Error updating stall:", error);
-      alert("Failed to update stall. Please check the console for details.");
+      setAlertDialogTitle("Error");
+      setAlertDialogDescription(
+        "Failed to update stall. Please check the console for details."
+      );
+      setAlertDialogOpen(true);
     } finally {
       setCreating(false);
     }
@@ -253,55 +298,74 @@ const StallsGroupCard = () => {
   };
 
   /* ---------- render ---------- */
-  if (loading) return <p className="p-4 text-center text-gray-500">Loading companies, stalls, and rooms...</p>;
+  if (loading)
+    return (
+      <p className="p-4 text-center text-muted-foreground">
+        Loading companies, stalls, and rooms...
+      </p>
+    );
 
   return (
     <div className="mt-6 mx-auto p-4 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6">Manage Interview Stalls</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companiesWithStalls.map((company) => (
-          <Card key={company.companyID} className="bg-white shadow-lg border border-gray-200 flex flex-col">
-            <CardHeader className="bg-gray-50 border-b p-4">
-              <CardTitle className="text-xl font-semibold">{company.companyName}</CardTitle>
+          <Card
+            key={company.companyID}
+            className="rounded-none flex flex-col"
+          >
+            <CardHeader className="border-b p-4">
+              <CardTitle className="text-xl font-semibold">
+                {company.companyName}
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow p-4 space-y-4">
               {company.stalls.length > 0 ? (
                 company.stalls.map((stall) => (
-                  <div key={stall.stallID} className="relative p-3 border rounded-md shadow-sm bg-gray-100">
+                  <div
+                    key={stall.stallID}
+                    className="relative p-3 border rounded-none bg-muted"
+                  >
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-medium text-gray-800">{stall.title}</h4>
-                        <p className="text-xs text-gray-600">Preference: {stall.preference}</p>
+                        <h4 className="font-medium">{stall.title}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Preference: {stall.preference}
+                        </p>
                       </div>
                       <div className="flex gap-1">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7 p-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
+                          className="h-7 w-7 p-1 rounded-none"
                           onClick={() => openEditDialog(stall)}
                         >
-                          <Edit className="h-4 w-4 text-blue-600" />
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="destructive"
                           size="icon"
-                          className="h-7 w-7 p-1 bg-red-50 hover:bg-red-100 border-red-200"
-                          onClick={() => handleRemove(stall.stallID, company.companyID)}
+                          className="h-7 w-7 p-1 rounded-none"
+                          onClick={() =>
+                            confirmRemove(stall.stallID, company.companyID)
+                          }
                         >
-                          <X className="h-4 w-4 text-red-600" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 italic">No stalls for this company yet.</p>
+                <p className="text-sm text-muted-foreground italic">
+                  No stalls for this company yet.
+                </p>
               )}
             </CardContent>
-            <CardFooter className="p-4 border-t bg-gray-50">
+            <CardFooter className="p-4 border-t">
               <Button
                 onClick={() => openCreateDialog(company.companyID)}
-                className="w-full"
+                className="w-full rounded-none"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Stall
@@ -313,15 +377,23 @@ const StallsGroupCard = () => {
 
       {/* ---------- dialog for add/edit stall ---------- */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-none">
           <DialogHeader>
             <DialogTitle>
               {editingStall ? "Edit Stall" : "Create New Stall"}
             </DialogTitle>
             <DialogDescription>
               {editingStall
-                ? `Editing stall for ${companiesWithStalls.find(c => c.companyID === newCompanyID)?.companyName}`
-                : `Creating a new stall for ${companiesWithStalls.find(c => c.companyID === newCompanyID)?.companyName}`}
+                ? `Editing stall for ${
+                    companiesWithStalls.find(
+                      (c) => c.companyID === newCompanyID
+                    )?.companyName
+                  }`
+                : `Creating a new stall for ${
+                    companiesWithStalls.find(
+                      (c) => c.companyID === newCompanyID
+                    )?.companyName
+                  }`}
             </DialogDescription>
           </DialogHeader>
 
@@ -330,12 +402,16 @@ const StallsGroupCard = () => {
               value={selectedRoomID}
               onValueChange={(v) => setSelectedRoomID(v)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="rounded-none">
                 <SelectValue placeholder="Select a room" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none">
                 {rooms.map((room) => (
-                  <SelectItem key={room.roomID} value={room.roomID}>
+                  <SelectItem
+                    key={room.roomID}
+                    value={room.roomID}
+                    className="rounded-none"
+                  >
                     {room.roomName}
                   </SelectItem>
                 ))}
@@ -345,17 +421,18 @@ const StallsGroupCard = () => {
               placeholder="Stall title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
+              className="rounded-none"
             />
             <Select
               value={newPreference}
               onValueChange={(v) => setNewPreference(v as Preference)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="rounded-none">
                 <SelectValue placeholder="Stream preference" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none">
                 {Object.values(Preference).map((p) => (
-                  <SelectItem key={p} value={p}>
+                  <SelectItem key={p} value={p} className="rounded-none">
                     {p}
                   </SelectItem>
                 ))}
@@ -368,12 +445,14 @@ const StallsGroupCard = () => {
               variant="outline"
               onClick={() => setDialogOpen(false)}
               disabled={creating}
+              className="rounded-none"
             >
               Cancel
             </Button>
             <Button
               disabled={!newTitle.trim() || !selectedRoomID || creating}
               onClick={editingStall ? handleUpdateStall : handleCreateStall}
+              className="rounded-none"
             >
               {creating
                 ? editingStall
@@ -386,6 +465,51 @@ const StallsGroupCard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Alert Dialog for errors and info */}
+      <AlertDialog open={alertDialogOpen} onOpenChange={setAlertDialogOpen}>
+        <AlertDialogContent className="rounded-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {alertDialogDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setAlertDialogOpen(false)}
+              className="rounded-none"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              stall.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setDeleteDialogOpen(false)}
+              className="rounded-none"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemove}
+              className="rounded-none"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

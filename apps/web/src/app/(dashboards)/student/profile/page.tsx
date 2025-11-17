@@ -15,10 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Phone, User, Building } from "lucide-react";
+import { Globe, Phone, User, Building, Mail, GraduationCap, Users, CreditCard } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
 
 export enum StudentGroup {
   ZL = 'ZL', BT = 'BT', CH = 'CH', MT = 'MT', BMS = 'BMS', ST = 'ST', GL = 'GL', CS = 'CS', DS = 'DS', ML = 'ML', BL = 'BL', MB = 'MB', CM = 'CM', AS = 'AS', ES = 'ES', SOR = 'SOR',
@@ -53,296 +52,443 @@ export interface StudentProfile {
   user: User;
 }
 
+const safeString = (value: string | null | undefined): string => {
+  return value || '';
+};
+
 export default function StudentProfileCard() {
-  const router = useRouter();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState<StudentProfile | null>(null);
-  const [editData, setEditData] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
+
+  const [editData, setEditData] = useState<StudentProfile | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch student profile directly from the protected endpoint
-        // The backend uses the JWT to determine the user and find the profile.
-        const studentRes = await api.get<StudentProfile>(`/student/by-user`);
-        setProfileData(studentRes.data);
-        setEditData(studentRes.data);
-
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          if (err.response?.status === 401) {
-            setError("Unauthorized. Please log in.");
-            router.push('/auth/login');
-          } else {
-            setError("Failed to fetch student profile. An unknown error occurred.");
-          }
+    setLoading(true);
+    api
+      .get<StudentProfile>(`/student/by-user`)
+      .then((res) => {
+        const studentProfile = res.data;
+        if (studentProfile) {
+          const sanitizedData = {
+            ...studentProfile,
+            regNo: safeString(studentProfile.regNo),
+            nic: safeString(studentProfile.nic),
+            contact: safeString(studentProfile.contact),
+            linkedin: safeString(studentProfile.linkedin),
+            group: safeString(studentProfile.group),
+            level: safeString(studentProfile.level),
+            user: {
+              ...studentProfile.user,
+              first_name: safeString(studentProfile.user.first_name),
+              last_name: safeString(studentProfile.user.last_name),
+              email: safeString(studentProfile.user.email),
+              profile_picture: safeString(studentProfile.user.profile_picture),
+            }
+          };
+          setProfileData(sanitizedData);
+          setEditData(sanitizedData);
+        } else {
+          setError("No student profile data found.");
         }
-        console.error("Fetch profile error:", err);
-      } finally {
         setLoading(false);
-      }
-    };
+      })
+      .catch(() => {
+        setError("Failed to fetch student profile.");
+        setLoading(false);
+      });
+  }, []);
 
-    fetchProfile();
-  }, [router]);
+  const handleInputChange = <K extends keyof StudentProfile>(
+    field: K,
+    value: StudentProfile[K]
+  ) => {
+    setEditData((prev) =>
+      prev ? { ...prev, [field]: value } : prev
+    );
+  };
 
-  const handleInputChange = (field: string, value: string) => {
-    if (field.startsWith("user.")) {
-      const userField = field.split(".")[1];
-      setEditData(prev => prev ? { ...prev, user: { ...prev.user, [userField]: value } } : prev);
-    } else {
-      setEditData(prev => prev ? { ...prev, [field]: value } : prev);
-    }
+  const handleUserInputChange = <K extends keyof User>(
+    field: K,
+    value: User[K]
+  ) => {
+    setEditData((prev) =>
+      prev ? {
+        ...prev,
+        user: { ...prev.user, [field]: value }
+      } : prev
+    );
   };
 
   const handleEditOpen = () => {
-    setEditData(profileData);
+    if (profileData) {
+      const sanitizedEditData = {
+        ...profileData,
+        regNo: safeString(profileData.regNo),
+        nic: safeString(profileData.nic),
+        contact: safeString(profileData.contact),
+        linkedin: safeString(profileData.linkedin),
+        group: safeString(profileData.group),
+        level: safeString(profileData.level),
+        user: {
+          ...profileData.user,
+          first_name: safeString(profileData.user.first_name),
+          last_name: safeString(profileData.user.last_name),
+          email: safeString(profileData.user.email),
+          profile_picture: safeString(profileData.user.profile_picture),
+        }
+      };
+      setEditData(sanitizedEditData);
+    }
     setIsDialogOpen(true);
   };
 
-  const validateForm = (data: StudentProfile): string[] => {
-    const errors: string[] = [];
-    if (!data.user.first_name?.trim()) errors.push("First name is required");
-    if (!data.user.last_name?.trim()) errors.push("Last name is required");
-    if (!data.user.email?.trim()) errors.push("Email is required");
-    if (!data.regNo?.trim()) errors.push("Registration number is required");
-    if (!data.nic?.trim()) errors.push("NIC is required");
-    if (!data.contact?.trim()) errors.push("Contact number is required");
-    if (!data.level) errors.push("Level is required");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (data.user.email && !emailRegex.test(data.user.email)) errors.push("Please enter a valid email address");
-    if (data.linkedin && data.linkedin.trim() && !data.linkedin.includes('linkedin.com')) errors.push("Please enter a valid LinkedIn URL");
-    return errors;
-  };
-
   const handleSave = async () => {
-    if (!editData || !editData.studentID) return;
-    const validationErrors = validateForm(editData);
-    if (validationErrors.length > 0) {
-      alert(`Please fix the following errors:\n${validationErrors.join('\n')}`);
+    if (!editData || !profileData?.studentID) {
+      console.error("Missing edit data or student ID.");
       return;
     }
-    
+
+    setLoading(true);
+
+    const nestedPayload = {
+      student: {
+        regNo: editData.regNo,
+        nic: editData.nic,
+        contact: editData.contact,
+        linkedin: editData.linkedin || null,
+        group: editData.group,
+        level: editData.level,
+      },
+      user: {
+        first_name: editData.user.first_name,
+        last_name: editData.user.last_name,
+        email: editData.user.email,
+        profile_picture: editData.user.profile_picture,
+        role: editData.user.role,
+      },
+    };
+
     try {
-      setSaving(true);
-      const updatePayload: any = {};
-      const addIfValid = (obj: any, key: string, value: string | null | undefined) => {
-        if (value && value.trim()) { obj[key] = value.trim(); }
-      };
+      await api.patch(`/student/${profileData.studentID}`, nestedPayload);
 
-      addIfValid(updatePayload, 'regNo', editData.regNo);
-      addIfValid(updatePayload, 'nic', editData.nic);
-      addIfValid(updatePayload, 'linkedin', editData.linkedin);
-      addIfValid(updatePayload, 'contact', editData.contact);
-      addIfValid(updatePayload, 'level', editData.level);
-      
-      if (editData.user) {
-        const userPayload: any = {};
-        addIfValid(userPayload, 'email', editData.user.email);
-        addIfValid(userPayload, 'first_name', editData.user.first_name);
-        addIfValid(userPayload, 'last_name', editData.user.last_name);
-        if (editData.user.profile_picture !== null && editData.user.profile_picture !== undefined) {
-          userPayload.profile_picture = editData.user.profile_picture.trim() || null;
-        }
-        if (Object.keys(userPayload).length > 0) updatePayload.user = userPayload;
-      }
+      setProfileData((prev) =>
+        prev ? {
+          ...prev,
+          regNo: editData.regNo,
+          nic: editData.nic,
+          contact: editData.contact,
+          linkedin: editData.linkedin,
+          group: editData.group,
+          level: editData.level,
+          user: {
+            ...prev.user,
+            first_name: editData.user.first_name,
+            last_name: editData.user.last_name,
+            email: editData.user.email,
+            profile_picture: editData.user.profile_picture,
+          },
+        } : prev
+      );
 
-      console.log('Update payload:', updatePayload);
-      const response = await api.patch(`/student/${editData.studentID}`, updatePayload);
-      setProfileData(response.data || editData);
       setIsDialogOpen(false);
-      
-    } catch (error: any) {
-      console.error("Save error:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data?.errors?.map((err: any) => err.message || err).join(', ') || "Failed to save. Please check your input and try again.";
-      alert(errorMsg);
+      alert("Profile updated successfully!");
+
+    } catch (error) {
+      const apiError = error as AxiosError;
+      console.error("Save error:", apiError.response?.data || apiError.message);
     } finally {
-        setSaving(false);
+      setLoading(false);
     }
   };
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
-  if (error) return (
-    <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mx-auto w-80% mt-4">
-      <strong>Error:</strong> {error}
-    </div>
-  );
-  if (!profileData) return <div className="text-center mt-8">No student data found.</div>;
+  if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
+  if (!profileData) return <div className="text-center p-4">No student data found.</div>;
+
+  const fullName = `${profileData.user.first_name} ${profileData.user.last_name}`.trim();
+  const levelDisplay = profileData.level.replace('level_', 'Level ');
 
   return (
-    <div className="mt-3 w-80% mx-auto p-4">
-      <Card className="bg-gray-50 shadow-lg mt-3">
+    <div className="mt-3 w-[65vh] mx-auto p-4 bg-teal-900/40 min-h-[80vh] flex items-center justify-center">
+      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
-          <Avatar className="h-24 w-24 mx-auto mb-4 ring-4 ring-blue-100">
-            <AvatarImage src={profileData.user.profile_picture ?? "baurs.png"} alt="Student picture" />
-          </Avatar>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            {profileData.user.first_name} {profileData.user.last_name}
-          </CardTitle>
-          <div className="flex items-center gap-2 m-auto">
-            <Badge variant="outline" className="border-gray-300">
-              {profileData.level.replace('level_', 'Level ')}
+          <div className="flex items-center gap-2 mx-auto mb-3">
+            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+              {profileData.user.role}
             </Badge>
           </div>
-          <CardDescription className="text-gray-600 mt-2">Student Profile</CardDescription>
+
+          <Avatar className="h-24 w-24 mx-auto mb-4 ring-2 ring-blue-100/50 dark:ring-blue-900/50">
+            <AvatarImage
+              src={profileData?.user?.profile_picture || "/baurs.png"}
+              alt="Student Profile"
+            />
+          </Avatar>
+
+          <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+            {fullName || "Student"}
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
+            {profileData.regNo} • {levelDisplay} • {profileData.group}
+          </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Registration No:</span>
-                <span className="text-gray-600">{profileData.regNo}</span>
+                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Name:</span>
+                <span className="text-gray-600 dark:text-gray-400">{fullName}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Building className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">NIC:</span>
-                <span className="text-gray-600">{profileData.nic}</span>
+                <GraduationCap className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Reg No:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.regNo}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Contact:</span>
-                <span className="text-gray-600">{profileData.contact}</span>
+                <CreditCard className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">NIC:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.nic}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Group:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.group}</span>
               </div>
             </div>
+
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">Email:</span>
-                <span className="text-gray-600">{profileData.user.email}</span>
+                <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.user.email}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-gray-500" />
-                <span className="font-medium text-gray-700">LinkedIn:</span>
+                <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Contact:</span>
+                <span className="text-gray-600 dark:text-gray-400">{profileData.contact}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">LinkedIn:</span>
                 {profileData.linkedin ? (
                   <a
                     href={profileData.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
                   >
                     View Profile
                   </a>
                 ) : (
-                  <span className="text-gray-500">—</span>
+                  <span className="text-gray-500 dark:text-gray-400">—</span>
                 )}
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Building className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Level:</span>
+                <span className="text-gray-600 dark:text-gray-400">{levelDisplay}</span>
               </div>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="justify-center pt-6">
+
+        <CardFooter className="justify-center pt-6 rounded-none border-t border-gray-200 dark:border-gray-700">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button type="button" onClick={handleEditOpen}>
+              <Button type="submit" className="rounded-none" onClick={handleEditOpen}>
                 Edit Profile
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-none dark:bg-black dark:text-gray-100">
               <DialogHeader>
                 <DialogTitle>Edit Student Profile</DialogTitle>
-                <DialogDescription>
-                  Update your information. All fields are required unless marked optional.
+                <DialogDescription className="dark:text-gray-400">
+                  Update your student information. Role cannot be changed.
                 </DialogDescription>
               </DialogHeader>
+
               {editData && (
                 <div className="grid gap-6 py-4">
                   {/* First Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="first-name" className="text-right font-medium">First Name</Label>
+                    <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
+                      First Name
+                    </Label>
                     <Input
                       id="first-name"
-                      value={editData.user.first_name ?? ""}
-                      onChange={(e) => handleInputChange("user.first_name", e.target.value)}
-                      className="col-span-3"
+                      value={safeString(editData.user.first_name)}
+                      onChange={(e) => handleUserInputChange("first_name", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter first name"
-                      required
                     />
                   </div>
+
                   {/* Last Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="last-name" className="text-right font-medium">Last Name</Label>
+                    <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
+                      Last Name
+                    </Label>
                     <Input
                       id="last-name"
-                      value={editData.user.last_name ?? ""}
-                      onChange={(e) => handleInputChange("user.last_name", e.target.value)}
-                      className="col-span-3"
+                      value={safeString(editData.user.last_name)}
+                      onChange={(e) => handleUserInputChange("last_name", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter last name"
-                      required
                     />
                   </div>
-                  {/* Contact Number */}
+
+                  {/* Email */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contact-number" className="text-right font-medium">Contact Number</Label>
+                    <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
+                      Email
+                    </Label>
                     <Input
-                      id="contact-number"
-                      value={editData.contact ?? ""}
-                      onChange={(e) => handleInputChange("contact", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter contact number"
-                      type="tel"
-                      required
+                      id="email"
+                      value={safeString(editData.user.email)}
+                      onChange={(e) => handleUserInputChange("email", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter email address"
+                      type="email"
                     />
                   </div>
-                  {/* NIC */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nic" className="text-right font-medium">NIC</Label>
-                    <Input
-                      id="nic"
-                      value={editData.nic ?? ""}
-                      onChange={(e) => handleInputChange("nic", e.target.value)}
-                      className="col-span-3"
-                      placeholder="Enter NIC"
-                      required
-                    />
-                  </div>
+
                   {/* Registration Number */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="reg-number" className="text-right font-medium">Registration No</Label>
+                    <Label htmlFor="regNo" className="text-right font-medium dark:text-gray-300">
+                      Reg No
+                    </Label>
                     <Input
-                      id="reg-number"
-                      value={editData.regNo ?? ""}
+                      id="regNo"
+                      value={safeString(editData.regNo)}
                       onChange={(e) => handleInputChange("regNo", e.target.value)}
-                      className="col-span-3"
-                      placeholder="S20000"
-                      required
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter registration number"
                     />
                   </div>
+
+                  {/* NIC */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="nic" className="text-right font-medium dark:text-gray-300">
+                      NIC
+                    </Label>
+                    <Input
+                      id="nic"
+                      value={safeString(editData.nic)}
+                      onChange={(e) => handleInputChange("nic", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter NIC"
+                    />
+                  </div>
+
+                  {/* Contact */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">
+                      Contact
+                    </Label>
+                    <Input
+                      id="contact"
+                      value={safeString(editData.contact)}
+                      onChange={(e) => handleInputChange("contact", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter contact number"
+                      type="tel"
+                    />
+                  </div>
+
+                  {/* Group */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="group" className="text-right font-medium dark:text-gray-300">
+                      Group
+                    </Label>
+                    <Input
+                      id="group"
+                      value={safeString(editData.group)}
+                      onChange={(e) => handleInputChange("group", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter group"
+                    />
+                  </div>
+
+                  {/* Level */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="level" className="text-right font-medium dark:text-gray-300">
+                      Level
+                    </Label>
+                    <Input
+                      id="level"
+                      value={safeString(editData.level)}
+                      onChange={(e) => handleInputChange("level", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter level"
+                    />
+                  </div>
+
                   {/* LinkedIn */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="linkedin" className="text-right font-medium">
+                    <Label htmlFor="linkedin" className="text-right font-medium dark:text-gray-300">
                       LinkedIn
                     </Label>
                     <Input
                       id="linkedin"
-                      value={editData.linkedin ?? ""}
+                      value={safeString(editData.linkedin)}
                       onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                      className="col-span-3"
-                      placeholder="https://www.linkedin.com/in/username"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter LinkedIn URL (Optional)"
                       type="url"
                     />
                   </div>
-                  {/* Profile Picture URL */}
+
+                  {/* Profile Picture */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
+                      Profile Picture
+                    </Label>
+                    <Input
+                      id="profile-picture"
+                      value={safeString(editData.user.profile_picture)}
+                      onChange={(e) => handleUserInputChange("profile_picture", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter profile picture URL (Optional)"
+                      type="url"
+                    />
+                  </div>
+
+                  {/* Role (read-only) */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
+                      Role
+                    </Label>
+                    <div className="col-span-3 rounded-none flex items-center">
+                      <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                        {editData.user.role}
+                      </Badge>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">Cannot be changed</span>
+                    </div>
+                  </div>
                 </div>
               )}
+
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-none dark:border-gray-600 dark:text-gray-300"
                   onClick={() => setIsDialogOpen(false)}
-                  disabled={saving}
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
+                  type="submit"
                   onClick={handleSave}
-                  disabled={saving}
+                  className="rounded-none"
+                  disabled={loading}
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -352,4 +498,3 @@ export default function StudentProfileCard() {
     </div>
   );
 }
-

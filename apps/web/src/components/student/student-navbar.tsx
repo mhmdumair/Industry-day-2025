@@ -3,49 +3,50 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
+import { ModeToggle } from "../common/mode-toggle";
+import { Home } from "lucide-react";
+import { Button } from "../ui/button";
 import api from "@/lib/axios";
 
 const navItems = [
-  { title: "Profile", url: "/room-admin/profile" },
-  { title: "Stalls", url: "/room-admin/stalls" },
+  { title: "Profile", url: "/student/profile" },
+  { title: "Register", url: "/student/register" },
+  { title: "Interviews", url: "/student/interviews" },
+  { title: "Feedback", url: "/student/feedback" },
 ];
 
-export default function RoomAdminNavbar() {
+export default function StudentNavbar() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const roomAdminId = searchParams.get("roomAdminId");
-  const [roomAdminName, setRoomAdminName] = useState<string | null>(null);
+  const studentId = searchParams.get("studentId");
+  const [studentRegNo, setStudentRegNo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRoomAdminInfo = async () => {
+    const fetchStudentInfo = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/room-admin/by-user");
-        // Get the full name from the user object
-        const firstName = response.data.user?.first_name || "";
-        const lastName = response.data.user?.last_name || "";
-        const fullName = `${firstName} ${lastName}`.trim();
-        setRoomAdminName(fullName || "Room Admin");
+        const response = await api.get("/student/by-user");
+        setStudentRegNo(response.data.regNo);
       } catch (error) {
-        console.error("Failed to fetch room admin info", error);
-        setRoomAdminName("Room Admin");
+        console.error("Failed to fetch student info", error);
+        setStudentRegNo("Student");
       } finally {
         setLoading(false);
       }
     };
-    fetchRoomAdminInfo();
+    fetchStudentInfo();
   }, []);
 
   return (
     <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Left side - Room Admin branding */}
+          {/* Left side - Student branding */}
           <div className="flex items-center">
             <div className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-none border-1 border-gray-100/50">
               <span className="text-base font-semibold">
-                {loading ? "Loading..." : roomAdminName}
+                {loading ? "Loading..." : studentRegNo}
               </span>
             </div>
 
@@ -58,7 +59,7 @@ export default function RoomAdminNavbar() {
                   <Link
                     key={item.title}
                     href={`${item.url}${
-                      roomAdminId ? `?roomAdminId=${roomAdminId}` : ""
+                      studentId ? `?studentId=${studentId}` : ""
                     }`}
                     className={`relative text-sm font-medium transition-colors pb-1 ${
                       isActive

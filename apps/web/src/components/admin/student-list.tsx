@@ -255,32 +255,33 @@ export default function StudentList() {
     };
 
     return (
-        <Card className="bg-white shadow-md w-full">
+        <Card className="bg-white dark:bg-black shadow-md w-full rounded-none">
             <CardHeader>
-                <CardTitle>Student List</CardTitle>
-                <CardDescription>Fetched from database</CardDescription>
+                <CardTitle className="text-xl leading-4 dark:text-white">Student List</CardTitle>
+                <CardDescription className="dark:text-gray-400">Fetched from database</CardDescription>
             </CardHeader>
             <CardContent className="overflow-x-auto">
                 {/* Search and Filter Section */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                     <div className="flex-1">
-                        <Label htmlFor="search">Search</Label>
+                        <Label className="mb-1 dark:text-gray-300" htmlFor="search">Search</Label>
                         <Input
                             id="search"
                             type="text"
                             placeholder="Search by name, registration number, or email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            className="rounded-none dark:bg-black dark:text-white dark:border-gray-700 dark:placeholder:text-gray-500"
                         />
                     </div>
                     <div className="w-full sm:w-1/3">
-                        <Label htmlFor="group-filter">Filter by Group</Label>
+                        <Label className="mb-1 dark:text-gray-300" htmlFor="group-filter">Group</Label>
                         <Select onValueChange={(value: Preference | "ALL") => setSelectedGroup(value as Preference | "ALL")} value={selectedGroup}>
-                            <SelectTrigger id="group-filter">
+                            <SelectTrigger id="group-filter" className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                                 <SelectValue placeholder="Select a group" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={Preference.ALL}>All Groups</SelectItem>
+                            <SelectContent className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
+                                <SelectItem value={Preference.ALL}></SelectItem>
                                 {Object.values(Preference).map((group) => (
                                     <SelectItem key={group} value={group}>
                                         {group}
@@ -292,40 +293,41 @@ export default function StudentList() {
                 </div>
 
                 {loading ? (
-                    <div className="p-4 text-center">Loading students...</div>
+                    <div className="p-4 text-center dark:text-gray-300">Loading students...</div>
                 ) : error ? (
-                    <div className="p-4 text-center text-red-600">{error}</div>
+                    <div className="p-4 text-center text-red-600 dark:text-red-400">{error}</div>
                 ) : (
                     <>
-                        <table className="w-full text-sm border-collapse border border-gray-300">
+                        <table className="w-full text-sm border-collapse border border-gray-300 dark:border-gray-700">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border px-2 py-1">Reg No</th>
-                                    <th className="border px-2 py-1">Name</th>
-                                    <th className="border px-2 py-1">Email</th>
-                                    <th className="border px-2 py-1">Group</th>
-                                    <th className="border px-2 py-1">Level</th>
-                                    <th className="border px-2 py-1">Contact</th>
-                                    <th className="border px-2 py-1">Actions</th>
+                                <tr className="bg-gray-100 dark:bg-black">
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Reg No</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Name</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Email</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Group</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Level</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Contact</th>
+                                    <th className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentStudents.length ? (
                                     currentStudents.map((s, i) => (
-                                        <tr key={s.student.studentID || i}>
-                                            <td className="border px-2 py-1">{s.student.regNo}</td>
-                                            <td className="border px-2 py-1">
+                                        <tr key={s.student.studentID || i} className="dark:hover:bg-gray-900">
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">{s.student.regNo}</td>
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">
                                                 {s.user.first_name} {s.user.last_name}
                                             </td>
-                                            <td className="border px-2 py-1">{s.user.email}</td>
-                                            <td className="border px-2 py-1">{s.student.group}</td>
-                                            <td className="border px-2 py-1">{s.student.level}</td>
-                                            <td className="border px-2 py-1">{s.student.contact}</td>
-                                            <td className="border px-2 py-1 text-center">
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">{s.user.email}</td>
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">{s.student.group}</td>
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">{s.student.level}</td>
+                                            <td className="border px-2 py-1 dark:border-gray-700 dark:text-gray-300">{s.student.contact}</td>
+                                            <td className="border px-2 py-1 text-center dark:border-gray-700">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleEditClick(s)}
+                                                    className="rounded-none dark:text-gray-300 dark:hover:bg-gray-800"
                                                 >
                                                     Edit
                                                 </Button>
@@ -334,7 +336,7 @@ export default function StudentList() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td className="px-2 py-2 text-center" colSpan={7}>
+                                        <td className="px-2 py-2 text-center dark:text-gray-300" colSpan={7}>
                                             No students found
                                         </td>
                                     </tr>
@@ -349,11 +351,12 @@ export default function StudentList() {
                                     size="sm"
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={currentPage === 1}
+                                    className="rounded-none dark:bg-black dark:text-white dark:border-gray-700 dark:hover:bg-gray-800"
                                 >
                                     <ChevronLeft className="h-4 w-4 mr-2" />
                                     Previous
                                 </Button>
-                                <span className="text-sm">
+                                <span className="text-sm dark:text-gray-300">
                                     Page {currentPage} of {totalPages}
                                 </span>
                                 <Button
@@ -361,6 +364,7 @@ export default function StudentList() {
                                     size="sm"
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={currentPage === totalPages}
+                                    className="rounded-none dark:bg-black dark:text-white dark:border-gray-700 dark:hover:bg-gray-800"
                                 >
                                     Next
                                     <ChevronRight className="h-4 w-4 ml-2" />
@@ -372,9 +376,9 @@ export default function StudentList() {
             </CardContent>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                     <DialogHeader>
-                        <DialogTitle>Edit Student</DialogTitle>
+                        <DialogTitle className="dark:text-white">Edit Student</DialogTitle>
                     </DialogHeader>
 
                     {editingStudent && (
@@ -388,7 +392,7 @@ export default function StudentList() {
                                 <InputField label="Contact" name="contact" value={editingStudent.student.contact} onChange={handleInputChange} section="student" />
                                 <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
                                 <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
-                                
+
                                 {/* Input field for Student Group - kept as input field as it can be a combination */}
                                 <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
 
@@ -396,10 +400,10 @@ export default function StudentList() {
                             </div>
 
                             <div className="flex gap-2">
-                                <Button type="submit" className="flex-1" disabled={updateLoading}>
+                                <Button type="submit" className="flex-1 rounded-none dark:bg-white dark:text-black dark:hover:bg-gray-200" disabled={updateLoading}>
                                     {updateLoading ? "Saving..." : "Save Changes"}
                                 </Button>
-                                <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading}>
+                                <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading} className="rounded-none dark:bg-black dark:text-white dark:border-gray-700 dark:hover:bg-gray-800">
                                     Cancel
                                 </Button>
                             </div>
@@ -414,8 +418,8 @@ export default function StudentList() {
 function InputField({ label, name, value, onChange, section }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => void, section: "user" | "student" }) {
     return (
         <div>
-            <Label>{label}</Label>
-            <Input name={name} value={value} onChange={(e) => onChange(e, section)} />
+            <Label className="dark:text-gray-300">{label}</Label>
+            <Input name={name} value={value} onChange={(e) => onChange(e, section)} className="rounded-none dark:bg-black dark:text-white dark:border-gray-700" />
         </div>
     );
 }
@@ -423,12 +427,12 @@ function InputField({ label, name, value, onChange, section }: { label: string, 
 function SelectField({ label, value, options, onChange }: { label: string, value: string, options: (string | { label: string, value: string })[], onChange: (val: string) => void }) {
     return (
         <div>
-            <Label>{label}</Label>
+            <Label className="dark:text-gray-300">{label}</Label>
             <Select value={value} onValueChange={onChange}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                     <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
                     {options.map((opt) => {
                         const val = typeof opt === "string" ? opt : opt.value;
                         const label = typeof opt === "string" ? opt : opt.label;

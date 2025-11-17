@@ -77,8 +77,8 @@ const CvUploadPage = () => {
     };
 
     return (
-        <div className="flex justify-center items-center h-screen p-4">
-            <Card className="w-full max-w-md">
+        <div className="flex justify-center items-center p-4">
+            <Card className="w-full max-w-md rounded-none">
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold">Upload CV</CardTitle>
                     <CardDescription>
@@ -87,12 +87,15 @@ const CvUploadPage = () => {
                 </CardHeader>
                 <CardContent>
                     {successMessage && (
-                        <div className="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-900 dark:text-green-200">
-                            {successMessage}
-                        </div>
+                        <Alert variant="default" className="mb-4 rounded-none">
+                            <AlertTitle>Success</AlertTitle>
+                            <AlertDescription>
+                                {successMessage}
+                            </AlertDescription>
+                        </Alert>
                     )}
                     {serverError && (
-                        <Alert variant="destructive" className="mb-4">
+                        <Alert variant="destructive" className="mb-4 rounded-none">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>
                                 {serverError}
@@ -110,8 +113,9 @@ const CvUploadPage = () => {
                                     setRegNo(e.target.value);
                                     if (regNoError) validateForm();
                                 }}
+                                className="rounded-none"
                             />
-                            {regNoError && <p className="text-sm text-red-500 mt-1">{regNoError}</p>}
+                            {regNoError && <p className="text-sm text-destructive mt-1">{regNoError}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="fileName">File Name</Label>
@@ -123,10 +127,11 @@ const CvUploadPage = () => {
                                     setFileName(e.target.value);
                                     if (fileNameError) validateForm(); // Re-validate on change
                                 }}
+                                className="rounded-none"
                             />
-                            {fileNameError && <p className="text-sm text-red-500 mt-1">{fileNameError}</p>}
+                            {fileNameError && <p className="text-sm text-destructive mt-1">{fileNameError}</p>}
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full rounded-none" disabled={isLoading}>
                             {isLoading ? "Creating..." : "Create CV"}
                         </Button>
                     </form>

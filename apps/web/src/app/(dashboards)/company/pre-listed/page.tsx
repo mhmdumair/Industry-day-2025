@@ -55,7 +55,7 @@ export default function CompanyFilter() {
     const [error, setError] = useState<string | null>(null);
     const [companyId, setCompanyId] = useState<string | null>(null);
 
-    /* ----------------  init  ---------------- */
+    /* ----------------  init  ---------------- */
     useEffect(() => {
         const fetchCompanyId = async () => {
             try {
@@ -82,7 +82,7 @@ export default function CompanyFilter() {
         }
     }, [companyId]);
 
-    /* ----------------  fetchers  ---------------- */
+    /* ----------------  fetchers  ---------------- */
     const fetchStudentsData = async () => {
         try {
             setLoading(true);
@@ -110,7 +110,7 @@ export default function CompanyFilter() {
         } finally { setLoadingExisting(false); }
     };
 
-    /* ----------------  helpers  ---------------- */
+    /* ----------------  helpers  ---------------- */
     const filteredStudents = useMemo(() => {
         const k = searchTerm.trim().toLowerCase();
         if (!k) return [];
@@ -130,7 +130,7 @@ export default function CompanyFilter() {
         preListedStudents.some(s => s.studentID === id) ||
         existingPreListedStudents.some(i => i.studentID === id);
 
-    /* ----------------  actions  ---------------- */
+    /* ----------------  actions  ---------------- */
     const addToPreList = (stu: Student) => {
         if (alreadyListed(stu.studentID)) return;
         setPreListedStudents(p => [...p, stu]);
@@ -175,7 +175,7 @@ export default function CompanyFilter() {
     };
 
 
-    /* ----------------  render  ---------------- */
+    /* ----------------  render  ---------------- */
     if (loading) return (
         <div className="mt-3 flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading…
@@ -190,118 +190,154 @@ export default function CompanyFilter() {
     );
 
     return (
-        <div className="mt-3 mx-auto p-4 flex flex-col items-center gap-6">
-            <Card className="w-11/12 max-w-2xl bg-slate-100/80">
-                <CardHeader>
-                    <CardTitle>Pre-List Students</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <form onSubmit={e => e.preventDefault()} className="flex gap-2">
-                        <Input
-                            placeholder="Search name, reg-no, email, group, level…"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                        <Button variant="outline"><Search size={16} /></Button>
-                    </form>
+        <div className="bg-white dark:bg-black">
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                {/* 2 Column Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left Column - Pre-List Students with cream background */}
+                    <div className="bg-[#FDF6E3] p-6 rounded-none h-[calc(80vh-8rem)]">
+                        <Card className="rounded-none border-none shadow-lg bg-white dark:bg-black h-full flex flex-col">
+                            <CardHeader className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                                <CardTitle className="text-xl font-semibold">Pre-List Students</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-6 flex-1 overflow-y-auto flex flex-col">
+                                <form onSubmit={e => e.preventDefault()} className="flex gap-2">
+                                    <Input
+                                        placeholder="Search name, reg-no, email, group, level…"
+                                        value={searchTerm}
+                                        onChange={e => setSearchTerm(e.target.value)}
+                                        className="rounded-none"
+                                    />
+                                    <Button variant="outline" className="rounded-none">
+                                        <Search size={16} />
+                                    </Button>
+                                </form>
 
-                    {/* search results */}
-                    {filteredStudents.length > 0 && (
-                        <div className="space-y-2">
-                            {filteredStudents.slice(0, 5).map(stu => (
-                                <Card key={stu.studentID} className="border-teal-600 bg-teal-100/80">
-                                    <CardHeader className="p-3 flex flex-row justify-between items-start">
-                                        <div>
-                                            <CardTitle className="text-sm">
-                                                {stu.user.first_name} {stu.user.last_name}
-                                            </CardTitle>
-                                            <CardDescription className="text-xs">
-                                                {stu.regNo} • {stu.group} • {stu.level.replace('_', ' ')}
-                                            </CardDescription>
-                                            <CardDescription className="text-xs">
-                                                {stu.user.email}
-                                            </CardDescription>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            className="bg-teal-600 text-white"
-                                            disabled={alreadyListed(stu.studentID)}
-                                            onClick={() => addToPreList(stu)}
-                                        >
-                                            <Plus size={14} /> {alreadyListed(stu.studentID) ? 'Added' : 'Add'}
-                                        </Button>
+                                {/* search results */}
+                                {filteredStudents.length > 0 && (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto flex-shrink-0">
+                                        {filteredStudents.slice(0, 5).map(stu => (
+                                            <Card key={stu.studentID} className="rounded-none border-teal-600 bg-teal-50 dark:bg-teal-950">
+                                                <CardHeader className="p-3 flex flex-row justify-between items-start">
+                                                    <div>
+                                                        <CardTitle className="text-sm font-semibold">
+                                                            {stu.user.first_name} {stu.user.last_name}
+                                                        </CardTitle>
+                                                        <CardDescription className="text-xs">
+                                                            {stu.regNo} • {stu.group} • {stu.level.replace('_', ' ')}
+                                                        </CardDescription>
+                                                        <CardDescription className="text-xs">
+                                                            {stu.user.email}
+                                                        </CardDescription>
+                                                    </div>
+                                                    <Button
+                                                        size="sm"
+                                                        className="rounded-none bg-teal-600 text-white hover:bg-teal-700"
+                                                        disabled={alreadyListed(stu.studentID)}
+                                                        onClick={() => addToPreList(stu)}
+                                                    >
+                                                        <Plus size={14} /> {alreadyListed(stu.studentID) ? 'Added' : 'Add'}
+                                                    </Button>
+                                                </CardHeader>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* pending list */}
+                                <Card className="rounded-none bg-gray-50 dark:bg-black border-1 border-gray-200 dark:border-gray-700 flex-1 flex flex-col min-h-0">
+                                    <CardHeader className="pb-3 flex-shrink-0">
+                                        <CardTitle className="text-base font-semibold">
+                                            Pending ({preListedStudents.length})
+                                        </CardTitle>
                                     </CardHeader>
+                                    <CardContent className="flex-1 overflow-y-auto">
+                                        {preListedStudents.length === 0 ? (
+                                            <p className="text-sm text-gray-500 text-center pb-10">Nothing added yet</p>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {preListedStudents.map((stu) => (
+                                                    <div key={stu.studentID} className="flex justify-between items-center border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-3 rounded-none">
+                                                        <div>
+                                                            <span className="font-medium text-sm">{stu.user.first_name} {stu.user.last_name}</span>
+                                                            <span className="text-xs block text-gray-600 dark:text-gray-400">
+                                                                {stu.regNo} • {stu.group} • {stu.level.split('_')[1]?.concat('000L')}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="rounded-none hover:bg-red-50 dark:hover:bg-red-950"
+                                                            onClick={() => removeFromPreList(stu.studentID)}
+                                                        >
+                                                            <X size={16} className="text-red-600" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
                                 </Card>
-                            ))}
-                        </div>
-                    )}
 
-                    {/* pending list */}
-                    <Card className="bg-white/50 p-4">
-                        <h3 className="font-semibold mb-2">Pending ({preListedStudents.length})</h3>
-                        {preListedStudents.length === 0 ? (
-                            <p className="text-sm text-gray-500 text-center">Nothing added yet</p>
-                        ) : preListedStudents.map((stu) => (
-                            <div key={stu.studentID} className="flex justify-between items-center border p-2 mb-1 rounded">
-                                <div>
-                                    <span className="font-medium">{stu.user.first_name} {stu.user.last_name}</span>
-                                    <span className="text-xs block">
-                                        {stu.regNo} • {stu.group} • {stu.level.split('_')[1]?.concat('000L')}
-                                    </span>
-                                </div>
-                                <Button size="sm" className="bg-red-200" onClick={() => removeFromPreList(stu.studentID)}>
-                                    <X size={14} />
+                                <Button
+                                    disabled={preListedStudents.length === 0}
+                                    onClick={confirmPreList}
+                                    className="w-full rounded-none flex-shrink-0"
+                                >
+                                    Confirm Pre-Listed Students ({preListedStudents.length})
                                 </Button>
-                            </div>
-                        ))}
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                    <Button
-                        variant="outline"
-                        disabled={preListedStudents.length === 0}
-                        onClick={confirmPreList}
-                        className="w-full bg-blue-200/70 hover:bg-blue-200 border-blue-400"
-                    >
-                        Confirm Pre-Listed Students ({preListedStudents.length})
-                    </Button>
-                </CardContent>
-            </Card>
-
-            {/* ----------  Existing list  ---------- */}
-            <Card className="w-11/12 max-w-2xl bg-slate-100/80">
-                <CardHeader>
-                    <CardTitle>Current Pre-Listed Students</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {loadingExisting ? (
-                        <div className="flex items-center justify-center p-6">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading…
-                        </div>
-                    ) : existingPreListedStudents.length === 0 ? (
-                        <p className="text-center text-gray-500">None yet</p>
-                    ) : existingPreListedStudents.map(iv => (
-                        <div key={iv.interviewID} className="flex justify-between items-center border p-2 mb-1 rounded">
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 text-right">{iv.company_preference}.</div>
-                                <div>
-                                    <span className="font-medium">{iv.student.user.first_name} {iv.student.user.last_name}</span>
-                                    <span className="text-xs block">
-                                        {iv.student.regNo} • {iv.student.group} • {iv.student.level.split('_')[1]?.concat('000L')}
-                                    </span>
-                                </div>
-                            </div>
-                            <Button
-                                size="sm"
-                                className="bg-red-200"
-                                disabled={removingStudents.has(iv.interviewID)}
-                                onClick={() => removeExisting(iv.interviewID)}
-                            >
-                                {removingStudents.has(iv.interviewID) ? <Loader2 className="animate-spin h-4 w-4" /> : <X size={14} />}
-                            </Button>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
+                    {/* Right Column - Current Pre-Listed Students */}
+                    <div className="h-[calc(80vh-8rem)]">
+                        <Card className="rounded-none border-1 shadow-lg bg-white dark:bg-black h-full flex flex-col">
+                            <CardHeader className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                                <CardTitle className="text-xl font-semibold">Current Pre-Listed Students</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 flex-1 overflow-y-auto">
+                                {loadingExisting ? (
+                                    <div className="flex items-center justify-center p-6">
+                                        <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading…
+                                    </div>
+                                ) : existingPreListedStudents.length === 0 ? (
+                                    <p className="text-center text-gray-500 py-4">None yet</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {existingPreListedStudents.map(iv => (
+                                            <div key={iv.interviewID} className="flex justify-between items-center border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-3 rounded-none">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="font-medium text-sm">{iv.company_preference}.</div>
+                                                    <div>
+                                                        <span className="font-medium text-sm">{iv.student.user.first_name} {iv.student.user.last_name}</span>
+                                                        <span className="text-xs block text-gray-600 dark:text-gray-400">
+                                                            {iv.student.regNo} • {iv.student.group} • {iv.student.level.split('_')[1]?.concat('000L')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="rounded-none hover:bg-red-50 dark:hover:bg-red-950"
+                                                    disabled={removingStudents.has(iv.interviewID)}
+                                                    onClick={() => removeExisting(iv.interviewID)}
+                                                >
+                                                    {removingStudents.has(iv.interviewID) ? (
+                                                        <Loader2 className="animate-spin h-4 w-4" />
+                                                    ) : (
+                                                        <X size={16} className="text-red-600" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

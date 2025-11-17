@@ -126,7 +126,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl shadow-md">
+    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh]">
       <CardHeader>
         <CardTitle>Manage Interviews</CardTitle>
         <CardDescription>
@@ -135,15 +135,16 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="student-search">Student</Label>
+          <Label className="mb-1" htmlFor="student-search">Student</Label>
           <Input
             id="student-search"
             placeholder="Search by name, registration number, or email"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="rounded-none"
           />
           {selectedStudent ? (
-            <div className="mt-2 flex justify-between items-center p-3 border rounded-md bg-teal-50">
+            <div className="mt-2 flex justify-between items-center p-3 border rounded-none bg-teal-50">
               <div>
                 <div className="font-medium">
                   {selectedStudent.user.first_name} {selectedStudent.user.last_name}
@@ -155,6 +156,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                className="rounded-none"
                 onClick={() => {
                   setSelectedStudent(null);
                   setInterviews([]);
@@ -165,11 +167,11 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
             </div>
           ) : (
             filteredStudents.length > 0 && (
-              <div className="mt-2 space-y-1 max-h-48 overflow-y-auto border rounded-md p-2">
+              <div className="mt-2 space-y-1 max-h-48 overflow-y-auto border rounded-none p-2">
                 {filteredStudents.slice(0, 10).map((student) => (
                   <Card
                     key={student.studentID}
-                    className="cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="cursor-pointer hover:bg-gray-100 transition-colors rounded-none"
                     onClick={() => handleStudentSelect(student)}
                   >
                     <CardHeader className="p-3">
@@ -190,15 +192,15 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
         {selectedStudent && (
           <div className="mt-4 space-y-4">
             <div>
-              <Label htmlFor="interview-type">Interview Type</Label>
+              <Label className="mb-1" htmlFor="interview-type">Interview Type</Label>
               <Select
                 value={interviewType}
                 onValueChange={(value) => handleInterviewTypeChange(value as InterviewType)}
               >
-                <SelectTrigger id="interview-type">
+                <SelectTrigger id="interview-type" className="rounded-none w-full">
                   <SelectValue placeholder="Select interview type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-none w-full">
                   <SelectItem value={InterviewType.WALK_IN}>Walk-in</SelectItem>
                   <SelectItem value={InterviewType.PRE_LISTED}>
                     Pre-listed
@@ -217,7 +219,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
                 {interviews.map((interview) => (
                   <div
                     key={interview.interviewID}
-                    className="flex justify-between items-center p-3 border rounded-md"
+                    className="flex justify-between items-center p-3 border rounded-none"
                   >
                     <div>
                       <p className="font-medium">{interview.company.companyName}</p>
@@ -228,6 +230,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
                     <Button
                       variant="destructive"
                       size="sm"
+                      className="rounded-none"
                       onClick={() => handleCancelInterview(interview.interviewID)}
                     >
                       Cancel

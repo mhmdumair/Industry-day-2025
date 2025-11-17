@@ -1,8 +1,8 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
-import CompanySidebar from "@/components/company/company-sidebar";
 import CompanyNavbar from "@/components/company/company-navbar";
-import React from "react";
+import React, { Suspense } from "react";
+import DashboardNavbar from "@/components/common/dashboard-navbar";
 
 export default async function CompanyLayout({
   children,
@@ -12,11 +12,15 @@ export default async function CompanyLayout({
   const cookieStore = await cookies();
 
   return (
-      <SidebarProvider>
-        <div className="flex antialiased bg-transparent w-full ml-3 mr-3">
-          <CompanySidebar />
+      <SidebarProvider defaultOpen={false}>
+        <div className="flex antialiased bg-transparent w-full">
           <main className="flex flex-col min-h-screen w-full">
-            <CompanyNavbar />
+            <Suspense fallback={<div className="w-full h-16 border-b border-gray-200 dark:border-gray-800" />}>
+              <DashboardNavbar/>
+            </Suspense>
+            <Suspense fallback={<div className="w-full h-16 border-b border-gray-200 dark:border-gray-800" />}>
+              <CompanyNavbar />
+            </Suspense>
             <div className="w-full p-2 sm:p-4">
               {children}
             </div>

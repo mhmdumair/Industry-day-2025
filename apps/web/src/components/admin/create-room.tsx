@@ -76,9 +76,9 @@ export default function CreateRoom() {
     };
 
     return (
-        <Card className="bg-white shadow-md">
+        <Card className="bg-white dark:bg-transparent shadow-md rounded-none">
             <CardHeader>
-                <CardTitle>Create Room</CardTitle>
+                <CardTitle className="text-xl leading-tight">Create Room</CardTitle>
                 <CardDescription>Add a new room to the system</CardDescription>
             </CardHeader>
             <CardContent>
@@ -93,6 +93,7 @@ export default function CreateRoom() {
                                 onChange={handleInputChange}
                                 placeholder="Enter room name"
                                 required
+                                className="rounded-none dark:bg-transparent mt-1 dark:text-gray-100"
                             />
                         </div>
                         <div>
@@ -103,6 +104,7 @@ export default function CreateRoom() {
                                 onChange={handleInputChange}
                                 placeholder="Enter location"
                                 required
+                                className="rounded-none dark:bg-transparent mt-1 dark:text-gray-100"
                             />
                         </div>
                         <div>
@@ -111,10 +113,10 @@ export default function CreateRoom() {
                                 value={formData.isActive ? "true" : "false"}
                                 onValueChange={handleSelectChange}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="rounded-none dark:bg-transparent mt-1 dark:text-gray-100">
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-none dark:bg-black mt-1 dark:text-gray-100">
                                     <SelectItem value="true">Active</SelectItem>
                                     <SelectItem value="false">Inactive</SelectItem>
                                 </SelectContent>
@@ -124,20 +126,20 @@ export default function CreateRoom() {
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                        <div className="p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 rounded-none text-sm">
                             {error}
                         </div>
                     )}
 
                     {/* Success Message */}
                     {success && (
-                        <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+                        <div className="p-3 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 rounded-none text-sm">
                             Room created successfully!
                         </div>
                     )}
 
                     {/* Submit Button */}
-                    <Button type="submit" className="w-full mt-4" disabled={isLoading}>
+                    <Button type="submit" className="w-full mt-4 rounded-none">
                         {isLoading ? "Creating..." : "Create Room"}
                     </Button>
                 </form>

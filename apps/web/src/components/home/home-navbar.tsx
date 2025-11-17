@@ -1,32 +1,49 @@
 "use client";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import api from "../../lib/axios";
 import { AxiosError } from "axios";
+import { ModeToggle } from "../common/mode-toggle";
 
 export default function HomeNavbar() {
     const [isLoading, setIsLoading] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        // Check authentication status on mount
+        const checkAuth = async () => {
+            try {
+                await api.get('/user/dashboard');
+                setIsAuthenticated(true);
+            } catch (error) {
+                setIsAuthenticated(false);
+            }
+        };
+        checkAuth();
+    }, []);
 
     const handleDashboardClick = async () => {
         setIsLoading(true);
         try {
             const { data } = await api.get('/user/dashboard');
-            router.push(data.redirectUrl)
-            
+            setIsAuthenticated(true);
+            router.push(data.redirectUrl);
+
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
             if (error instanceof AxiosError && error.response?.status === 401) {
                 console.log("Unauthorized. Redirecting to login page.");
+                setIsAuthenticated(false);
                 router.push('/auth/login');
             } else {
                 console.log("An unexpected error occurred. Redirecting to login page.");
+                setIsAuthenticated(false);
                 router.push('/auth/login');
             }
         } finally {
@@ -34,58 +51,143 @@ export default function HomeNavbar() {
         }
     };
 
+    const handleLogout = async () => {
+        setIsLoading(true);
+        try {
+            await api.post('/auth/logout');
+            setIsAuthenticated(false);
+            router.push('/');
+        } catch (error) {
+            console.error("Failed to logout:", error);
+            // Even if logout fails, clear local state and redirect
+            setIsAuthenticated(false);
+            router.push('/home');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <header className="w-full shadow-sm bg-slate-100 border border-black rounded-md">
-            <div className="w-full mx-auto px-4 py-3 flex items-center justify-between relative">
-                <div className="flex items-center gap-2">
-                    <img src="/unilogo.png" alt="University Logo" className="h-10 sm:h-20 w-auto" />
-                    <div className="text-2xl sm:text-3xl font-bold leading-none text-green-950">
-                        INDUSTRY DAY 2025<br />
-                        <span className="text-lg sm:text-xl font-normal">Faculty of Science</span>
+        <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
+            <div className="w-full px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16 relative">
+                    {/* Logo and Title */}
+                    <div className="flex items-start gap-3">
+                        <img
+                            src="/unilogo.png"
+                            alt="University Logo"
+                            className="h-12 w-12"
+                        />
+                        <div className="flex flex-col">
+                            <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
+                            INDUSTRY DAY 2025
+                            </h1>
+                            <span className="text-base font-bold text-gray-700 dark:text-gray-300">
+                            FACULTY OF SCIENCE
+                            </span>
+                        </div>
                     </div>
-                </div>
 
-                <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2">
-                    <Link href="/home" className="text-lg lg:text-xl font-medium hover:text-green-600 transition-colors text-black">Home</Link>
-                    <Link href="/home/map" className="text-lg lg:text-xl font-medium hover:text-green-700 transition-colors text-black">Map</Link>
-                    <Link href="/home/live" className="text-lg lg:text-xl font-medium hover:text-green-600 transition-colors text-black">Live Queues</Link>
-                </nav>
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+                        <Link
+                            href="/home"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+                        >
+                            Home
+                        </Link>
+                        <Link
+                            href="/home/map"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+                        >
+                            Map
+                        </Link>
+                        <Link
+                            href="/home/live"
+                            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+                        >
+                            Live Queues
+                        </Link>
+                    </nav>
 
-                <div className="hidden lg:flex items-center gap-4">
-                    <Button size="sm" onClick={handleDashboardClick} disabled={isLoading}>
-                        {isLoading ? "Loading..." : "Dashboard"}
-                    </Button>
-                    <Avatar className="h-10 w-10 ring-2 ring-blue-200">
-                        <AvatarImage src="https://github.com/shadcn.png" alt="User Avatar" />
-                        <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                </div>
-
-                <div className="lg:hidden ml-auto">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <Menu className="w-5 h-5" />
+                    {/* Dashboard/Login and Logout Buttons - Desktop */}
+                    <div className="hidden md:flex items-center gap-2">
+                        <ModeToggle/>
+                        <Button
+                            onClick={handleDashboardClick}
+                            disabled={isLoading}
+                            className="rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black px-6"
+                        >
+                            {isLoading ? "Loading..." : isAuthenticated ? "Dashboard" : "Login"}
+                        </Button>
+                        {isAuthenticated && (
+                            <Button
+                                onClick={handleLogout}
+                                disabled={isLoading}
+                                variant="outline"
+                                className="rounded-none px-6"
+                            >
+                                Logout
                             </Button>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="p-6 space-y-4">
-                            <Link href="/home" className="block hover:text-green-600 transition-colors text-black">Home</Link>
-                            <Link href="/home/map" className="block hover:text-green-600 transition-colors text-black">Map</Link>
-                            <Link href="/home/live" className="block hover:text-green-600 transition-colors text-black">Live Queues</Link>
-                            <div className="pt-4 border-t">
-                                <Button className="w-full" onClick={handleDashboardClick} disabled={isLoading}>
-                                    {isLoading ? "Loading..." : "Dashboard"}
+                        )}
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <div className="md:hidden flex items-center gap-2">
+                        <ModeToggle/>
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-none"
+                                >
+                                    <Menu className="h-5 w-5" />
                                 </Button>
-                                <div className="flex items-center gap-3 mt-4 p-3 bg-gray-50 rounded-md">
-                                    <Avatar className="h-8 w-8 ring-2 ring-blue-200">
-                                        <AvatarImage src="https://github.com/shadcn.png" alt="User Avatar" />
-                                        <AvatarFallback>U</AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-sm text-gray-600">Profile</span>
-                                </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="rounded-none bg-white dark:bg-gray-950">
+                                <nav className="flex flex-col space-y-4 mt-8">
+                                    <Link
+                                        href="/home"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                                    >
+                                        Home
+                                    </Link>
+                                    <Link
+                                        href="/home/map"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                                    >
+                                        Map
+                                    </Link>
+                                    <Link
+                                        href="/home/live"
+                                        className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                                    >
+                                        Live Queues
+                                    </Link>
+                                    <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                                        <Button
+                                            className="w-full rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black"
+                                            onClick={handleDashboardClick}
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? "Loading..." : isAuthenticated ? "Dashboard" : "Login"}
+                                        </Button>
+                                        {isAuthenticated && (
+                                            <Button
+                                                className="w-full rounded-none"
+                                                onClick={handleLogout}
+                                                disabled={isLoading}
+                                                variant="outline"
+                                            >
+                                                Logout
+                                            </Button>
+                                        )}
+                                    </div>
+                                </nav>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
                 </div>
             </div>
         </header>

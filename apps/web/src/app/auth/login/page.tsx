@@ -1,14 +1,28 @@
 "use client"
-import { LoginForm } from "@/components/auth/login-form"
-import LoginNavbar from "@/components/auth/auth-navbar";
+import { Suspense } from "react"
+import { StudentLoginForm, CompanyLoginForm } from "@/components/auth/login-form"
+import AuthNavbar from "@/components/auth/auth-navbar";
 
 export default function LoginPage() {
     return (
-        <div className="h-screen flex flex-col overflow-hidden">
-            <LoginNavbar/>
-            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 md:p-10 font-inter">
-                <div className="flex w-full flex-col gap-6">
-                    <LoginForm className="justify-center items-center"/>
+        <div className="min-h-screen flex flex-col bg-white dark:bg-black">
+            <Suspense fallback={<div className="h-16 border-b border-gray-200 dark:border-gray-800" />}>
+                <AuthNavbar/>
+            </Suspense>
+            <div className="flex-1 flex items-center justify-center p-6 md:p-10">
+                <div className="w-full max-w-5xl mx-auto">
+                    {/* 2 Column Grid - Centered */}
+                    <div className="grid grid-cols-1 gap-8 items-center justify-items-center">
+                       {/* Left Column - Student Login */}
+                        <div className="w-full max-w-md">
+                            <StudentLoginForm />
+                        </div>
+
+                        {/* Right Column - Company Login */}
+                        <div className="w-full max-w-md">
+                            <CompanyLoginForm />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

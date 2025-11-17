@@ -1,20 +1,26 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import api from "@/lib/axios"
-
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import api from "@/lib/axios";
 
 // Database announcement interface
 interface Announcement {
@@ -24,18 +30,24 @@ interface Announcement {
     created_at: string;
     audienceType: 'ALL' | 'STUDENTS' | 'COMPANIES';
     postedByUserID: string;
-    author_name :string
+    author_name: string;
 }
 
 // Function to extract company name from announcement data
 const extractCompanyFromAnnouncement = (announcement: Announcement): string => {
+    // Use author_name if available
+    if (announcement.author_name) {
+        return announcement.author_name;
+    }
+    
     if (announcement.audienceType === 'COMPANIES') return 'Companies';
     if (announcement.audienceType === 'STUDENTS') return 'Students';
 
     // Try to extract from title
     const titleLower = announcement.title.toLowerCase();
-    if (titleLower.includes('siic')) return 'SIIC';
     if (titleLower.includes('mas')) return 'MAS';
+    if (titleLower.includes('siic')) return 'SIIC';
+    if (titleLower.includes('aayu')) return 'AAYU';
     if (titleLower.includes('octave')) return 'Octave';
 
     return 'General';
@@ -47,28 +59,43 @@ const formatTimeFromTimestamp = (timestamp: string): string => {
     return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
-    });
+        hour12: true
+    }).toUpperCase();
 };
 
+// Get badge variant based on company
+const getCompanyBadgeVariant = (company: string): "default" | "secondary" | "destructive" | "outline" => {
+    return "default";
+};
+
+// Get badge styling based on company
 const getCompanyBadgeClass = (company: string) => {
-    switch (company.toLowerCase()) {
-        case "siic": return "bg-green-500 border border-green-900 text-white";
-        case "mas": return "bg-red-500 border border-red-900 text-white";
-        case "octave": return "bg-orange-500 border border-orange-900 text-white";
-        case "companies": return "bg-blue-500 border border-blue-900 text-white";
-        case "students": return "bg-purple-500 border border-purple-900 text-white";
-        default: return "bg-gray-500 border border-gray-900 text-white";
+    const companyLower = company.toLowerCase();
+    
+    switch (companyLower) {
+        case "mas":
+            return "bg-red-500 hover:bg-red-600 text-white border-0 rounded-full px-3 py-0.5";
+        case "siic":
+            return "bg-[#B7EDB6] hover:bg-green-600 text-[#014200] border border-[#014200] rounded-full px-3 py-0.5";
+        case "aayu":
+            return "bg-orange-500 hover:bg-orange-600 text-white border-0 rounded-full px-3 py-0.5";
+        case "octave":
+            return "bg-blue-500 hover:bg-blue-600 text-white border-0 rounded-full px-3 py-0.5";
+        case "companies":
+            return "bg-purple-500 hover:bg-purple-600 text-white border-0 rounded-full px-3 py-0.5";
+        case "students":
+            return "bg-indigo-500 hover:bg-indigo-600 text-white border-0 rounded-full px-3 py-0.5";
+        default:
+            return "bg-gray-500 hover:bg-gray-600 text-white border-0 rounded-full px-3 py-0.5";
     }
 };
 
 const HomeAnnouncement = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [page, setPage] = useState(0);
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const pageSize = 4;
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3; // Show 3 items per page like in the image
 
     // Fetch announcements from database
     useEffect(() => {
@@ -89,160 +116,161 @@ const HomeAnnouncement = () => {
         fetchAnnouncements();
     }, []);
 
-
     // Transform database data to match component format
     const transformedAnnouncements = useMemo(() => {
         return announcements.map(announcement => ({
             id: announcement.announcementID,
-            company: extractCompanyFromAnnouncement(announcement),
-            time: formatTimeFromTimestamp(announcement.created_at),
             title: announcement.title,
-            description: announcement.content,
+            sentBy: extractCompanyFromAnnouncement(announcement),
+            time: formatTimeFromTimestamp(announcement.created_at),
+            details: announcement.content,
             audienceType: announcement.audienceType,
-            author_name :announcement.author_name
         }));
     }, [announcements]);
 
-    const filtered = useMemo(() => {
-        return transformedAnnouncements.filter(
-            (a) =>
-                a.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [transformedAnnouncements, searchTerm]);
+    // Pagination
+    const totalPages = Math.ceil(transformedAnnouncements.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentAnnouncements = transformedAnnouncements.slice(startIndex, endIndex);
 
-    const paginated = useMemo(() => {
-        const start = page * pageSize;
-        return filtered.slice(start, start + pageSize);
-    }, [filtered, page]);
-
-    const totalPages = Math.ceil(filtered.length / pageSize);
+    // Calculate showing range
+    const showingStart = transformedAnnouncements.length === 0 ? 0 : startIndex + 1;
+    const showingEnd = Math.min(endIndex, transformedAnnouncements.length);
+    const totalCount = transformedAnnouncements.length;
 
     // Loading state
     if (loading) {
         return (
-            <div className="w-full h-fit">
-                <Card className="w-full bg-slate-100/80 h-fit">
-                    <h1 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">Announcements</h1>
-                    <CardContent className="flex justify-center py-12">
-                        <p className="text-gray-500 text-lg">Loading announcements...</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
+                <CardHeader className="pb-3">
+                    <div>
+                        <h2 className="text-2xl font-semibold">Announcements</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex justify-center py-12">
+                    <p className="text-gray-500 dark:text-gray-400">Loading announcements...</p>
+                </CardContent>
+            </Card>
         );
     }
 
     // Error state
     if (error) {
         return (
-            <div className="w-full h-fit">
-                <Card className="w-full bg-slate-100/80 h-fit">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">
-                            Announcements
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-                        <p className="text-red-500 text-lg">Error: {error}</p>
-                        <Button
-                            onClick={() => window.location.reload()}
-                            variant="outline"
-                        >
-                            Retry
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
+                <CardHeader className="pb-3">
+                    <div>
+                        <h2 className="text-2xl font-semibold">Announcements</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <p className="text-red-500 dark:text-red-400">Error: {error}</p>
+                    <Button
+                        onClick={() => window.location.reload()}
+                        variant="outline"
+                        className="rounded-none"
+                    >
+                        Retry
+                    </Button>
+                </CardContent>
+            </Card>
         );
     }
 
     return (
-        <div className="w-full h-fit">
-            <Card className="w-full bg-slate-100/80 h-fit">
-                <CardHeader className="pb-2">
-                    <h2 className="font-semibold text-3xl sm:text-3xl lg:text-3xl text-center px-4">
-                        Announcements
-                    </h2>
-                </CardHeader>
+        <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
+            <CardHeader className="pb-3">
+                <div>
+                    <h2 className="text-2xl font-semibold">Announcements</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                </div>
+            </CardHeader>
 
-                <CardContent className="space-y-6">
-                    {/* Search */}
-                    <div className="flex justify-center w-full">
-                        <Input
-                            placeholder="Search announcements..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setPage(0);
-                            }}
-                            className="w-full max-w-md"
-                        />
-                    </div>
+            <CardContent className="px-5">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent border-gray-200 dark:border-gray-700">
+                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Title</TableHead>
+                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Sent by</TableHead>
+                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Time</TableHead>
+                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Details</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {currentAnnouncements.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    No announcements found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            currentAnnouncements.map((announcement) => (
+                                <TableRow key={announcement.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                                    <TableCell className="font-medium align-top py-4">
+                                        {announcement.title}
+                                    </TableCell>
+                                    <TableCell className="align-top py-4">
+                                        <Badge
+                                            className={getCompanyBadgeClass(announcement.sentBy)}
+                                        >
+                                            {announcement.sentBy}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-gray-600 dark:text-gray-400 align-top py-4 whitespace-nowrap">
+                                        {announcement.time}
+                                    </TableCell>
+                                    <TableCell className="text-gray-700 dark:text-gray-300 align-top py-4 whitespace-normal break-words">
+                                        {announcement.details}
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
 
-                    {/* Cards Section */}
-                    <div className="w-full h-fit">
-                        <ScrollArea className=" w-full">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 px-1 pr-3">
-                                {paginated.length === 0 ? (
-                                    <div className="col-span-full flex justify-center py-12">
-                                        <p className="text-gray-500 text-lg">No announcements found.</p>
-                                    </div>
-                                ) : (
-                                    paginated.map((a) => (
-                                        <Card key={a.id} className="shadow-lg border border-gray-200/50 bg-white rounded-2xl transition hover:shadow-xl w-full">
-                                            <CardHeader className="pb-3">
-                                                <div className="flex items-start justify-between flex-wrap gap-2">
-                                                    <Badge className={`${getCompanyBadgeClass(a.company)} text-xs font-medium px-2 py-1`}>
-                                                        {a.author_name}
-                                                    </Badge>
-                                                    <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                                                        {a.time}
-                                                    </span>
-                                                </div>
-                                                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 mt-2 leading-tight">
-                                                    {a.title}
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="pt-0">
-                                                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                                                    {a.description}
-                                                </p>
-                                            </CardContent>
-                                        </Card>
-                                    ))
-                                )}
-                            </div>
-                        </ScrollArea>
-                    </div>
+                {/* Pagination Footer */}
+                <div className="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Showing {showingStart}-{showingEnd} of {totalCount} announcements
+                    </p>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-3 py-4 border-t border-gray-200">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage((p) => Math.max(p - 1, 0))}
-                                disabled={page === 0}
-                            >
-                                Previous
-                            </Button>
-                            <span className="text-sm text-gray-600 font-medium">
-                                Page {page + 1} of {totalPages}
-                            </span>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-                                disabled={page >= totalPages - 1}
-                            >
-                                Next
-                            </Button>
-                        </div>
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        className={`rounded-none ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                                    />
+                                </PaginationItem>
+
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <PaginationItem key={page}>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(page)}
+                                            isActive={currentPage === page}
+                                            className="rounded-none cursor-pointer"
+                                        >
+                                            {page}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        className={`rounded-none ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
                     )}
-                </CardContent>
-            </Card>
-        </div>
+                </div>
+            </CardContent>
+        </Card>
     );
 };
 

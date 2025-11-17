@@ -224,24 +224,24 @@ function StallsContent() {
   };
 
   /* ---------- render ---------- */
-  if (loading) return <p className="p-4">Loading…</p>;
-  if (error) return <p className="p-4 text-red-500">{error}</p>;
+  if (loading) return <p className="p-4 dark:text-gray-200">Loading…</p>;
+  if (error) return <p className="p-4 text-red-500 dark:text-red-400">{error}</p>;
 
   return (
-    <div className="mt-3 mx-auto p-4">
-      <Card className="bg-slate-100/80">
+    <div className="mt-3 mx-auto p-4 w-1/2">
+      <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">{room?.location || "Room"}</CardTitle>
-          <CardDescription>{room?.roomName}</CardDescription>
+          <CardTitle className="text-2xl text-gray-900 dark:text-gray-100">{room?.location || "Room"}</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">{room?.roomName}</CardDescription>
         </CardHeader>
         <CardContent>
           {stalls.map((stall) => (
-            <Card key={stall.stallID} className="relative mb-4">
+            <Card key={stall.stallID} className="relative mb-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none">
               <div className="absolute top-2 right-2 flex gap-1">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-6 w-6 p-1 bg-blue-100"
+                  className="h-6 w-6 p-1 border-gray-500 rounded-none"
                   onClick={() => openEditDialog(stall)}
                 >
                   <Edit className="h-3 w-3" />
@@ -249,50 +249,50 @@ function StallsContent() {
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="h-6 w-6 p-1 bg-red-400"
+                  className="h-6 w-6 p-1 bg-red-400 dark:bg-red-600 rounded-none"
                   onClick={() => handleRemove(stall.stallID)}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3 text-white" />
                 </Button>
               </div>
               <CardHeader>
-                <CardTitle>{stall.title}</CardTitle>
-                <CardDescription>{stall.company?.companyName ?? stall.companyID}</CardDescription>
+                <CardTitle className="text-gray-900 dark:text-gray-100">{stall.title}</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">{stall.company?.companyName ?? stall.companyID}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-xs">Preference: {stall.preference}</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300">Preference: {stall.preference}</p>
               </CardContent>
             </Card>
           ))}
         </CardContent>
-        <CardFooter className="flex flex-col items-center">
-          <CardDescription>
+        <CardFooter className="flex flex-col items-center border-t border-gray-200 dark:border-gray-700">
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             To add more interview stalls, contact the respective room admin
           </CardDescription>
-          <Button onClick={openCreateDialog} variant="secondary" className="w-full mt-3">
+          <Button onClick={openCreateDialog} variant="secondary" className="w-full mt-3 rounded-none dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700">
             <Plus className="h-4 w-4 mr-2" />
             Add Stall
           </Button>
         </CardFooter>
       </Card>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-none dark:bg-black dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="dark:text-gray-100">
               {editingStall ? "Edit Stall" : "Create New Stall"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="dark:text-gray-400">
               {editingStall ? "Update stall details" : "Select company, title, and preference"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Select value={newCompanyID} onValueChange={(v) => setNewCompanyID(v)}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
                 <SelectValue placeholder="Company" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none dark:bg-gray-800 dark:border-gray-600">
                 {companies.map((c) => (
-                  <SelectItem key={c.companyID} value={c.companyID}>
+                  <SelectItem key={c.companyID} value={c.companyID} className="dark:text-gray-100">
                     {c.companyName}
                   </SelectItem>
                 ))}
@@ -302,17 +302,18 @@ function StallsContent() {
               placeholder="Stall title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
+              className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
             />
             <Select
               value={newPreference}
               onValueChange={(v) => setNewPreference(v as Preference)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
                 <SelectValue placeholder="Stream preference" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none dark:bg-gray-800 dark:border-gray-600">
                 {Object.values(Preference).map((p) => (
-                  <SelectItem key={p} value={p}>
+                  <SelectItem key={p} value={p} className="dark:text-gray-100">
                     {p}
                   </SelectItem>
                 ))}
@@ -324,12 +325,14 @@ function StallsContent() {
               variant="outline"
               onClick={() => setDialogOpen(false)}
               disabled={creating}
+              className="rounded-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Cancel
             </Button>
             <Button
               disabled={!newCompanyID || !newTitle.trim() || creating}
               onClick={editingStall ? handleUpdateStall : handleCreateStall}
+              className="rounded-none"
             >
               {creating
                 ? (editingStall ? "Updating…" : "Creating…")

@@ -5,22 +5,21 @@ import { StudentLevel } from '../entities/student.entity';
 
 export class StudentDto {
   @IsString()
-  regNo?: string ;
+  regNo: string;
 
   @IsOptional()
   @IsString()
-  nic?: string ;
+  nic?: string;
 
-  @IsOptional()
   @IsString()
-  contact?: string;
+  contact: string;
 
   @IsOptional()
   @IsString()
   linkedin?: string;
 
   @IsString()
-  group:string;
+  group: string;
 
   @IsEnum(StudentLevel)
   level: StudentLevel;
