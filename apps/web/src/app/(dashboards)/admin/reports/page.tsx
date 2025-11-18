@@ -550,6 +550,7 @@ export default function ReportsPage() {
                     <th className="p-3 text-left text-sm font-medium">Type</th>
                     <th className="p-3 text-left text-sm font-medium">Status</th>
                     <th className="p-3 text-left text-sm font-medium">Stall</th>
+                    <th className="p-3 text-left text-sm font-medium w-64">Remark</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -573,11 +574,14 @@ export default function ReportsPage() {
                         </td>
                         <td className="p-3 text-sm">{getStatusBadge(interview.status)}</td>
                         <td className="p-3 text-sm">{interview.stall?.title || "N/A"}</td>
+                        <td className="px-2 py-3 text-sm w-64 break-words">
+                          {interview.remark || "N/A"}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="p-8 text-center text-muted-foreground">
                         No interviews found matching the current filters
                       </td>
                     </tr>
