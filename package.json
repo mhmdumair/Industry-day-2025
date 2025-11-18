@@ -13,7 +13,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@types/leaflet": "^1.9.20",
     "@types/multer": "^2.0.0",
-    "@types/passport-google-oauth20": "^2.0.16",
+    "@types/passport-google-oauth20": "^2.0.17",
     "autoprefixer": "^10.4.21",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.31.0",
@@ -38,6 +38,8 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/typeorm": "^11.0.0",
     "@radix-ui/react-navigation-menu": "^1.2.13",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express-session": "^1.18.2",
     "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -45,6 +47,7 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "express-session": "^1.18.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.1",
     "next-themes": "^0.4.6",
     "passport": "^0.7.0",
@@ -53,7 +56,7 @@
     "react-hook-form": "^7.62.0",
     "react-pdf": "^10.0.1",
     "react-router-dom": "^7.7.1",
-    "typeorm": "^0.3.25",
+    "typeorm": "^0.3.27",
     "zod": "^4.1.5"
   }
 }
