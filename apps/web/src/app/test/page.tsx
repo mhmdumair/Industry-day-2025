@@ -1,28 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import api from '@/lib/axios';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import api from "@/lib/axios";
+import axios from "axios";
+
+interface Company {
+    companyID: string;
+    companyName: string;
+}
 
 const JobPostUploadForm = () => {
-    const [companyID, setCompanyID] = useState('');
-    const [file, setFile] = useState(null);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [companies, setCompanies] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [companyID, setCompanyID] = useState<string>("");
+    const [file, setFile] = useState<File | null>(null);
+    const [message, setMessage] = useState<string>("");
+    const [error, setError] = useState<string>("");
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
-                const response = await api.get('/company');
+                const response = await api.get<Company[]>("/company");
                 const fetchedCompanies = response.data;
                 setCompanies(fetchedCompanies);
                 if (fetchedCompanies.length > 0) {
                     setCompanyID(fetchedCompanies[0].companyID);
                 }
-            } catch (error) {
-                console.error('Failed to fetch companies:', error);
-                setError('Failed to load company list.');
+            } catch {
+                setError("Failed to load company list.");
             } finally {
                 setIsLoading(false);
             }
@@ -30,56 +35,52 @@ const JobPostUploadForm = () => {
         fetchCompanies();
     }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setMessage('');
-        setError('');
+        setMessage("");
+        setError("");
 
         if (!companyID) {
-            setError('Please select a Company.');
+            setError("Please select a Company.");
             return;
         }
 
         if (!file) {
-            setError('File is required.');
+            setError("File is required.");
             return;
         }
 
         const formData = new FormData();
-        formData.append('companyID', companyID);
-        formData.append('file', file);
+        formData.append("companyID", companyID);
+        formData.append("file", file);
 
         try {
-            const response = await api.post('/job-posts/upload', formData, {
+            const response = await api.post("/job-posts/upload", formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    "Content-Type": "multipart/form-data",
                 },
             });
 
             const data = response.data;
+            setMessage(
+                `Success! File uploaded and saved to DB. Drive ID: ${data.driveFileId}, New File Name: ${data.fileName}`
+            );
 
-            setMessage(`Success! File uploaded and saved to DB. Drive ID: ${data.driveFileId}, New File Name: ${data.fileName}`);
-            
             setFile(null);
-            const fileInput = document.getElementById('file-input');
-            if (fileInput instanceof HTMLInputElement) {
-                fileInput.value = '';
-            }
-
-        } catch (err) {
-            let errorMessage = 'An unknown error occurred.';
+            const fileInput = document.getElementById("file-input") as HTMLInputElement | null;
+            if (fileInput) fileInput.value = "";
+        } catch (err: unknown) {
+            let errorMessage = "An unknown error occurred.";
             if (axios.isAxiosError(err) && err.response?.data?.message) {
                 errorMessage = err.response.data.message;
             } else if (err instanceof Error) {
                 errorMessage = err.message;
             }
-            
             setError(errorMessage);
-            console.error('API Error:', err);
         }
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setFile(e.target.files[0]);
         } else {
@@ -92,10 +93,8 @@ const JobPostUploadForm = () => {
             <h2 className="text-3xl font-extrabold mb-6 text-center text-indigo-700">
                 Job Post Uploader
             </h2>
-            <p className="text-center text-sm text-gray-500 mb-6">Test the company-specific folder creation logic.</p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
-                
                 <div>
                     <label htmlFor="companyID" className="block text-sm font-medium text-gray-700 mb-1">
                         Select Company
@@ -128,10 +127,10 @@ const JobPostUploadForm = () => {
                         onChange={handleFileChange}
                         required
                         className="mt-1 block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4 file:rounded-full
-                        file:border-0 file:text-sm file:font-semibold 
-                        file:bg-indigo-50 file:text-indigo-600 
-                        hover:file:bg-indigo-100 transition duration-150 ease-in-out"
+                            file:mr-4 file:py-2 file:px-4 file:rounded-full
+                            file:border-0 file:text-sm file:font-semibold 
+                            file:bg-indigo-50 file:text-indigo-600 
+                            hover:file:bg-indigo-100 transition duration-150 ease-in-out"
                     />
                 </div>
 
@@ -140,7 +139,7 @@ const JobPostUploadForm = () => {
                     disabled={isLoading || companies.length === 0}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out transform hover:scale-[1.005]"
                 >
-                    {isLoading ? 'Loading...' : 'Upload Job Post'}
+                    {isLoading ? "Loading..." : "Upload Job Post"}
                 </button>
             </form>
 
@@ -149,6 +148,7 @@ const JobPostUploadForm = () => {
                     {message}
                 </div>
             )}
+
             {error && (
                 <div className="mt-6 p-4 rounded-lg bg-red-50 text-red-700 border border-red-300 text-sm font-medium shadow-inner">
                     Error: {error}
