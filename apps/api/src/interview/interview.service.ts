@@ -247,7 +247,7 @@ export class InterviewService {
   async findAll() {
     try {
       return this.interviewRepository.find({
-        relations: ['stall', 'student', 'student.user'],
+        relations: ['stall', 'student', 'student.user', 'company'],
         order: { created_at: 'ASC' },
       });
     } catch (err) {

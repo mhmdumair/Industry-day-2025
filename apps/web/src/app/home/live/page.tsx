@@ -135,26 +135,34 @@ const LiveQueueDisplay = () => {
     setError('');
 
     try {
-      // Fetch prelisted interviews
-      const prelistedData = await apiGet(`/interview/company/${companyId}/prelisted/inqueue`);
+      // Fetch all prelisted interviews (not just in_queue)
+      const prelistedData = await apiGet(`/interview/company/${companyId}/prelisted`);
       setPrelistedInterviews(prelistedData || []);
 
       // Fetch stalls for the company
       const stallsData = await apiGet(`/stall/company/${companyId}`);
       setStalls(stallsData || []);
 
-      // Fetch walk-in interviews for each stall
+      // Fetch all walk-in interviews for the company
+      const allWalkinData = await apiGet(`/interview/company/${companyId}/walkin`);
+
+      // Group walk-in interviews by stall
       const walkinData: Record<string, Interview[]> = {};
       if (stallsData && stallsData.length > 0) {
-        for (const stall of stallsData) {
-          try {
-            const stallWalkinData = await apiGet(`/interview/stall/${stall.stallID}/inqueue`);
-            walkinData[stall.stallID] = stallWalkinData || [];
-          } catch (stallError: any) {
-            console.error(`Error fetching walk-in data for stall ${stall.stallID}:`, stallError);
-            walkinData[stall.stallID] = [];
-          }
+        // Initialize empty arrays for each stall
+        stallsData.forEach((stall: { stallID: string | number; }) => {
+          walkinData[stall.stallID] = [];
+        });
+
+        // Group walk-in interviews by their stall
+        if (allWalkinData && allWalkinData.length > 0) {
+          allWalkinData.forEach((interview: Interview) => {
+            if (interview.stallID && walkinData[interview.stallID]) {
+              walkinData[interview.stallID].push(interview);
+            }
+          });
         }
+
         // Select first stall by default if available
         if (stallsData[0]) {
           setSelectedStall(stallsData[0].stallID);

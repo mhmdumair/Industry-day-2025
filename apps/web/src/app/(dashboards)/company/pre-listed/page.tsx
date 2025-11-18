@@ -190,17 +190,17 @@ export default function CompanyFilter() {
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black">
+        <div className="bg-white dark:bg-black">
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* 2 Column Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column - Pre-List Students with cream background */}
-                    <div className="bg-[#FDF6E3] p-6 rounded-none">
-                        <Card className="rounded-none border-none shadow-lg bg-white dark:bg-black">
-                            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="bg-[#FDF6E3] p-6 rounded-none h-[calc(80vh-8rem)]">
+                        <Card className="rounded-none border-none shadow-lg bg-white dark:bg-black h-full flex flex-col">
+                            <CardHeader className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                                 <CardTitle className="text-xl font-semibold">Pre-List Students</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4 pt-6">
+                            <CardContent className="space-y-4 pt-6 flex-1 overflow-y-auto flex flex-col">
                                 <form onSubmit={e => e.preventDefault()} className="flex gap-2">
                                     <Input
                                         placeholder="Search name, reg-no, email, group, level…"
@@ -215,7 +215,7 @@ export default function CompanyFilter() {
 
                                 {/* search results */}
                                 {filteredStudents.length > 0 && (
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 max-h-64 overflow-y-auto flex-shrink-0">
                                         {filteredStudents.slice(0, 5).map(stu => (
                                             <Card key={stu.studentID} className="rounded-none border-teal-600 bg-teal-50 dark:bg-teal-950">
                                                 <CardHeader className="p-3 flex flex-row justify-between items-start">
@@ -245,13 +245,13 @@ export default function CompanyFilter() {
                                 )}
 
                                 {/* pending list */}
-                                <Card className="rounded-none bg-gray-50 dark:bg-black border-1 border-gray-200 dark:border-gray-700">
-                                    <CardHeader className="pb-3">
+                                <Card className="rounded-none bg-gray-50 dark:bg-black border-1 border-gray-200 dark:border-gray-700 flex-1 flex flex-col min-h-0">
+                                    <CardHeader className="pb-3 flex-shrink-0">
                                         <CardTitle className="text-base font-semibold">
                                             Pending ({preListedStudents.length})
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="flex-1 overflow-y-auto">
                                         {preListedStudents.length === 0 ? (
                                             <p className="text-sm text-gray-500 text-center pb-10">Nothing added yet</p>
                                         ) : (
@@ -282,7 +282,7 @@ export default function CompanyFilter() {
                                 <Button
                                     disabled={preListedStudents.length === 0}
                                     onClick={confirmPreList}
-                                    className="w-full rounded-none"
+                                    className="w-full rounded-none flex-shrink-0"
                                 >
                                     Confirm Pre-Listed Students ({preListedStudents.length})
                                 </Button>
@@ -291,12 +291,12 @@ export default function CompanyFilter() {
                     </div>
 
                     {/* Right Column - Current Pre-Listed Students */}
-                    <div>
-                        <Card className="rounded-none border-1 shadow-lg bg-white dark:bg-black">
-                            <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="h-[calc(80vh-8rem)]">
+                        <Card className="rounded-none border-1 shadow-lg bg-white dark:bg-black h-full flex flex-col">
+                            <CardHeader className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                                 <CardTitle className="text-xl font-semibold">Current Pre-Listed Students</CardTitle>
                             </CardHeader>
-                            <CardContent className="pt-6">
+                            <CardContent className="pt-6 flex-1 overflow-y-auto">
                                 {loadingExisting ? (
                                     <div className="flex items-center justify-center p-6">
                                         <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading…

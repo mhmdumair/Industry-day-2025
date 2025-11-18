@@ -12,6 +12,7 @@ const navItems = [
   { title: "Students", url: "/admin/students" },
   { title: "Companies", url: "/admin/companies" },
   { title: "Interviews", url: "/admin/interviews" },
+  { title: "Reports", url: "/admin/reports" },
   { title: "Announcements", url: "/admin/announcements" },
   { title: "Rooms", url: "/admin/rooms" },
   { title: "Room Admins", url: "/admin/room-admins" },

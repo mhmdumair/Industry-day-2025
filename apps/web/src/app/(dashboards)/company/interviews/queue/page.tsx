@@ -6,7 +6,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Home } from "lucide-react";
+import { Search, Home, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
@@ -58,6 +66,12 @@ export default function ResumePage() {
     const [stallID, setStallID] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentRemark, setCurrentRemark] = useState('');
+
+    // Dialog states
+    const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+    const [interviewComment, setInterviewComment] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
@@ -122,6 +136,7 @@ export default function ResumePage() {
         
     const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
+        setCurrentRemark(''); // Clear remark when switching students
         const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
         if (selectedStudent) {
             fetchCvFileName(selectedStudent.studentID);
@@ -167,24 +182,52 @@ export default function ResumePage() {
         }
     }, [currentStudent, fetchCvFileName]);
 
-    const handleFinishInterview = async () => {
+    // Open the comment dialog when Finish Interview is clicked
+    const handleFinishInterviewClick = () => {
+        if (!currentStudent) return;
+        setIsCommentDialogOpen(true);
+        setInterviewComment(currentRemark); // Pre-populate with current remark
+    };
+
+    // Submit the interview with comment
+    const handleSubmitInterview = async () => {
         if (!currentStudent || !companyID || !stallID) return;
+
+        setIsSubmittingComment(true);
         try {
+            // Submit the remark if provided
+            if (interviewComment.trim()) {
+                await api.patch(`/interview/${currentStudent.interviewID}`, {
+                    remark: interviewComment
+                });
+            }
+
+            // Complete the interview
             await api.patch(`/interview/${currentStudent.interviewID}/complete`);
-            await refreshQueue(companyID, stallID);
             
+            // Close the dialog
+            setIsCommentDialogOpen(false);
+            setInterviewComment('');
+            setCurrentRemark(''); // Clear the remark field
+
+            // Refresh the queue
+            await refreshQueue(companyID, stallID);
+
+            // Move to next student
             const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
             if (nextStudentIndex < activeStudents.length) {
                 setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
-                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID); 
+                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID);
             } else {
                 setCurrentInterviewID(null);
                 setCurrentCvFileName(null);
             }
-            
+
             await fillEmptySlots(companyID, stallID);
         } catch (error) {
             console.error("Failed to finish interview:", error);
+        } finally {
+            setIsSubmittingComment(false);
         }
     };
 
@@ -261,11 +304,25 @@ export default function ResumePage() {
                         )}
 
                         <Button
-                            onClick={handleFinishInterview}
+                            onClick={handleFinishInterviewClick}
+                            disabled={!currentStudent}
                             className="w-full rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black py-6 text-base font-medium"
                         >
                             Finish Interview
                         </Button>
+                    </div>
+
+                    {/* Remark Field */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                        <label className="text-sm font-medium mb-2 block dark:text-white">Interview Remark</label>
+                        <Textarea
+                            placeholder="Add remarks during the interview..."
+                            value={currentRemark}
+                            onChange={(e) => setCurrentRemark(e.target.value)}
+                            className="rounded-none border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white resize-none"
+                            rows={3}
+                            disabled={!currentStudent}
+                        />
                     </div>
 
                     {/* Search Bar */}
@@ -346,6 +403,66 @@ export default function ResumePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Interview Comment Dialog */}
+            <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] rounded-none">
+                    <DialogHeader>
+                        <div className="flex items-center justify-between">
+                            <DialogTitle>Interview Comment</DialogTitle>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 rounded-none"
+                                onClick={() => setIsCommentDialogOpen(false)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <DialogDescription>
+                            Add a comment on the student for later review.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    {currentStudent && (
+                        <div className="bg-green-100 dark:bg-green-950 p-4 rounded-none">
+                            <div className="flex items-start justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {currentStudent.student.regNo}
+                                </span>
+                                <Badge className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-0 px-2 py-1 rounded-none">
+                                    {currentStudent.type === 'walkin' ? 'Walk-in' : `Pre-listed : ${currentStudent.company_preference}`}
+                                </Badge>
+                            </div>
+                            <h3 className="text-xl font-bold mb-1 dark:text-white">
+                                {currentStudent.student.user.first_name} {currentStudent.student.user.last_name}
+                            </h3>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                                {currentStudent.student.group}
+                            </p>
+                        </div>
+                    )}
+                    
+                    <div className="mt-4">
+                        <Textarea
+                            placeholder="You can leave it blank.."
+                            value={interviewComment}
+                            onChange={(e) => setInterviewComment(e.target.value)}
+                            className="min-h-[150px] rounded-none resize-none"
+                        />
+                    </div>
+                    
+                    <div className="flex justify-end mt-4">
+                        <Button
+                            onClick={handleSubmitInterview}
+                            disabled={isSubmittingComment}
+                            className="rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black px-6 py-2"
+                        >
+                            {isSubmittingComment ? 'Submitting...' : 'Submit'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
