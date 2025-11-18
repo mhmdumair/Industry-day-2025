@@ -77,20 +77,20 @@ export default function HomeNavbar() {
                         <img
                             src="/unilogo.png"
                             alt="University Logo"
-                            className="lg:h-12 h-8 w-auto"
+                            className="lg:h-12 md:h-11 sm:h-9 h-9 w-auto"
                         />
                         <div className="flex flex-col">
-                        <h1 className="lg:text-3xl md:text-4xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
+                        <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
                             INDUSTRY DAY 2025
                         </h1>
-                        <span className="text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
+                        <span className="text-xs sm:text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
                             FACULTY OF SCIENCE
                         </span>
                         </div>
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+                    <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
                         <Link
                             href="/home"
                             className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
@@ -112,7 +112,7 @@ export default function HomeNavbar() {
                     </nav>
 
                     {/* Dashboard/Login and Logout Buttons - Desktop */}
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="hidden lg:flex items-center gap-2">
                         <ModeToggle/>
                         <Button
                             onClick={handleDashboardClick}
@@ -134,7 +134,7 @@ export default function HomeNavbar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center gap-2">
+                    <div className="lg:hidden flex items-center gap-2">
                         <ModeToggle/>
                         <Button
                             variant="secondary"
@@ -149,7 +149,7 @@ export default function HomeNavbar() {
 
                 {/* Mobile Dropdown Menu */}
                 {menuOpen && (
-                    <div className="md:hidden fixed top-16 left-0 w-full bg-white dark:bg-black z-50 flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800">
+                    <div className="fixed top-16 left-0 w-full bg-white dark:bg-black z-50 flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800">
                         <Link
                             href="/home"
                             onClick={() => setMenuOpen(false)}
