@@ -9,13 +9,13 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
-    const frontendUrl = configService.get<string>('FRONTEND_URL');
+    const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
     // Add cookie-parser middleware here to parse cookies from incoming requests
     app.use(cookieParser());
 
     app.enableCors({
-        origin: [frontendUrl],
+        origin: frontendUrl,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
