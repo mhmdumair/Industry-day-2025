@@ -315,7 +315,7 @@ export default function StudentProfileCard() {
               {editData && (
                 <div className="grid gap-6 py-4">
                   {/* First Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
                       First Name
                     </Label>
@@ -329,7 +329,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Last Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
                       Last Name
                     </Label>
@@ -343,7 +343,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Email */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
                       Email
                     </Label>
@@ -358,7 +358,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Registration Number */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="regNo" className="text-right font-medium dark:text-gray-300">
                       Reg No
                     </Label>
@@ -372,7 +372,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* NIC */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="nic" className="text-right font-medium dark:text-gray-300">
                       NIC
                     </Label>
@@ -386,7 +386,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Contact */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">
                       Contact
                     </Label>
@@ -401,7 +401,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Group */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="group" className="text-right font-medium dark:text-gray-300">
                       Group
                     </Label>
@@ -415,7 +415,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Level */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="level" className="text-right font-medium dark:text-gray-300">
                       Level
                     </Label>
@@ -429,7 +429,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* LinkedIn */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="linkedin" className="text-right font-medium dark:text-gray-300">
                       LinkedIn
                     </Label>
@@ -444,7 +444,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Profile Picture */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
                       Profile Picture
                     </Label>
@@ -459,7 +459,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Role (read-only) */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
                       Role
                     </Label>

@@ -191,10 +191,10 @@ const LiveQueueDisplay = () => {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      'in_queue': { label: 'in-queue', className: 'bg-blue-500/50 border-1 border-blue-800 text-blue-950 dark:text-white rounded-full px-3 py-1' },
-      'in_progress': { label: 'in-progress', className: 'bg-green-500/50 border-1 border-green-800 text-green-950dark:text-white rounded-full px-3 py-1' },
-      'completed': { label: 'finished', className: 'bg-orange-500/50 border-1 border-orange-800 text-orange-950 dark:text-white rounded-full px-3 py-1' },
-      'cancelled': { label: 'cancelled', className: 'bg-red-500/50 border-1 border-red-800 text-red-950 dark:text-white rounded-full px-3 py-1' }
+      'in_queue': { label: 'in-queue', className: 'bg-blue-500/50 border-1 border-blue-800 text-blue-950 dark:text-white rounded-full lg:px-3 sm:px-1 py-1' },
+      'in_progress': { label: 'in-progress', className: 'bg-green-500/50 border-1 border-green-800 dark:text-white rounded-full lg:px-3 sm:px-1 py-1' },
+      'completed': { label: 'finished', className: 'bg-orange-500/50 border-1 border-orange-800 dark:text-white rounded-full lg:px-3 sm:px-1 py-1' },
+      'cancelled': { label: 'cancelled', className: 'bg-red-500/50 border-1 border-red-800 dark:text-white rounded-full lg:px-3 sm:px-1 py-1' }
     };
     
     const statusInfo = statusMap[status] || { label: status, className: 'bg-gray-500 text-white rounded-full px-3 py-1' };
@@ -390,13 +390,13 @@ const LiveQueueDisplay = () => {
                         {prelistedInterviews.map((interview) => (
                           <div key={interview.interviewID} className="grid grid-cols-3 items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
+                              <Avatar className="hidden md:flex h-10 w-10">
                                 <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                                   {getInitials(interview.student.user.first_name, interview.student.user.last_name)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium">
+                                <p className="font-medium lg:text-base text-sm">
                                   {interview.student.user.first_name} {interview.student.user.last_name}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -162,46 +162,54 @@ function MapPageContent() {
     return (
         <div className='flex flex-col items-center w-full min-h-screen bg-background'>
             <div className='w-full px-4'>
-                <div className='w-full h-96 mb-8 mt-6'>
+                <div className='w-full h-96 mb-8 mt-6 relative z-0'>
                     <div
                         ref={mapRef}
-                        className="w-full h-full border shadow-sm"
+                        className="w-full h-full border shadow-sm z-0"
                     />
                 </div>
-
-                <Card className="w-2/3 mx-auto rounded-none p-0">
-                    <Table>
+               <div className="w-full sm:w-11/12 md:w-2/3 mx-auto overflow-x-auto">
+                    <Card className="w-full rounded-none p-0">
+                        <Table>
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
-                                <TableHead className="font-medium text-muted-foreground w-[25%]">Department</TableHead>
-                                <TableHead className="font-medium text-muted-foreground w-[75%]">Venue & Company</TableHead>
+                            <TableHead className="font-medium text-muted-foreground w-[25%] hidden sm:table-cell">
+                                Department
+                            </TableHead>
+                            <TableHead className="font-medium text-muted-foreground w-[75%] hidden sm:table-cell">
+                                Venue & Company
+                            </TableHead>
                             </TableRow>
                         </TableHeader>
+
                         <TableBody>
                             {departmentData.map((dept, deptIndex) => (
-                                <TableRow
-                                    key={deptIndex}
-                                    className="hover:bg-muted/50"
-                                >
-                                    <TableCell className="font-medium align-middle">
-                                        {dept.department}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-y-4 py-2">
-                                            {dept.venues.map((venue, venueIndex) => (
-                                                <div key={venueIndex} className="flex flex-col">
-                                                    <span className="font-medium">{venue.location}:</span>
-                                                    <span className="text-muted-foreground">{venue.company}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                            <TableRow key={deptIndex} className="hover:bg-muted/50">
+                                
+                                {/* Department */}
+                                <TableCell className="font-medium align-middle block sm:table-cell">
+                                <span className="sm:hidden font-semibold text-muted-foreground">Department: </span>
+                                {dept.department}
+                                </TableCell>
+
+                                {/* Venue + Company */}
+                                <TableCell className="block sm:table-cell">
+                                <div className="flex flex-col gap-y-4 py-2">
+                                    {dept.venues.map((venue, venueIndex) => (
+                                    <div key={venueIndex} className="flex flex-col">
+                                        <span className="font-medium">{venue.location}:</span>
+                                        <span className="text-muted-foreground">{venue.company}</span>
+                                    </div>
+                                    ))}
+                                </div>
+                                </TableCell>
+
+                            </TableRow>
                             ))}
                         </TableBody>
-                    </Table>
-                </Card>
-                
+                        </Table>
+                    </Card>
+                </div>
                 <div className="w-2/3 mx-auto py-3">
                     <p className="text-sm text-muted-foreground text-center">
                         A list of companies and their respective venues.
