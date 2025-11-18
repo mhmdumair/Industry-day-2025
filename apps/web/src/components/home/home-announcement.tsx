@@ -95,7 +95,7 @@ const HomeAnnouncement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 3; // Show 3 items per page like in the image
+    const itemsPerPage = 2; // Show 2 items per page
 
     // Fetch announcements from database
     useEffect(() => {
@@ -143,10 +143,10 @@ const HomeAnnouncement = () => {
     if (loading) {
         return (
             <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 px-4 sm:px-6">
                     <div>
-                        <h2 className="text-2xl font-semibold">Announcements</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                        <h2 className="text-xl sm:text-2xl font-semibold">Announcements</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                     </div>
                 </CardHeader>
                 <CardContent className="flex justify-center py-12">
@@ -160,10 +160,10 @@ const HomeAnnouncement = () => {
     if (error) {
         return (
             <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 px-4 sm:px-6">
                     <div>
-                        <h2 className="text-2xl font-semibold">Announcements</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                        <h2 className="text-xl sm:text-2xl font-semibold">Announcements</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                     </div>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -182,87 +182,148 @@ const HomeAnnouncement = () => {
 
     return (
         <Card className="w-full rounded-none border-gray-200 dark:border-gray-800 bg-card text-card-foreground">
-            <CardHeader className="pb-3">
+            <CardHeader className="lg:pb-3 px-4 sm:px-6">
                 <div>
-                    <h2 className="text-2xl font-semibold">Announcements</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
+                    <h2 className="text-xl sm:text-2xl font-semibold">Announcements</h2>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">All announcements are visible here.</p>
                 </div>
             </CardHeader>
 
-            <CardContent className="px-5">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent border-gray-200 dark:border-gray-700">
-                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Title</TableHead>
-                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Sent by</TableHead>
-                            <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Time</TableHead>
-                            <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Details</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {currentAnnouncements.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                    No announcements found.
-                                </TableCell>
+            <CardContent className="px-4 sm:px-5">
+                {/* Desktop Table View */}
+                <div className="hidden sm:block min-h-[300px]">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="hover:bg-transparent border-gray-200 dark:border-gray-700">
+                                <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Title</TableHead>
+                                <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Sent by</TableHead>
+                                <TableHead className="w-[10%] font-medium text-gray-600 dark:text-gray-400">Time</TableHead>
+                                <TableHead className="w-[40%] font-medium text-gray-600 dark:text-gray-400">Details</TableHead>
                             </TableRow>
-                        ) : (
-                            currentAnnouncements.map((announcement) => (
-                                <TableRow key={announcement.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-                                    <TableCell className="font-medium align-top py-4">
-                                        {announcement.title}
-                                    </TableCell>
-                                    <TableCell className="align-top py-4">
-                                        <Badge
-                                            className={getCompanyBadgeClass(announcement.sentBy)}
-                                        >
-                                            {announcement.sentBy}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-gray-600 dark:text-gray-400 align-top py-4 whitespace-nowrap">
-                                        {announcement.time}
-                                    </TableCell>
-                                    <TableCell className="text-gray-700 dark:text-gray-300 align-top py-4 whitespace-normal break-words">
-                                        {announcement.details}
+                        </TableHeader>
+                        <TableBody>
+                            {currentAnnouncements.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        No announcements found.
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                currentAnnouncements.map((announcement) => (
+                                    <TableRow key={announcement.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                                        <TableCell className="font-medium align-top py-4">
+                                            {announcement.title}
+                                        </TableCell>
+                                        <TableCell className="align-top py-4">
+                                            <Badge
+                                                className={getCompanyBadgeClass(announcement.sentBy)}
+                                            >
+                                                {announcement.sentBy}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-gray-600 dark:text-gray-400 align-top py-4 whitespace-nowrap">
+                                            {announcement.time}
+                                        </TableCell>
+                                        <TableCell className="text-gray-700 dark:text-gray-300 align-top py-4 whitespace-normal break-words">
+                                            {announcement.details}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
 
-                {/* Pagination Footer */}
-                <div className="flex items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                {/* Mobile Card View */}
+                <div className="sm:hidden min-h-[70vh]">
+                    {currentAnnouncements.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            No announcements found.
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {currentAnnouncements.map((announcement) => (
+                                <Card key={announcement.id} className="rounded-none border border-gray-200 dark:border-gray-700 shadow-sm">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <Badge
+                                                className={getCompanyBadgeClass(announcement.sentBy)}
+                                            >
+                                                {announcement.sentBy}
+                                            </Badge>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                {announcement.time}
+                                            </span>
+                                        </div>
+                                        <h3 className="font-semibold text-base mb-2">
+                                            {announcement.title}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                            {announcement.details}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Pagination Footer - Responsive */}
+                <div className="flex flex-col sm:flex-row items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
                         Showing {showingStart}-{showingEnd} of {totalCount} announcements
                     </p>
 
                     {totalPages > 1 && (
                         <Pagination>
-                            <PaginationContent>
+                            <PaginationContent className="flex-wrap justify-center">
                                 <PaginationItem>
                                     <PaginationPrevious
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        className={`rounded-none ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                                        className={`rounded-none text-xs sm:text-sm ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
                                     />
                                 </PaginationItem>
 
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                        <PaginationLink
-                                            onClick={() => setCurrentPage(page)}
-                                            isActive={currentPage === page}
-                                            className="rounded-none cursor-pointer"
-                                        >
-                                            {page}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                ))}
+                                {/* Show fewer page numbers on mobile */}
+                                <div className="flex sm:hidden">
+                                    {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                                        const page = currentPage > 2 ? currentPage - 1 + i : i + 1;
+                                        if (page > 0 && page <= totalPages) {
+                                            return (
+                                                <PaginationItem key={page}>
+                                                    <PaginationLink
+                                                        onClick={() => setCurrentPage(page)}
+                                                        isActive={currentPage === page}
+                                                        className="rounded-none cursor-pointer text-xs sm:text-sm"
+                                                    >
+                                                        {page}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+
+                                {/* Show all page numbers on desktop */}
+                                <div className="hidden sm:flex">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                        <PaginationItem key={page}>
+                                            <PaginationLink
+                                                onClick={() => setCurrentPage(page)}
+                                                isActive={currentPage === page}
+                                                className="rounded-none cursor-pointer"
+                                            >
+                                                {page}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+                                </div>
 
                                 <PaginationItem>
                                     <PaginationNext
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        className={`rounded-none ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                                        className={`rounded-none text-xs sm:text-sm ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
                                     />
                                 </PaginationItem>
                             </PaginationContent>

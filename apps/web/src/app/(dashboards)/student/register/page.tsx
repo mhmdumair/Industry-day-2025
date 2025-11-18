@@ -6,6 +6,7 @@ import { Plus, Check } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 /* ----------  types  ---------- */
 interface Company {
@@ -129,7 +130,7 @@ const InterviewRegistration = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <p>Loading companies and interviews...</p>
+                <Spinner/>
             </div>
         );
     }
@@ -142,71 +143,71 @@ const InterviewRegistration = () => {
     }
 
     return (
-        <div className="w-full p-6">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Register for Interviews</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">Select a company to join its walk-in queue</p>
-            </div>
+        <Card className="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-200/20 rounded-none">
+            <CardHeader className="mb-2">
+                <CardTitle className="text-3xl">Register for Interviews</CardTitle>
+                <CardDescription>Select a company to join its walk-in queue</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+                {/* Company Grid */}
+                {companies.length === 0 ? (
+                    <Card className="bg-white dark:bg-black border-1 border-gray-200 dark:border-gray-200/20 rounded-none p-8">
+                        <p className="text-center text-gray-500 dark:text-gray-400">
+                            No companies available
+                        </p>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        {companies.map(c => {
+                            const disabled = alreadyRegistered(c.companyID);
+                            const busy = registering === c.companyID;
+                            return (
+                                <Card
+                                    key={c.companyID}
+                                    className="bg-white dark:bg-black border border-gray-200 dark:border-gray-200/20 rounded-none aspect-square flex flex-col"
+                                >
+                                    <CardHeader className="flex-1 flex flex-col items-center justify-center text-center p-6">
+                                        <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                                            {c.companyName}
+                                        </CardTitle>
+                                        <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
+                                            {c.stream}
+                                        </CardDescription>
+                                    </CardHeader>
 
-            {/* Company Grid */}
-            {companies.length === 0 ? (
-                <Card className="bg-white dark:bg-black border-1 border-gray-200 dark:border-gray-200/20 rounded-none p-8">
-                    <p className="text-center text-gray-500 dark:text-gray-400">
-                        No companies available
-                    </p>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    {companies.map(c => {
-                        const disabled = alreadyRegistered(c.companyID);
-                        const busy = registering === c.companyID;
-                        return (
-                            <Card
-                                key={c.companyID}
-                                className="bg-white dark:bg-black border border-gray-200 dark:border-gray-200/20 rounded-none aspect-square flex flex-col"
-                            >
-                                <CardHeader className="flex-1 flex flex-col items-center justify-center text-center p-6">
-                                    <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                                        {c.companyName}
-                                    </CardTitle>
-                                    <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
-                                        {c.stream}
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="p-6 pt-0">
-                                    <Button
-                                        variant="secondary"
-                                        className={
-                                            disabled
-                                                ? "border border-green-600 bg-green-100 dark:bg-green-900 dark:border-green-500 text-green-800 dark:text-green-200 w-full rounded-none"
-                                                : "border border-black dark:border-white bg-blue-100 dark:bg-blue-900 dark:border-blue-500 text-blue-800 dark:text-blue-200 w-full rounded-none hover:bg-blue-200 dark:hover:bg-blue-800"
-                                        }
-                                        disabled={disabled || busy}
-                                        onClick={() => register(c.companyID)}
-                                    >
-                                        {disabled ? (
-                                            <>
-                                                <Check className="mr-2 w-4 h-4" />
-                                                Registered
-                                            </>
-                                        ) : busy ? (
-                                            "Registering..."
-                                        ) : (
-                                            <>
-                                                <Plus className="mr-2 w-4 h-4" />
-                                                Register
-                                            </>
-                                        )}
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
-                </div>
-            )}
-        </div>
+                                    <CardContent className="p-6 pt-0">
+                                        <Button
+                                            variant="secondary"
+                                            className={
+                                                disabled
+                                                    ? "border border-green-600 bg-green-100 dark:bg-green-900 dark:border-green-500 text-green-800 dark:text-green-200 w-full rounded-none"
+                                                    : "border border-black dark:border-white bg-blue-100 dark:bg-blue-900 dark:border-blue-500 text-blue-800 dark:text-blue-200 w-full rounded-none hover:bg-blue-200 dark:hover:bg-blue-800"
+                                            }
+                                            disabled={disabled || busy}
+                                            onClick={() => register(c.companyID)}
+                                        >
+                                            {disabled ? (
+                                                <>
+                                                    <Check className="mr-2 w-4 h-4" />
+                                                    Registered
+                                                </>
+                                            ) : busy ? (
+                                                "Registering..."
+                                            ) : (
+                                                <>
+                                                    <Plus className="mr-2 w-4 h-4" />
+                                                    Register
+                                                </>
+                                            )}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     );
 };
 

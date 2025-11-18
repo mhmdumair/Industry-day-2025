@@ -40,16 +40,16 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
         <Dialog onOpenChange={onOpenChange}>
             <DialogTrigger asChild>{triggerComponent}</DialogTrigger>
 
-            <DialogContent className="max-w-3xl w-[90vw] p-0 rounded-none border-gray-300 overflow-hidden">
+            <DialogContent className="max-w-3xl w-[90vw] p-0 rounded-none border-gray-300 overflow-hidden sm:max-h-[90vh] max-h-[80vh] flex flex-col">
                 {/* Header */}
-                <div className="border-b border-gray-200 p-4 relative">
+                <div className="border-b border-gray-200 p-4 relative flex-shrink-0">
                     <DialogTitle className="text-lg font-medium">
                         {sponsor.name}
                     </DialogTitle>
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
+                {/* Content - Scrollable */}
+                <div className="p-6 overflow-y-auto flex-1">
                     {/* Logo Section */}
                     <div className="flex justify-center mb-6">
                         <div className="w-full max-w-md h-48 bg-gray-200 flex items-center justify-center">

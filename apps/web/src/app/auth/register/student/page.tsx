@@ -137,7 +137,7 @@ const RegisterPage = () => {
             <Suspense fallback={<div className="h-16 border-b border-gray-200 dark:border-gray-800" />}>
                 <AuthNavbar />
             </Suspense>
-            <div className="flex-1 flex items-center justify-center p-6">
+            <div className="flex-1 flex items-center justify-center p-3 lg:p-6">
                 <Card className="w-full max-w-2xl bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none shadow-lg">
                     <CardHeader className="space-y-1">
                         <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -352,12 +352,12 @@ const RegisterPage = () => {
 
                                             <div className="text-center bg-amber-100 justify-center items-center">
                                                 <Label htmlFor="cv_file" className="cursor-pointer">
-                                                    <span className="text-sm font-medium underline">
+                                                    <span className="mx-auto text-sm font-medium underline">
                                                         Click to upload
                                                     </span>
                                                 </Label>
                                                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                                    PDF files only (Max 10MB)
+                                                    PDF files only (Max 5MB)
                                                 </p>
                                             </div>
 
