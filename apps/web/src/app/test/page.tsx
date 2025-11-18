@@ -1,12 +1,34 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 
 const JobPostUploadForm = () => {
     const [companyID, setCompanyID] = useState('');
     const [file, setFile] = useState(null);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [companies, setCompanies] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            try {
+                const response = await api.get('/company');
+                const fetchedCompanies = response.data;
+                setCompanies(fetchedCompanies);
+                if (fetchedCompanies.length > 0) {
+                    setCompanyID(fetchedCompanies[0].companyID);
+                }
+            } catch (error) {
+                console.error('Failed to fetch companies:', error);
+                setError('Failed to load company list.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchCompanies();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -14,7 +36,7 @@ const JobPostUploadForm = () => {
         setError('');
 
         if (!companyID) {
-            setError('Company ID is required.');
+            setError('Please select a Company.');
             return;
         }
 
@@ -28,33 +50,40 @@ const JobPostUploadForm = () => {
         formData.append('file', file);
 
         try {
-            // NOTE: Replace 'http://localhost:3000' with your actual API endpoint if different.
-            const response = await fetch('http://localhost:3001/api/job-posts/upload', {
-                method: 'POST',
-                body: formData,
+            const response = await api.post('/job-posts/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
 
-            const data = await response.json();
+            const data = response.data;
 
-            if (!response.ok) {
-                // Handle API errors (4xx or 5xx status codes)
-                setError(data.message || 'File upload failed.');
-                console.error('API Error:', data);
-                return;
-            }
-
-            // Success handling
             setMessage(`Success! File uploaded and saved to DB. Drive ID: ${data.driveFileId}, New File Name: ${data.fileName}`);
-            setCompanyID(''); // Clear Company ID
+            
             setFile(null);
             const fileInput = document.getElementById('file-input');
-            if (fileInput) {
-                fileInput.value = ''; // Manually clear file input
+            if (fileInput instanceof HTMLInputElement) {
+                fileInput.value = '';
             }
 
         } catch (err) {
-            console.error('Network or Fetch Error:', err);
-            setError('Network error: Could not reach the API.');
+            let errorMessage = 'An unknown error occurred.';
+            if (axios.isAxiosError(err) && err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            
+            setError(errorMessage);
+            console.error('API Error:', err);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setFile(e.target.files[0]);
+        } else {
+            setFile(null);
         }
     };
 
@@ -69,17 +98,24 @@ const JobPostUploadForm = () => {
                 
                 <div>
                     <label htmlFor="companyID" className="block text-sm font-medium text-gray-700 mb-1">
-                        Company ID
+                        Select Company
                     </label>
-                    <input
+                    <select
                         id="companyID"
-                        type="text"
                         value={companyID}
                         onChange={(e) => setCompanyID(e.target.value)}
-                        placeholder="e.g., c101"
                         required
-                        className="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out"
-                    />
+                        disabled={isLoading || companies.length === 0}
+                        className="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out bg-white"
+                    >
+                        {isLoading && <option value="">Loading Companies...</option>}
+                        {!isLoading && companies.length === 0 && <option value="">No Companies Available</option>}
+                        {companies.map((company) => (
+                            <option key={company.companyID} value={company.companyID}>
+                                {company.companyName}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div>
@@ -89,7 +125,7 @@ const JobPostUploadForm = () => {
                     <input
                         id="file-input"
                         type="file"
-                        onChange={(e) => setFile(e.target.files[0])}
+                        onChange={handleFileChange}
                         required
                         className="mt-1 block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4 file:rounded-full
@@ -101,13 +137,13 @@ const JobPostUploadForm = () => {
 
                 <button
                     type="submit"
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out transform hover:scale-[1.005]"
+                    disabled={isLoading || companies.length === 0}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out transform hover:scale-[1.005]"
                 >
-                    Upload Job Post
+                    {isLoading ? 'Loading...' : 'Upload Job Post'}
                 </button>
             </form>
 
-            {/* Response Display */}
             {message && (
                 <div className="mt-6 p-4 rounded-lg bg-green-50 text-green-700 border border-green-300 text-sm font-medium shadow-inner">
                     {message}
