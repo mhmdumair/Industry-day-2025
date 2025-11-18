@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import api from "@/lib/axios"
 import { Button } from "../ui/button"
-import { ArrowLeftFromLine, Home, StepBack } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { ModeToggle } from "../common/mode-toggle"
 
@@ -69,17 +69,28 @@ export default function AuthNavbar() {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-3">
             <ModeToggle />
             <Link href={"/"}>
+              {/* Desktop: Full text button */}
               <Button
                 variant="secondary"
-                className="rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800 whitespace-normal break-words"
+                className="hidden sm:flex rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"
                 disabled={isLoading}
                 title="Go to SIIC Website"
-                >
+              >
                 Back to SIIC Website
-                </Button>
+              </Button>
+              {/* Mobile: Icon only */}
+              <Button
+                variant="secondary"
+                size="icon"
+                className="sm:hidden rounded-none bg-white dark:bg-transparent border-1 border-grey-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                disabled={isLoading}
+                title="Go to SIIC Website"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
             </Link>
           </div>
         </div>
