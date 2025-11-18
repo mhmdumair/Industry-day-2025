@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards, NotFoundException, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
@@ -6,43 +6,77 @@ import { StudentService } from 'src/student/student.service';
 import { CompanyService } from 'src/company/company.service';
 import { AdminService } from 'src/admin/admin.service';
 import { RoomAdminService } from 'src/room-admin/room-admin.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 interface AuthenticatedRequest extends Request {
-  user: {
-    userID: string;
-    email: string;
-    role: string;
-  };
+  user: {
+    userID: string;
+    email: string;
+    role: string;
+  };
 }
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly usersService: UserService,
-    private readonly studentService: StudentService,
-    private readonly companyService: CompanyService,
-    private readonly adminService: AdminService,
-    private readonly roomAdminService: RoomAdminService,
-  ) {}
+  constructor(
+    private readonly usersService: UserService,
+    private readonly studentService: StudentService,
+    private readonly companyService: CompanyService,
+    private readonly adminService: AdminService,
+    private readonly roomAdminService: RoomAdminService,
+  ) {}
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async getUsers() {
-    return this.usersService.fetchUsers();
-  }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getUsers() {
+    return this.usersService.fetchUsers();
+  }
 
-  @Post()
-  async createUser(@Body() createUser: CreateUserDto) {
-    return this.usersService.createUser(createUser);
-  }
+  @Post()
+  async createUser(@Body() createUser: CreateUserDto) {
+    return this.usersService.createUser(createUser);
+  }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Req() req: AuthenticatedRequest) {
-    return req.user;
-  }
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Req() req: AuthenticatedRequest) {
+    return req.user;
+  }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile-picture')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateProfilePicture(
+    @Req() req: AuthenticatedRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new NotFoundException('Profile picture file is required.');
+    }
+
+    const { userID } = req.user;
+
+    const user = await this.usersService.fetchUserById(userID);
+    if (!user) {
+        throw new NotFoundException('User not found.');
+    }
+    
+    const oldPublicId = user.profile_picture_public_id;
+
+    const updatedUser = await this.usersService.updateProfilePicture(
+      userID,
+      file,
+      oldPublicId,
+    );
+
+    return { 
+        message: 'Profile picture updated successfully', 
+        profile_picture: updatedUser.profile_picture,
+        profile_picture_public_id: updatedUser.profile_picture_public_id,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('dashboard')
   async getDashboardRedirect(@Req() req: AuthenticatedRequest) {
     try {
@@ -82,9 +116,9 @@ export class UserController {
     }
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string) {
-    return this.usersService.fetchUserById(id);
-  }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string) {
+    return this.usersService.fetchUserById(id);
+  }
 }

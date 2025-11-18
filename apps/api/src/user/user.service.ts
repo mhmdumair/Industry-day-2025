@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async fetchUsers(): Promise<User[]> {
@@ -52,23 +54,81 @@ export class UserService {
     }
   }
 
-  async removeUser(userID: string): Promise<{ message: string }> {
-  try {
-    const user = await this.userRepository.findOne({ where: { userID } });
+  async updateProfilePicture(
+    userID: string,
+    file: Express.Multer.File,
+    oldPublicId: string | null,
+  ): Promise<User> {
+    const queryRunner = this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userID} not found`);
-    }
+    let newPublicId: string | null = null;
+    let newSecureUrl: string | null = null;
 
-    await this.userRepository.remove(user);
-    return { message: `User ${userID} removed successfully` };
-  } catch (error) {
-    if (error instanceof NotFoundException) {
-      throw error;
+    try {
+      const user = await queryRunner.manager.findOne(User, { where: { userID } });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userID} not found.`);
+      }
+
+      const uploadResult = await this.cloudinaryService.uploadProfilePicture(file);
+      newPublicId = uploadResult.public_id;
+      newSecureUrl = uploadResult.secure_url;
+
+      user.profile_picture = newSecureUrl;
+      user.profile_picture_public_id = newPublicId;
+
+      const updatedUser = await queryRunner.manager.save(User, user);
+
+      await queryRunner.commitTransaction();
+
+      if (oldPublicId) {
+        await this.cloudinaryService.deleteFile(oldPublicId);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      if (newPublicId) {
+        console.warn(`Attempting cleanup of Cloudinary file ${newPublicId} after DB failure.`);
+        try {
+          await this.cloudinaryService.deleteFile(newPublicId);
+        } catch (cleanupError) {
+          console.error(`Failed to cleanup Cloudinary file ${newPublicId}:`, cleanupError.message);
+        }
+      }
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update profile picture: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
     }
-    throw new InternalServerErrorException('Failed to remove user');
   }
-}
+
+  async removeUser(userID: string): Promise<{ message: string }> {
+    try {
+      const user = await this.userRepository.findOne({ where: { userID } });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userID} not found`);
+      }
+
+      await this.userRepository.remove(user);
+      return { message: `User ${userID} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove user');
+    }
+  }
 
   async createUserTransactional(
     createUserDto: CreateUserDto,
@@ -76,7 +136,7 @@ export class UserService {
   ): Promise<User> {
     try {
       const userRepo = manager.getRepository(User);
-            const existingUser = await userRepo.findOne({ 
+      const existingUser = await userRepo.findOne({ 
         where: { email: createUserDto.email } 
       });
 

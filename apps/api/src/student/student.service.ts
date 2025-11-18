@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, forwardRef, Inject, BadRequestException } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,8 @@ import { Student } from 'src/student/entities/student.entity';
 import { UserService } from 'src/user/user.service';
 import { StudentCv } from 'src/typeorm/entities';
 import { CvService } from 'src/cv/cv.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class StudentService {
@@ -15,6 +17,7 @@ export class StudentService {
     private readonly userService: UserService,
     @Inject(forwardRef(() => CvService)) 
     private readonly cvService: CvService,
+    private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(StudentCv) private readonly cvRepository: Repository<StudentCv>, 
   ) {}
 
@@ -35,7 +38,7 @@ export class StudentService {
     return await manager.save(Student, student);
   }
 
-async register(
+  async register(
   createStudentDto: CreateStudentDto,
   file: Express.Multer.File,
 ): Promise<Student> {
@@ -54,7 +57,7 @@ async register(
     
     const studentID = savedStudent.studentID;
 
-    const cleanedRegNo = savedStudent.regNo.replace(/\//g, ''); 
+    const cleanedRegNo = savedStudent.regNo.replace(/\//g, ''); 
     const originalExtension = file.originalname.split('.').pop();
     const driveFilename = `${cleanedRegNo}.${originalExtension}`;
 
@@ -92,6 +95,31 @@ async register(
     await queryRunner.release();
   }
 }
+
+  async updateProfilePicture(studentID: string, file: Express.Multer.File): Promise<User> {
+    const student = await this.findOne(studentID);
+    
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentID} not found.`);
+    }
+
+    // 1. Fetch User to get old public ID and userID
+    const user = await this.userService.fetchUserById(student.userID);
+    if (!user) {
+        throw new NotFoundException('Associated user account not found.');
+    }
+
+    const oldPublicId = user.profile_picture_public_id;
+
+    // 2. Delegate the full transactional upload/delete/save logic to UserService
+    const updatedUser = await this.userService.updateProfilePicture(
+        user.userID,
+        file,
+        oldPublicId
+    );
+    
+    return updatedUser;
+  }
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const queryRunner = this.studentRepository.manager.connection.createQueryRunner();

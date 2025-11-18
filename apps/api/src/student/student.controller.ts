@@ -26,6 +26,35 @@ const pdfFileFilter = (req, file, callback) => {
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
+  @Patch('profile-picture')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async updateProfilePicture(
+      @Req() req: AuthenticatedRequest,
+      @UploadedFile() file: Express.Multer.File,
+  ) {
+      if (!file) {
+          throw new BadRequestException('Profile picture file is required.');
+      }
+
+      const student = await this.studentService.findByUserId(req.user.userID);
+
+      if (!student) {
+          throw new NotFoundException('Student profile not found for the authenticated user.');
+      }
+
+      const updatedUser = await this.studentService.updateProfilePicture(
+          student.studentID,
+          file,
+      );
+
+      return {
+          message: 'Profile picture updated successfully',
+          profile_picture: updatedUser.profile_picture,
+          profile_picture_public_id: updatedUser.profile_picture_public_id,
+      };
+  }
+
   @Post('register') 
   @UseInterceptors(FileInterceptor('cv_file', { fileFilter: pdfFileFilter })) 
   async register(
@@ -36,16 +65,15 @@ export class StudentController {
       throw new BadRequestException('CV PDF file (field name "cv_file") is required for registration.');
     }
 
-    let createStudentDto: CreateStudentDto;
-    try {
-        const jsonPayload = JSON.parse(body.createStudentDto);
-        createStudentDto = plainToInstance(CreateStudentDto, jsonPayload);
-        await validateOrReject(createStudentDto);
-    } catch (e) {
-        // Validation/Parsing failed
-        throw new BadRequestException('Invalid registration payload or failed DTO validation.');
-    }
-    
+    let createStudentDto: CreateStudentDto;
+    try {
+        const jsonPayload = JSON.parse(body.createStudentDto);
+        createStudentDto = plainToInstance(CreateStudentDto, jsonPayload);
+        await validateOrReject(createStudentDto);
+    } catch (e) {
+        throw new BadRequestException('Invalid registration payload or failed DTO validation.');
+    }
+    
     return this.studentService.register(createStudentDto, file); 
   }
   
