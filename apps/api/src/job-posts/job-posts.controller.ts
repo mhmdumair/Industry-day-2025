@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseInterceptors,
@@ -12,8 +11,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JobPostsService } from './job-posts.service';
-import { CreateJobPostDto } from './dto/create-job-post.dto';
-import { UpdateJobPostDto } from './dto/update-job-post.dto';
 
 @Controller('job-posts')
 export class JobPostsController {

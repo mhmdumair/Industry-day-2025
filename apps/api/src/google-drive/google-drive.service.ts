@@ -39,6 +39,70 @@ export class GoogleDriveService {
         this.drive = google.drive({ version: 'v3', auth });
     }
 
+    public getJobOpeningRootFolderId(): string {
+        return this.jobOpeningFolderId;
+    }
+
+    async findOrCreateFolder(folderName: string, parentFolderId: string): Promise<string> {
+        try {
+            
+            const q = `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and '${parentFolderId}' in parents`;
+
+            const response = await this.drive.files.list({
+                q: q,
+                fields: 'files(id)',
+                spaces: 'drive',
+            });
+
+            const files = response.data.files || [];
+
+            if (files.length > 0) {
+                
+                return files[0].id!;
+            }
+
+            
+            const fileMetadata = {
+                name: folderName,
+                mimeType: 'application/vnd.google-apps.folder',
+                parents: [parentFolderId],
+            };
+
+            const createdFolder = await this.drive.files.create({
+                requestBody: fileMetadata,
+                fields: 'id',
+            });
+
+            const newFolderId = createdFolder.data.id;
+            
+            if (newFolderId) {
+                
+                await this.grantPermissions(newFolderId); 
+            }
+
+            return newFolderId!;
+
+        } catch (error) {
+            console.error('Google Drive Folder Creation/Search Error:', error.message);
+            throw new InternalServerErrorException(`Failed to find or create folder "${folderName}" in Google Drive.`);
+        }
+    }
+    
+    public async grantPermissions(fileId: string): Promise<void> {
+        try {
+            await this.drive.permissions.create({
+                fileId: fileId,
+                requestBody: {
+                    role: 'reader',
+                    type: 'anyone',
+                },
+            });
+        } catch (error) {
+            
+            console.warn('Failed to set public permissions on new folder:', error.message);
+        }
+    }
+
     async uploadFile(
         file: Express.Multer.File,
         filename: string,
@@ -73,11 +137,12 @@ export class GoogleDriveService {
     async uploadJobPosting(
         file: Express.Multer.File,
         filename: string,
+        companyFolderId: string, 
     ): Promise<string> {
         try {
             const fileMetadata = {
                 name: filename,
-                parents: [this.jobOpeningFolderId], 
+                parents: [companyFolderId], 
             };
 
             const media = {

@@ -35,6 +35,22 @@ export class JobPostsService {
       throw new NotFoundException(`Company with ID ${companyID} not found`);
     }
 
+    let companyDriveFolderId: string;
+    const sanitizedCompanyName = company.companyName.replace(/[^a-zA-Z0-9\s]/g, '');
+    
+    try {
+        const rootFolderId = this.googleDriveService.getJobOpeningRootFolderId();
+        companyDriveFolderId = await this.googleDriveService.findOrCreateFolder(
+            sanitizedCompanyName, 
+            rootFolderId
+        );
+    } catch (error) {
+        console.error('Company Folder Error:', error);
+        throw new InternalServerErrorException(
+            'Failed to find or create company folder in Google Drive.',
+        );
+    }
+
     const existingJobPostsCount = await this.jobPostRepository.count({
         where: { companyID: companyID } 
     });
@@ -44,8 +60,7 @@ export class JobPostsService {
     const parts = file.originalname.split('.');
     const originalExtension = parts.length > 1 ? parts.pop() : 'dat';
     
-    const sanitizedCompanyName = company.companyName.replace(/[^a-zA-Z0-9]/g, '_');
-    const newFileName = `${sanitizedCompanyName}_${fileIndex}.${originalExtension}`;
+    const newFileName = `${sanitizedCompanyName}_${fileIndex}.${originalExtension}`; 
     
     let driveFileId: string;
     
@@ -53,6 +68,7 @@ export class JobPostsService {
       driveFileId = await this.googleDriveService.uploadJobPosting(
         file, 
         newFileName,
+        companyDriveFolderId,
       );
     } catch (error) {
       console.error('Job Post Drive Upload Error:', error);
