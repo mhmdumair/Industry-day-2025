@@ -7,7 +7,6 @@ import SponsorDialog from "../../components/home/sponsor-dialog";
 import api from "../../lib/axios";
 import { Spinner } from "@/components/ui/spinner";
 
-// Interface definitions for data types
 interface User {
     userID: string;
     email: string;
@@ -41,12 +40,12 @@ export default function AnnouncementsPage() {
     const [error, setError] = useState<string | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    // Filter sponsors by category
+
     const mainSponsor = companies.find(company => company.sponsership === "MAIN");
     const silverSponsors = companies.filter(company => company.sponsership === "SILVER");
     const bronzeSponsors = companies.filter(company => company.sponsership === "BRONZE");
 
-    // Fetch companies data on component mount
+
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
@@ -55,6 +54,8 @@ export default function AnnouncementsPage() {
                 const response = await api.get('/company');
                 
                 if (response.data) {
+                    // Filter out sponsors who are marked as GOLD but appear to be missing in the categories below. 
+                    // Keeping all data and letting the category filtering handle the display.
                     setCompanies(response.data);
                 } else {
                     setError("No companies data received");
@@ -70,7 +71,7 @@ export default function AnnouncementsPage() {
         fetchCompanies();
     }, []);
 
-    // Transform sponsor data for dialog
+
     const transformSponsorData = (sponsor: Sponsor) => ({
         name: sponsor.companyName,
         description: sponsor.description,
@@ -83,12 +84,11 @@ export default function AnnouncementsPage() {
         category: sponsor.sponsership
     });
 
-    // Loading state
     if (loading) {
         return (
-                <div className="flex items-center justify-center min-h-screen">
-                    <Spinner className="h-6 w-auto -mt-30"/>
-                </div>
+            <div className="flex items-center justify-center min-h-screen">
+                <Spinner className="h-6 w-auto -mt-30"/>
+            </div>
         );
     }
 
@@ -134,7 +134,7 @@ export default function AnnouncementsPage() {
                                         <div className="w-full aspect-[2/1] sm:aspect-[3/1] bg-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                             {mainSponsor.logo ? (
                                                 <img
-                                                    src={`/logo/${mainSponsor.logo}`}
+                                                    src={`${mainSponsor.logo}`}
                                                     alt={`${mainSponsor.companyName} logo`}
                                                     className="max-w-[60%] sm:max-w-[80%] max-h-[60%] sm:max-h-[80%] object-contain"
                                                     onError={(e) => {
@@ -171,7 +171,8 @@ export default function AnnouncementsPage() {
                                             <div className="aspect-square bg-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
-                                                        src={`/logo/${sponsor.logo}`}
+                                                        // 🎯 CHANGE APPLIED HERE: Use sponsor.logo directly
+                                                        src={`${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
                                                         className="max-w-[60%] sm:max-w-[70%] max-h-[60%] sm:max-h-[70%] object-contain"
                                                         onError={(e) => {
@@ -203,7 +204,8 @@ export default function AnnouncementsPage() {
                                             <div className="aspect-square bg-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
-                                                        src={`/logo/${sponsor.logo}`}
+                                                        // 🎯 CHANGE APPLIED HERE: Use sponsor.logo directly
+                                                        src={`${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
                                                         className="max-w-[50%] sm:max-w-[60%] max-h-[50%] sm:max-h-[60%] object-contain"
                                                         onError={(e) => {

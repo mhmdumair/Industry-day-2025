@@ -25,6 +25,21 @@ import { isAxiosError } from "axios";
 
 const companySponsorships = ["GOLD", "SILVER", "BRONZE"];
 
+interface FieldProps {
+  label: string;
+  name: string;
+  value: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSelectChange?: (value: string) => void;
+  type?: string;
+  required?: boolean;
+  placeholder?: string;
+  isSelect?: boolean;
+  isFile?: boolean;
+  onFileChange?: (file: File | null) => void;
+}
+
+
 export default function CreateCompany() {
   const [formData, setFormData] = useState({
     user: {
@@ -41,9 +56,10 @@ export default function CreateCompany() {
       contactNumber: "",
       location: "",
       companyWebsite: "",
-      logo: "",
     },
   });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +71,10 @@ export default function CreateCompany() {
   ) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [section]: { ...p[section], [name]: value } }));
+  };
+
+  const handleFileChange = (file: File | null) => {
+    setLogoFile(file);
   };
 
   const handleSponsorshipSelect = (value: string) => {
@@ -70,7 +90,8 @@ export default function CreateCompany() {
     setError(null);
     setSuccess(null);
 
-    const payload = {
+    // 1. Construct the JSON part of the payload (excluding the file)
+    const jsonPayload = {
       user: {
         email: formData.user.email,
         password: formData.user.password,
@@ -84,16 +105,37 @@ export default function CreateCompany() {
         contactPersonDesignation: formData.company.contactPersonDesignation,
         contactNumber: formData.company.contactNumber,
         location: formData.company.location,
-        ...(formData.company.logo && { logo: formData.company.logo }),
+        // Since logo is uploaded as a file, we remove the string field here,
+        // but include companyWebsite if present.
         ...(formData.company.companyWebsite && {
           companyWebsite: formData.company.companyWebsite,
         }),
       },
     };
 
+    // 2. Use FormData for file and JSON submission
+    const data = new FormData();
+
+    // Append the file using the key 'logo'
+    if (logoFile) {
+      data.append("logo", logoFile);
+    }
+    
+    // Append the JSON DTO payload as a string under the key 'data'
+    data.append('data', JSON.stringify(jsonPayload));
+
+
     try {
-      await api.post("/company", payload);
+      // 3. Target the secured single creation route /company
+      await api.post("/company", data, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Crucial for file uploads
+        },
+      });
+
       setSuccess("Company created successfully!");
+      
+      // Reset form and file state
       setFormData({
         user: { email: "", password: "", role: "company" },
         company: {
@@ -105,31 +147,30 @@ export default function CreateCompany() {
           contactNumber: "",
           location: "",
           companyWebsite: "",
-          logo: "",
         },
       });
-    } catch (err) { // err is now type 'unknown'
-    if (isAxiosError(err)) {
-      // Inside this block, TypeScript knows `err` is an AxiosError
-      console.error("Error details:", err.response?.data);
-      const message = err.response?.data?.message || "An API error occurred.";
-      setError(message);
-    } else {
-      // Handle cases where the error is not from axios (e.g., network error)
-      console.error("An unexpected error occurred:", err);
-      setError("An unexpected error occurred.");
+      setLogoFile(null);
+
+    } catch (err) {
+      if (isAxiosError(err)) {
+        console.error("Error details:", err.response?.data);
+        const message = err.response?.data?.message || "An API error occurred.";
+        setError(message);
+      } else {
+        console.error("An unexpected error occurred:", err);
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
   };
 
   return (
     <Card className="h-full mx-auto shadow-lg rounded-none">
       <CardHeader>
-        <CardTitle>Create Company</CardTitle>
+        <CardTitle>Create Company (Internal)</CardTitle>
         <CardDescription>
-          Register a new company profile with user credentials.
+          Register a new company profile with user credentials and upload a logo.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -202,15 +243,17 @@ export default function CreateCompany() {
               required={false}
               placeholder="https://www.company.com"
             />
+            
             <Field
-              label="Logo URL"
+              label="Company Logo"
               name="logo"
-              type="text"
-              value={formData.company.logo}
-              onChange={(e) => handleInputChange(e, "company")}
+              isFile={true}
+              value={logoFile ? logoFile.name : ""}
+              onFileChange={handleFileChange}
               required={false}
-              placeholder="logo"
+              placeholder="Upload Logo Image"
             />
+
           </div>
           <div className="space-y-2">
             <Label htmlFor="description" className="text-gray-700">
@@ -249,30 +292,31 @@ export default function CreateCompany() {
   );
 }
 
+
 function Field({
   label,
   name,
   value,
   onChange,
   onSelectChange,
+  onFileChange,
   type = "text",
   required = true,
   placeholder = "",
   isSelect = false,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onSelectChange?: (value: string) => void;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  isSelect?: boolean;
-}) {
+  isFile = false,
+}: FieldProps) {
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onFileChange) {
+      const file = e.target.files?.[0] || null;
+      onFileChange(file);
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <Label htmlFor={name}>{label}</Label>
+      <Label htmlFor={name} className="text-gray-700">{label}</Label>
       {isSelect ? (
         <Select value={value} onValueChange={onSelectChange}>
           <SelectTrigger className="rounded-none">
@@ -286,6 +330,17 @@ function Field({
             ))}
           </SelectContent>
         </Select>
+      ) : isFile ? (
+        <div className="flex items-center space-x-2">
+          <Input
+            id={name}
+            name={name}
+            type="file"
+            onChange={handleFileChange}
+            required={required}
+            className="rounded-none"
+          />
+        </div>
       ) : (
         <Input
           id={name}

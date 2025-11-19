@@ -9,15 +9,17 @@ import { Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { UserService } from 'src/user/user.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service'; 
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company) private companyRepository: Repository<Company>,
     private readonly userService: UserService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(dto: CreateCompanyDto): Promise<Company> {
+  async createPublic(dto: CreateCompanyDto): Promise<Company> {
     const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -25,7 +27,7 @@ export class CompanyService {
     try {
       const createdUser = await this.userService.createUserTransactional(
         dto.user,
-        queryRunner.manager
+        queryRunner.manager,
       );
 
       const company = queryRunner.manager.create(Company, {
@@ -34,66 +36,103 @@ export class CompanyService {
       });
 
       const savedCompany = await queryRunner.manager.save(Company, company);
-      
+
       await queryRunner.commitTransaction();
       return savedCompany;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(
-        `Failed to create company: ${error.message}`
+        `Failed to create company (Public): ${error.message}`,
       );
     } finally {
       await queryRunner.release();
     }
   }
 
-async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
-  const successful: Company[] = [];
-  const failed: { dto: CreateCompanyDto; error: string }[] = [];
-
-  for (let i = 0; i < createCompanyDtos.length; i++) {
+  async create(dto: CreateCompanyDto, logoFile?: Express.Multer.File): Promise<Company> {
     const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    let logoUrl: string | undefined;
+
     try {
-      const dto = createCompanyDtos[i];
-      
+      if (logoFile) {
+        const uploadResult = await this.cloudinaryService.uploadCompanyLogo(logoFile);
+        logoUrl = uploadResult.secure_url;
+      }
+
       const createdUser = await this.userService.createUserTransactional(
         dto.user,
-        queryRunner.manager
+        queryRunner.manager,
       );
+
       const company = queryRunner.manager.create(Company, {
         ...dto.company,
         userID: createdUser.userID,
+        logo: logoUrl || dto.company.logo, 
       });
 
       const savedCompany = await queryRunner.manager.save(Company, company);
-      
+
       await queryRunner.commitTransaction();
-      successful.push(savedCompany);
-      
+      return savedCompany;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      failed.push({
-        dto: createCompanyDtos[i],
-        error: error.message || 'Failed to create company',
-      });
+      throw new InternalServerErrorException(
+        `Failed to create company (Internal/File Upload): ${error.message}`,
+      );
     } finally {
       await queryRunner.release();
     }
   }
+  
+  async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
+    const successful: Company[] = [];
+    const failed: { dto: CreateCompanyDto; error: string }[] = [];
 
-  return {
-    successful,
-    failed,
-    summary: {
-      total: createCompanyDtos.length,
-      successful: successful.length,
-      failed: failed.length,
-    },
-  };
-}
+    for (let i = 0; i < createCompanyDtos.length; i++) {
+      const queryRunner = this.companyRepository.manager.connection.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        const dto = createCompanyDtos[i];
+
+        const createdUser = await this.userService.createUserTransactional(
+          dto.user,
+          queryRunner.manager,
+        );
+        const company = queryRunner.manager.create(Company, {
+          ...dto.company,
+          userID: createdUser.userID,
+        });
+
+        const savedCompany = await queryRunner.manager.save(Company, company);
+
+        await queryRunner.commitTransaction();
+        successful.push(savedCompany);
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        failed.push({
+          dto: createCompanyDtos[i],
+          error: error.message || 'Failed to create company',
+        });
+      } finally {
+        await queryRunner.release();
+      }
+    }
+
+    return {
+      successful,
+      failed,
+      summary: {
+        total: createCompanyDtos.length,
+        successful: successful.length,
+        failed: failed.length,
+      },
+    };
+  }
 
   async findAll(): Promise<Company[]> {
     try {
@@ -125,7 +164,8 @@ async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
         where: { userID: userId },
         relations: ['user'],
       });
-      if (!company) throw new NotFoundException(`Company for user ${userId} not found`);
+      if (!company)
+        throw new NotFoundException(`Company for user ${userId} not found`);
       return company;
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
@@ -142,7 +182,6 @@ async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
       return null;
     }
   }
-
 
   async update(id: string, dto: UpdateCompanyDto): Promise<Company> {
     try {
@@ -161,14 +200,15 @@ async bulkCreate(createCompanyDtos: CreateCompanyDto[]) {
 
   async remove(id: string) {
     try {
-      const company = await this.companyRepository.findOne({ where: { companyID: id } });
+      const company = await this.companyRepository.findOne({
+        where: { companyID: id },
+      });
       if (!company) throw new NotFoundException(`Company ${id} not found`);
-      
+
       const userID = company.userID;
 
-      await this.companyRepository.remove(company);;
+      await this.companyRepository.remove(company);
       await this.userService.removeUser(userID);
-      
 
       return { message: `Company ${id} removed` };
     } catch (e) {
