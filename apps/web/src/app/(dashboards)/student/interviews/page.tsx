@@ -20,6 +20,7 @@ import { Clock, CheckCircle } from "lucide-react";
 import api from "../../../../lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 /* ----------  types ---------- */
 interface Company {
@@ -194,8 +195,8 @@ const RegisteredQueues = () => {
   /* ----------  render helpers ---------- */
   if (loading)
     return (
-      <div className="flex h-64 items-center justify-center dark:text-gray-200">
-        Loading...
+      <div className="flex h-64 items-center justify-center">
+        <Spinner className="h-8 w-8" />
       </div>
     );
 

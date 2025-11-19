@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 // Import your existing component
 import RoomAdminProfileCard from '../../../../components/roomadmin/AdminProfileCard';
@@ -10,8 +11,7 @@ export const dynamic = 'force-dynamic';
 function ProfileLoading() {
   return (
     <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      <span className="ml-2">Loading profile...</span>
+      <Spinner className="h-8 w-8" />
     </div>
   );
 }
