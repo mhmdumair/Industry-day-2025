@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
+import { Menu, X } from "lucide-react";
+import { Button } from "../ui/button";
 
 const navItems = [
   { title: "Profile", url: "/room-admin/profile" },
@@ -16,6 +18,7 @@ export default function RoomAdminNavbar() {
   const roomAdminId = searchParams.get("roomAdminId");
   const [roomAdminName, setRoomAdminName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchRoomAdminInfo = async () => {
@@ -72,7 +75,42 @@ export default function RoomAdminNavbar() {
               })}
             </nav>
           </div>
+          {/* Mobile Menu Button */}
+          <div className="ml-auto">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="lg:hidden rounded-none bg-white dark:bg-transparent border-1 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {menuOpen && (
+          <div className="lg:hidden fixed top-36 left-0 w-full bg-white dark:bg-black z-50 flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800">
+            {navItems.map((item) => {
+              const isActive = pathname === item.url;
+
+              return (
+                <Link
+                  key={item.title}
+                  href={`${item.url}${roomAdminId ? `?roomAdminId=${roomAdminId}` : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                  className={`text-sm font-medium py-2 ${
+                    isActive
+                      ? "text-black font-semibold bg-gray-100/90 px-5 py-3"
+                      : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-5 py-3"
+                  }`}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </header>
   );
