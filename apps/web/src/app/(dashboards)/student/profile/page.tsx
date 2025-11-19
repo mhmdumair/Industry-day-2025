@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Phone, User, Building, Mail, GraduationCap, Users, CreditCard } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
@@ -203,7 +204,7 @@ export default function StudentProfileCard() {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+  if (loading) return <div className="flex justify-center items-center h-64"><Spinner className="h-8 w-8" /></div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
   if (!profileData) return <div className="text-center p-4">No student data found.</div>;
 

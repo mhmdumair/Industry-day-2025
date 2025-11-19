@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["dist/**", "src/**"]
+      }
     }
   ],
   "routes": [
@@ -14,5 +17,7 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "installCommand": "npm install --include=dev",
+  "buildCommand": "npm run build"
 }

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Edit3 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 
 interface Announcement {
@@ -170,7 +171,7 @@ export default function AnnouncementBoard() {
         setEditingAnnouncementId(null);
     };
 
-    if (loading) return <div className="text-center py-8">Loading announcements...</div>;
+    if (loading) return <div className="flex justify-center py-8"><Spinner className="h-8 w-8" /></div>;
     if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
 
     return (

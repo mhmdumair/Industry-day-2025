@@ -25,6 +25,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Star } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
@@ -139,8 +140,7 @@ export default function FeedbackList() {
     if (loading) {
         return (
             <div className="flex justify-center p-8 min-h-[400px] items-center">
-                <Loader2 className="h-10 w-10 animate-spin mr-4" />
-                <p className="text-xl text-muted-foreground">Loading Feedback...</p>
+                <Spinner className="h-8 w-8" />
             </div>
         );
     }

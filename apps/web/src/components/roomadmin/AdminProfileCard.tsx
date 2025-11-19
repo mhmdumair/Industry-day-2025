@@ -193,8 +193,8 @@ export default function RoomAdminProfileCard() {
   const roomDisplay = profileData.room?.roomNumber || profileData.room?.roomName || profileData.roomID;
 
   return (
-    <div className="mt-3 w-[65vh] mx-auto p-4 bg-purple-900/40 min-h-[80vh] flex items-center justify-center">
-      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
+    <div className="mt-3 max-w-[65vh] mx-auto p-4 bg-purple-900/40 flex items-center justify-center">
+      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full px-5 lg:mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
           <div className="flex items-center gap-2 mx-auto mb-3">
             <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
@@ -278,7 +278,7 @@ export default function RoomAdminProfileCard() {
               {editData && (
                 <div className="grid gap-6 py-4">
                   {/* First Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
                       First Name
                     </Label>
@@ -292,7 +292,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Last Name */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
                       Last Name
                     </Label>
@@ -306,7 +306,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Email */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
                       Email
                     </Label>
@@ -321,7 +321,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Designation */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="designation" className="text-right font-medium dark:text-gray-300">
                       Designation
                     </Label>
@@ -335,7 +335,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Contact */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">
                       Contact
                     </Label>
@@ -350,7 +350,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Profile Picture */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
                       Profile Picture
                     </Label>
@@ -365,7 +365,7 @@ export default function RoomAdminProfileCard() {
                   </div>
 
                   {/* Role (read-only) */}
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
                     <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
                       Role
                     </Label>

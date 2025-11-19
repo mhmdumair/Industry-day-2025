@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Company {
   companyID: string;
@@ -312,8 +313,8 @@ const LiveQueueDisplay = () => {
             {/* Company Selection */}
             <div className="w-full">
               {loadingCompanies ? (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  Loading companies...
+                <div className="flex justify-center py-4">
+                  <Spinner className="h-6 w-6" />
                 </div>
               ) : (
                 <Select value={selectedCompany} onValueChange={handleCompanyChange}>
@@ -500,8 +501,8 @@ const LiveQueueDisplay = () => {
 
             {/* Loading State */}
             {loading && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                Loading queue data...
+              <div className="flex justify-center py-12">
+                <Spinner className="h-8 w-8" />
               </div>
             )}
 
