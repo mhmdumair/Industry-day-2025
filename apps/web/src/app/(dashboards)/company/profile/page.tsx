@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Globe, Phone, User, Building } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -174,7 +175,7 @@ export default function ProfileCard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
+        <Spinner className="h-8 w-8" />
       </div>
     );
   }

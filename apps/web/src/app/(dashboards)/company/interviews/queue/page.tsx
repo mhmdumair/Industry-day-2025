@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
@@ -238,7 +239,7 @@ export default function ResumePage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
-                <span className="text-gray-500 dark:text-gray-400">Loading...</span>
+                <Spinner className="h-8 w-8" />
             </div>
         );
     }

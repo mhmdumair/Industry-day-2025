@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, Suspense } from 'react';
 import { useTheme } from "next-themes";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
     Table,
     TableBody,
@@ -224,7 +225,7 @@ export default function Page() {
     return (
         <Suspense fallback={
             <div className="flex justify-center items-center h-screen">
-                <div className="text-gray-500">Loading map...</div>
+                <Spinner className="h-8 w-8" />
             </div>
         }>
             <MapPageContent />
