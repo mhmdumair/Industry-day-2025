@@ -28,10 +28,9 @@ interface User {
 }
 
 interface Company {
-  companyID : string;
+  companyID: string;
   companyName: string;
   sponsership: string;
-  stream: string;
   contactPersonName: string;
   contactNumber: string;
   location: string;
@@ -40,14 +39,56 @@ interface Company {
   user: User;
 }
 
+const Td = ({ children, ...rest }: ComponentProps<"td">) => (
+  <td
+    className="p-4 align-middle [&:has([role=checkbox])]:pr-0"
+    {...rest}
+  >
+    {children}
+  </td>
+);
+
+function InputField({
+  label,
+  name,
+  value,
+  onChange,
+  section,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    section: "user" | "company"
+  ) => void;
+  section: "user" | "company";
+}) {
+  return (
+    <div>
+      <Label htmlFor={`${section}-${name}`}>{label}</Label>
+      <Input
+        id={`${section}-${name}`}
+        name={name}
+        value={value}
+        onChange={(e) => onChange(e, section)}
+        className="rounded-none"
+      />
+    </div>
+  );
+}
+
+
 export default function CompanyList() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
 
+  // --- Data Fetching ---
   useEffect(() => {
     (async () => {
       try {
@@ -64,9 +105,11 @@ export default function CompanyList() {
     })();
   }, []);
 
+  // --- Dialog Handlers ---
   const handleEditClick = (company: Company) => {
     try {
       setEditingCompany({ ...company });
+      setLogoFile(null);
       setIsDialogOpen(true);
     } catch (e) {
       console.error("Error opening dialog:", e);
@@ -76,6 +119,7 @@ export default function CompanyList() {
   const handleDialogClose = () => {
     try {
       setEditingCompany(null);
+      setLogoFile(null);
       setIsDialogOpen(false);
     } catch (e) {
       console.error("Error closing dialog:", e);
@@ -108,6 +152,16 @@ export default function CompanyList() {
     }
   };
 
+  // --- File Change Handler ---
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setLogoFile(e.target.files[0]);
+    } else {
+      setLogoFile(null);
+    }
+  };
+
+  // --- Form Submission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCompany) return;
@@ -115,28 +169,41 @@ export default function CompanyList() {
     try {
       setUpdateLoading(true);
 
-      const payload = {
+      // 1. Prepare JSON payload for the 'data' field
+      const dataPayload = {
         companyName: editingCompany.companyName,
         sponsership: editingCompany.sponsership,
-        stream: editingCompany.stream,
         contactPersonName: editingCompany.contactPersonName,
         contactNumber: editingCompany.contactNumber,
         location: editingCompany.location,
         companyWebsite: editingCompany.companyWebsite,
-        logo: editingCompany.logo,
+        
         user: {
           email: editingCompany.user.email,
           first_name: editingCompany.user.first_name,
           last_name: editingCompany.user.last_name,
-          profile_picture: editingCompany.user.profile_picture,
         },
       };
 
-      await api.patch(`/company/${editingCompany.companyID}`, payload);
+      // 2. Create FormData object
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(dataPayload));
+
+      if (logoFile) {
+        formData.append('logo', logoFile);
+      }
+
+      const response = await api.patch(`/company/${editingCompany.companyID}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const updatedCompany = response.data;
 
       setCompanies((prev) =>
         prev.map((c) =>
-          c.companyName === editingCompany.companyName ? editingCompany : c
+          c.companyID === updatedCompany.companyID ? updatedCompany : c
         )
       );
 
@@ -165,7 +232,7 @@ export default function CompanyList() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                {["Company", "Stream", "Email", "Actions"].map((h) => (
+                {["Company", "Email", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0"
@@ -183,7 +250,6 @@ export default function CompanyList() {
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     <Td>{c.companyName}</Td>
-                    <Td>{c.stream}</Td>
                     <Td>{c.user.email}</Td>
                     <Td>
                       <Button
@@ -199,7 +265,7 @@ export default function CompanyList() {
                 ))
               ) : (
                 <tr>
-                  <Td colSpan={4}>No companies found.</Td>
+                  <Td colSpan={3}>No companies found.</Td>
                 </tr>
               )}
             </tbody>
@@ -216,17 +282,11 @@ export default function CompanyList() {
           {editingCompany && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* COMPANY FIELDS */}
                 <InputField
                   label="Company Name"
                   name="companyName"
                   value={editingCompany.companyName}
-                  onChange={handleInputChange}
-                  section="company"
-                />
-                <InputField
-                  label="Stream"
-                  name="stream"
-                  value={editingCompany.stream}
                   onChange={handleInputChange}
                   section="company"
                 />
@@ -265,13 +325,28 @@ export default function CompanyList() {
                   onChange={handleInputChange}
                   section="company"
                 />
-                <InputField
-                  label="Logo URL"
-                  name="logo"
-                  value={editingCompany.logo || ""}
-                  onChange={handleInputChange}
-                  section="company"
-                />
+                
+                {/* File Uploader */}
+                <div className="col-span-1">
+                  <Label htmlFor="logo-upload">Company Logo </Label>
+                  <Input
+                    id="logo-upload"
+                    type="file"
+                    name="logo"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="rounded-none file:text-foreground"
+                  />
+                  {/* Display current logo or selected file name */}
+                  {(editingCompany.logo && !logoFile) && (
+                    <p className="text-xs text-muted-foreground mt-1">Current: <a href={editingCompany.logo} target="_blank" rel="noopener noreferrer" className="underline truncate">{editingCompany.logo.substring(0, 50)}...</a></p>
+                  )}
+                  {logoFile && (
+                    <p className="text-xs text-green-500 mt-1">Selected new file: {logoFile.name}</p>
+                  )}
+                </div>
+
+                {/* USER FIELDS */}
                 <InputField
                   label="Email"
                   name="email"
@@ -293,13 +368,7 @@ export default function CompanyList() {
                   onChange={handleInputChange}
                   section="user"
                 />
-                <InputField
-                  label="Profile Picture URL"
-                  name="profile_picture"
-                  value={editingCompany.user.profile_picture || ""}
-                  onChange={handleInputChange}
-                  section="user"
-                />
+
               </div>
               <div className="flex gap-2">
                 <Button
@@ -324,43 +393,5 @@ export default function CompanyList() {
         </DialogContent>
       </Dialog>
     </Card>
-  );
-}
-
-const Td = ({ children, ...rest }: ComponentProps<"td">) => (
-  <td
-    className="p-4 align-middle [&:has([role=checkbox])]:pr-0"
-    {...rest}
-  >
-    {children}
-  </td>
-);
-
-function InputField({
-  label,
-  name,
-  value,
-  onChange,
-  section,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    section: "user" | "company"
-  ) => void;
-  section: "user" | "company";
-}) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <Input
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e, section)}
-        className="rounded-none"
-      />
-    </div>
   );
 }

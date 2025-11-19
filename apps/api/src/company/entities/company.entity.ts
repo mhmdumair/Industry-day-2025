@@ -45,6 +45,9 @@ export class Company {
   @Column({ nullable: true })
   logo: string;
 
+  @Column({ nullable: true })
+  logoPublicId: string;
+
   @Column({ type: 'enum', enum: CompanySponsership })
   sponsership: CompanySponsership;
 

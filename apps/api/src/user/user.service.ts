@@ -4,6 +4,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -129,6 +130,20 @@ export class UserService {
       throw new InternalServerErrorException('Failed to remove user');
     }
   }
+
+  async updateUserInTransaction(
+    userId: string,
+    dto: UpdateUserDto,
+    entityManager: EntityManager,
+): Promise<User> {
+    const userRepo = entityManager.getRepository(User);
+    const user = await userRepo.findOne({ where: { userID: userId } });
+    if (!user) {
+        throw new NotFoundException(`User ${userId} not found`);
+    }
+    const updatedUser = userRepo.merge(user, dto);
+    return await userRepo.save(updatedUser);
+}
 
   async createUserTransactional(
     createUserDto: CreateUserDto,
