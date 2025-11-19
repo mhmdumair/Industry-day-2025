@@ -23,10 +23,10 @@ export default function Page() {
               className="h-12 w-12"
             />
             <div className="flex flex-col">
-              <h1 className="text-4xl font-extrabold text-black dark:text-white leading-7">
-                Science Industry Interaction Cell
+              <h1 className="lg:text-3xl md:text-4xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
+                INDUSTRY DAY 2025
               </h1>
-              <span className="text-base font-bold text-gray-700 dark:text-gray-300">
+              <span className="text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
                 FACULTY OF SCIENCE
               </span>
             </div>
@@ -46,7 +46,7 @@ export default function Page() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-16">
+      <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
 
           {/* Registration Alert */}
@@ -56,7 +56,7 @@ export default function Page() {
             </AlertTitle>
             <AlertDescription className="space-y-4">
               <p className="text-base tracking-tight">
-                Have you registered for <span className='underline'>Industry Day 2025</span>? <br/>Join us for an exciting opportunity to connect with leading companies and explore career possibilities!
+                Have you registered for <span className='underline'>Industry Day 2025</span>?<br/>Join us for an exciting opportunity to connect with leading companies and explore career possibilities!
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-2 justify-end">
