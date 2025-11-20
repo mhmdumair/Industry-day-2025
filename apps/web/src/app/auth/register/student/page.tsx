@@ -350,7 +350,7 @@ const RegisterPage = () => {
                                                 <Upload className="h-8 w-8" />
                                             </div>
 
-                                            <div className="text-center bg-amber-100 justify-center items-center">
+                                            <div className="text-center justify-center items-center">
                                                 <Label htmlFor="cv_file" className="cursor-pointer">
                                                     <span className="mx-auto text-sm font-medium underline">
                                                         Click to upload

@@ -204,7 +204,6 @@ export default function AnnouncementsPage() {
                                             <div className="aspect-square bg-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-center rounded-none sm:rounded-none border border-gray-200 dark:border-gray-700">
                                                 {sponsor.logo ? (
                                                     <img
-                                                        // 🎯 CHANGE APPLIED HERE: Use sponsor.logo directly
                                                         src={`${sponsor.logo}`}
                                                         alt={`${sponsor.companyName} logo`}
                                                         className="max-w-[50%] sm:max-w-[60%] max-h-[50%] sm:max-h-[60%] object-contain"

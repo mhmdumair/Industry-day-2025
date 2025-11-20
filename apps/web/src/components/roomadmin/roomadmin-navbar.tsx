@@ -41,7 +41,7 @@ export default function RoomAdminNavbar() {
   }, []);
 
   return (
-    <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
+    <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800 relative">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side - Room Admin branding */}
@@ -90,7 +90,7 @@ export default function RoomAdminNavbar() {
 
         {/* Mobile Dropdown Menu */}
         {menuOpen && (
-          <div className="lg:hidden fixed top-36 left-0 w-full bg-white dark:bg-black z-50 flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white dark:bg-black flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800 z-50">
             {navItems.map((item) => {
               const isActive = pathname === item.url;
 
