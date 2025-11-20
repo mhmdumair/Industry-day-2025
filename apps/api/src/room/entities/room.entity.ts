@@ -22,7 +22,6 @@ export class Room {
   @Column({ default: false })
   isActive: boolean;
 
-  // Relationships
   @OneToOne(() => RoomAdmin, (roomAdmin) => roomAdmin.room, { nullable: false })
   roomAdmin: RoomAdmin;
 
