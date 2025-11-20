@@ -5,6 +5,7 @@ import { RoomAdmin } from 'src/room-admin/entities/room-admin.entity';
 import { CreateRoomAdminDto } from './dto/create-room-admin.dto';
 import { UpdateRoomAdminDto } from './dto/update-room-admin.dto';
 import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RoomAdminService {
@@ -43,6 +44,31 @@ export class RoomAdminService {
     }
   }
 
+  async updateProfilePicture(roomAdminID: string, file: Express.Multer.File): Promise<User> {
+    const roomAdmin = await this.findOne(roomAdminID);
+    
+    if (!roomAdmin) {
+      throw new NotFoundException(`Room Admin with ID ${roomAdminID} not found.`);
+    }
+
+    // 1. Fetch User to get old public ID and userID
+    const user = await this.userService.fetchUserById(roomAdmin.userID);
+    if (!user) {
+      throw new NotFoundException('Associated user account not found.');
+    }
+
+    const oldPublicId = user.profile_picture_public_id;
+
+    // 2. Delegate the full transactional upload/delete/save logic to UserService
+    const updatedUser = await this.userService.updateProfilePicture(
+      user.userID,
+      file,
+      oldPublicId
+    );
+    
+    return updatedUser;
+  }
+
   async findAll(): Promise<RoomAdmin[]> {
     try {
       return await this.roomAdminRepository.find({
@@ -55,7 +81,7 @@ export class RoomAdminService {
 
   async findOne(id: string): Promise<RoomAdmin | null> {
     try {
-      return await this.roomAdminRepository.findOne({ 
+      return await this.roomAdminRepository.findOne({
         where: { roomAdminID: id },
         relations: ['user', 'room'],
       });
@@ -66,19 +92,19 @@ export class RoomAdminService {
 
   async findByUserId(userId: string): Promise<RoomAdmin | null> {
     try {
-    const roomAdmin = await this.roomAdminRepository.findOne({ 
-      where: { userID: userId },
-      relations: ['user', 'room'],
-    });
-    return roomAdmin;
-  } catch (error) {
+      const roomAdmin = await this.roomAdminRepository.findOne({
+        where: { userID: userId },
+        relations: ['user', 'room'],
+      });
+      return roomAdmin;
+    } catch (error) {
       throw new InternalServerErrorException('Failed to fetch room admin by userID');
     }
   }
 
   async findByRoomId(roomId: string): Promise<RoomAdmin[]> {
     try {
-      return await this.roomAdminRepository.find({ 
+      return await this.roomAdminRepository.find({
         where: { roomID: roomId },
         relations: ['user', 'room'],
       });
@@ -88,63 +114,63 @@ export class RoomAdminService {
   }
 
   async update(id: string, updateRoomAdminDto: UpdateRoomAdminDto): Promise<RoomAdmin> {
-  const queryRunner = this.roomAdminRepository.manager.connection.createQueryRunner();
-  await queryRunner.connect();
-  await queryRunner.startTransaction();
+    const queryRunner = this.roomAdminRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-  try {
-    const roomAdmin = await queryRunner.manager.findOne(RoomAdmin, {
-      where: { roomAdminID: id },
-      relations: ['user', 'room'],
-    });
+    try {
+      const roomAdmin = await queryRunner.manager.findOne(RoomAdmin, {
+        where: { roomAdminID: id },
+        relations: ['user', 'room'],
+      });
 
-    if (!roomAdmin) {
-      throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
+      if (!roomAdmin) {
+        throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
+      }
+
+      const { user: userDto, ...roomAdminFields } = updateRoomAdminDto;
+      
+      Object.assign(roomAdmin, roomAdminFields);
+
+      if (userDto) {
+        await this.userService.updateUserInTransaction(
+          roomAdmin.userID,
+          userDto,
+          queryRunner.manager
+        );
+      }
+
+      await queryRunner.manager.save(RoomAdmin, roomAdmin);
+
+      await queryRunner.commitTransaction();
+
+      const updatedRoomAdmin = await this.roomAdminRepository.findOne({
+        where: { roomAdminID: id },
+        relations: ['user', 'room'],
+      });
+
+      if (!updatedRoomAdmin) {
+        throw new NotFoundException(`RoomAdmin with ID ${id} not found after update`);
+      }
+
+      return updatedRoomAdmin;
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Failed to update room admin: ${error.message}`);
+    } finally {
+      await queryRunner.release();
     }
-
-    const { user: userDto, ...roomAdminFields } = updateRoomAdminDto;
-    
-    Object.assign(roomAdmin, roomAdminFields);
-
-    if (userDto) {
-      await this.userService.updateUserInTransaction(
-        roomAdmin.userID,
-        userDto,
-        queryRunner.manager
-      );
-    }
-
-    await queryRunner.manager.save(RoomAdmin, roomAdmin);
-
-    await queryRunner.commitTransaction();
-
-    const updatedRoomAdmin = await this.roomAdminRepository.findOne({
-      where: { roomAdminID: id },
-      relations: ['user', 'room'],
-    });
-
-    if (!updatedRoomAdmin) {
-      throw new NotFoundException(`RoomAdmin with ID ${id} not found after update`);
-    }
-
-    return updatedRoomAdmin;
-
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
-    
-    if (error instanceof NotFoundException) {
-      throw error;
-    }
-    throw new InternalServerErrorException(`Failed to update room admin: ${error.message}`);
-  } finally {
-    await queryRunner.release();
   }
-}
 
   async remove(id: string): Promise<{ message: string }> {
     try {
-      const roomAdmin = await this.roomAdminRepository.findOne({ 
-        where: { roomAdminID: id } 
+      const roomAdmin = await this.roomAdminRepository.findOne({
+        where: { roomAdminID: id }
       });
       if (!roomAdmin) {
         throw new NotFoundException(`RoomAdmin with ID ${id} not found`);
@@ -163,16 +189,16 @@ export class RoomAdminService {
 
   async removeByRoomId(roomId: string): Promise<{ message: string; count: number }> {
     try {
-      const roomAdmins = await this.roomAdminRepository.find({ 
-        where: { roomID: roomId } 
+      const roomAdmins = await this.roomAdminRepository.find({
+        where: { roomID: roomId }
       });
       if (roomAdmins.length === 0) {
         return { message: `No room admins found for room ${roomId}`, count: 0 };
       }
       await this.roomAdminRepository.remove(roomAdmins);
-      return { 
-        message: `All room admins for room ${roomId} removed successfully`, 
-        count: roomAdmins.length 
+      return {
+        message: `All room admins for room ${roomId} removed successfully`,
+        count: roomAdmins.length
       };
     } catch (error) {
       throw new InternalServerErrorException('Failed to remove room admins by roomID');
@@ -181,8 +207,8 @@ export class RoomAdminService {
 
   async removeByUserId(userId: string): Promise<{ message: string }> {
     try {
-      const roomAdmin = await this.roomAdminRepository.findOne({ 
-        where: { userID: userId } 
+      const roomAdmin = await this.roomAdminRepository.findOne({
+        where: { userID: userId }
       });
       if (!roomAdmin) {
         throw new NotFoundException(`RoomAdmin for user ${userId} not found`);
