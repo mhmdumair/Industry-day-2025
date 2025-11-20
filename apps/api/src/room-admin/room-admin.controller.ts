@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UseInterceptors, UploadedFile, BadRequestException, NotFoundException } from '@nestjs/common';
 import { RoomAdminService } from './room-admin.service';
 import { CreateRoomAdminDto } from './dto/create-room-admin.dto';
 import { UpdateRoomAdminDto } from './dto/update-room-admin.dto';
 import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express'; // <-- Import FileInterceptor
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -32,8 +33,36 @@ export class RoomAdminController {
     const userId = req.user.userID;
     return this.roomAdminService.findByUserId(userId);
   }
-  
-  @Get(':id') // THE DYNAMIC ROUTE MUST COME AFTER SPECIFIC ONES
+  
+  @Patch('profile-picture')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateProfilePicture(
+    @Req() req: AuthenticatedRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Profile picture file is required.');
+    }
+
+    const roomAdmin = await this.roomAdminService.findByUserId(req.user.userID);
+
+    if (!roomAdmin) {
+      throw new NotFoundException('Room Admin profile not found for the authenticated user.');
+    }
+
+    const updatedUser = await this.roomAdminService.updateProfilePicture(
+      roomAdmin.roomAdminID,
+      file,
+    );
+
+    return {
+      message: 'Profile picture updated successfully',
+      profile_picture: updatedUser.profile_picture,
+      profile_picture_public_id: updatedUser.profile_picture_public_id,
+    };
+  }
+
+  @Get(':id') 
   async findOne(@Param('id') id: string) {
     return this.roomAdminService.findOne(id);
   }
