@@ -156,62 +156,71 @@ export default function StudentProfileCard() {
   };
 
   const handleSave = async () => {
-    if (!editData || !profileData?.studentID) {
-      console.error("Missing edit data or student ID.");
-      return;
+  if (!editData || !profileData?.studentID) {
+    console.error("Missing edit data or student ID.");
+    return;
+  }
+
+  setLoading(true);
+
+  const correctPayload = {
+    regNo: editData.regNo,
+    nic: editData.nic,
+    contact: editData.contact,
+    linkedin: editData.linkedin || null,
+    group: editData.group,
+    level: editData.level,
+    user: {
+      first_name: editData.user.first_name,
+      last_name: editData.user.last_name,
+      email: editData.user.email,
+      role: editData.user.role,
     }
+  };
 
-    setLoading(true);
-
-    const nestedPayload = {
-      student: {
+  try {
+    await api.patch(`/student/${profileData.studentID}`, correctPayload);
+    
+    setProfileData((prev) =>
+      prev ? {
+        ...prev,
         regNo: editData.regNo,
         nic: editData.nic,
         contact: editData.contact,
-        linkedin: editData.linkedin || null,
+        linkedin: editData.linkedin,
         group: editData.group,
         level: editData.level,
-      },
-      user: {
-        first_name: editData.user.first_name,
-        last_name: editData.user.last_name,
-        email: editData.user.email,
-        role: editData.user.role, 
-      },
-    };
+        user: {
+          ...prev.user,
+          first_name: editData.user.first_name,
+          last_name: editData.user.last_name,
+          email: editData.user.email,
+        },
+      } : prev
+    );
 
-    try {
-      await api.patch(`/student/${profileData.studentID}`, nestedPayload);
-      
-      setProfileData((prev) =>
-        prev ? {
-          ...prev,
-          regNo: editData.regNo,
-          nic: editData.nic,
-          contact: editData.contact,
-          linkedin: editData.linkedin,
-          group: editData.group,
-          level: editData.level,
-          user: {
-            ...prev.user,
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-          },
-        } : prev
-      );
+    setIsDialogOpen(false);
+    alert("Profile details updated successfully!");
 
-      setIsDialogOpen(false);
-      alert("Profile details updated successfully!");
-
-    } catch (error) {
-      const apiError = error as AxiosError;
-      console.error("Save error:", apiError.response?.data || apiError.message);
-      alert(`Error saving profile: ${(apiError.response?.data as { message: string })?.message || apiError.message}`);
-    } finally {
-      setLoading(false);
+  } catch (error) {
+    const apiError = error as AxiosError;
+    console.error("Save error:", apiError.response?.data || apiError.message);
+    
+    // Better error message extraction
+    const errorData = apiError.response?.data as { message?: string | string[] };
+    let errorMessage = apiError.message;
+    
+    if (errorData?.message) {
+      errorMessage = Array.isArray(errorData.message) 
+        ? errorData.message.join(', ') 
+        : errorData.message;
     }
-  };
+    
+    alert(`Error saving profile: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

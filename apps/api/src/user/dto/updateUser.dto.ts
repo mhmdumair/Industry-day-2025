@@ -14,6 +14,10 @@ export class UpdateUserDto {
   last_name?: string;
 
   @IsOptional()
+  @IsString()
+  role?: string;
+
+  @IsOptional()
   @IsUrl()
   profile_picture?: string ;
 }
