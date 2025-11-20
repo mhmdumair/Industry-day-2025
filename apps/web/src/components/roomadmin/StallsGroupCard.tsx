@@ -228,7 +228,7 @@ function StallsContent() {
   if (error) return <p className="p-4 text-red-500 dark:text-red-400">{error}</p>;
 
   return (
-    <div className="mt-3 mx-auto p-4 w-1/2">
+    <div className="mt-3 mx-auto p-4 w-full md-w-1/2">
       <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-none shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl text-gray-900 dark:text-gray-100">{room?.location || "Room"}</CardTitle>

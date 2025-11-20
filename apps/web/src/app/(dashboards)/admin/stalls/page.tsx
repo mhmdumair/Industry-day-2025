@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Plus, Edit } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "../../../../lib/axios";
 import {
   Dialog,
@@ -300,9 +301,9 @@ const StallsGroupCard = () => {
   /* ---------- render ---------- */
   if (loading)
     return (
-      <p className="p-4 text-center text-muted-foreground">
-        Loading companies, stalls, and rooms...
-      </p>
+      <div className="flex justify-center items-center h-64">
+        <Spinner className="h-8 w-8" />
+      </div>
     );
 
   return (

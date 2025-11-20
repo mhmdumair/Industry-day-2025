@@ -15,11 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Phone, User as UserIcon, Building, Mail, GraduationCap, Users, CreditCard, Camera } from "lucide-react";
-// Assuming 'api' is defined globally or imported correctly elsewhere in your project setup.
-// We keep the original import path as the immediate issue is with path resolution during compilation.
-import api from "@/lib/axios"; 
+import { Globe, Phone, User, Building, Mail, GraduationCap, Users, CreditCard, Camera, UserIcon } from "lucide-react";
+import api from "@/lib/axios";
 import { AxiosError } from "axios";
+import { Spinner } from "@/components/ui/spinner";
 
 export enum StudentGroup {
   ZL = 'ZL', BT = 'BT', CH = 'CH', MT = 'MT', BMS = 'BMS', ST = 'ST', GL = 'GL', CS = 'CS', DS = 'DS', ML = 'ML', BL = 'BL', MB = 'MB', CM = 'CM', AS = 'AS', ES = 'ES', SOR = 'SOR',
@@ -275,7 +274,7 @@ export default function StudentProfileCard() {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+  if (loading) return <div className="flex justify-center items-center h-64"><Spinner className="h-8 w-8" /></div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
   if (!profileData) return <div className="text-center p-4">No student data found.</div>;
 
@@ -434,10 +433,11 @@ export default function StudentProfileCard() {
 
               {editData && (
                 <div className="grid gap-6 py-4">
-                  
-                  {/* Name Fields */}
+                  {/* First Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">First Name</Label>
+                    <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
+                      First Name
+                    </Label>
                     <Input
                       id="first-name"
                       value={safeString(editData.user.first_name)}
@@ -446,8 +446,12 @@ export default function StudentProfileCard() {
                       placeholder="Enter first name"
                     />
                   </div>
+
+                  {/* Last Name */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">Last Name</Label>
+                    <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
+                      Last Name
+                    </Label>
                     <Input
                       id="last-name"
                       value={safeString(editData.user.last_name)}
@@ -459,7 +463,9 @@ export default function StudentProfileCard() {
 
                   {/* Email */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">Email</Label>
+                    <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
+                      Email
+                    </Label>
                     <Input
                       id="email"
                       value={safeString(editData.user.email)}
@@ -470,9 +476,11 @@ export default function StudentProfileCard() {
                     />
                   </div>
 
-                  {/* Student Fields */}
+                  {/* Registration Number */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="regNo" className="text-right font-medium dark:text-gray-300">Reg No</Label>
+                    <Label htmlFor="regNo" className="text-right font-medium dark:text-gray-300">
+                      Reg No
+                    </Label>
                     <Input
                       id="regNo"
                       value={safeString(editData.regNo)}
@@ -481,8 +489,12 @@ export default function StudentProfileCard() {
                       placeholder="Enter registration number"
                     />
                   </div>
+
+                  {/* NIC */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nic" className="text-right font-medium dark:text-gray-300">NIC</Label>
+                    <Label htmlFor="nic" className="text-right font-medium dark:text-gray-300">
+                      NIC
+                    </Label>
                     <Input
                       id="nic"
                       value={safeString(editData.nic)}
@@ -491,8 +503,12 @@ export default function StudentProfileCard() {
                       placeholder="Enter NIC"
                     />
                   </div>
+
+                  {/* Contact */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">Contact</Label>
+                    <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">
+                      Contact
+                    </Label>
                     <Input
                       id="contact"
                       value={safeString(editData.contact)}
@@ -502,8 +518,12 @@ export default function StudentProfileCard() {
                       type="tel"
                     />
                   </div>
+
+                  {/* Group */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="group" className="text-right font-medium dark:text-gray-300">Group</Label>
+                    <Label htmlFor="group" className="text-right font-medium dark:text-gray-300">
+                      Group
+                    </Label>
                     <Input
                       id="group"
                       value={safeString(editData.group)}
@@ -512,8 +532,12 @@ export default function StudentProfileCard() {
                       placeholder="Enter group"
                     />
                   </div>
+
+                  {/* Level */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="level" className="text-right font-medium dark:text-gray-300">Level</Label>
+                    <Label htmlFor="level" className="text-right font-medium dark:text-gray-300">
+                      Level
+                    </Label>
                     <Input
                       id="level"
                       value={safeString(editData.level)}
@@ -525,7 +549,9 @@ export default function StudentProfileCard() {
 
                   {/* LinkedIn */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="linkedin" className="text-right font-medium dark:text-gray-300">LinkedIn</Label>
+                    <Label htmlFor="linkedin" className="text-right font-medium dark:text-gray-300">
+                      LinkedIn
+                    </Label>
                     <Input
                       id="linkedin"
                       value={safeString(editData.linkedin)}
@@ -536,10 +562,27 @@ export default function StudentProfileCard() {
                     />
                   </div>
 
+                  {/* Profile Picture */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
+                      Profile Picture
+                    </Label>
+                    <Input
+                      id="profile-picture"
+                      value={safeString(editData.user.profile_picture)}
+                      onChange={(e) => handleUserInputChange("profile_picture", e.target.value)}
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                      placeholder="Enter profile picture URL (Optional)"
+                      type="url"
+                    />
+                  </div>
+
                   {/* Role (read-only) */}
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">Role</Label>
-                    <div className="col-span-3 rounded-md flex items-center">
+                    <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
+                      Role
+                    </Label>
+                    <div className="col-span-3 rounded-none flex items-center">
                       <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                         {editData.user.role}
                       </Badge>

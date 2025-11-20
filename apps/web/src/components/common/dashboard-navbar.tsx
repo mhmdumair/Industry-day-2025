@@ -57,13 +57,13 @@ export default function DashboardNavbar() {
             <img
               src="/unilogo.png"
               alt="University Logo"
-              className="lg:h-12 md:h-12 h-8 w-auto"
+              className="lg:h-12 md:h-11 sm:h-9 h-9 w-auto"
             />
             <div className="flex flex-col">
-              <h1 className="lg:text-3xl md:text-4xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
+              <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
                 INDUSTRY DAY 2025
               </h1>
-              <span className="text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
+              <span className="text-xs sm:text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
                 FACULTY OF SCIENCE
               </span>
             </div>

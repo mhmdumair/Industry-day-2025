@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Edit3 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -156,7 +157,7 @@ export default function CompanyAnnouncementsPage() {
     if (loading) {
         return (
             <div className="flex justify-center p-4 min-h-[500px] items-center bg-white dark:bg-black">
-                <div className="text-lg dark:text-white">Loading...</div>
+                <Spinner className="h-8 w-8" />
             </div>
         );
     }

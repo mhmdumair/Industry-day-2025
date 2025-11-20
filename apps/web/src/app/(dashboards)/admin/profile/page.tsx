@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Building, Mail, Camera } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface User {
     userID: string;
@@ -235,7 +236,7 @@ export default function AdminProfileCard() {
     };
     // --- End Profile Picture Handlers ---
 
-    if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+    if (loading) return <div className="flex justify-center items-center h-64"><Spinner className="h-8 w-8" /></div>;
     if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
     if (!profileData) return <div className="text-center p-4">No admin data found.</div>;
 

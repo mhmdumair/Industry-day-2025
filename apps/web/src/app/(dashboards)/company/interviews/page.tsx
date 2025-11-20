@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
@@ -133,13 +134,8 @@ const Page = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center p-4">
-                <Card className="rounded-none bg-slate-100/80 dark:bg-gray-900">
-                    <CardHeader>
-                        <CardTitle>Loading...</CardTitle>
-                        <CardDescription>Fetching interview stalls and room admin information</CardDescription>
-                    </CardHeader>
-                </Card>
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+                <Spinner className="h-8 w-8" />
             </div>
         );
     }
