@@ -131,18 +131,26 @@ export class UserService {
     }
   }
 
-  async updateUserInTransaction(
-    userId: string,
-    dto: UpdateUserDto,
-    entityManager: EntityManager,
+ async updateUserInTransaction(
+  userId: string,
+  dto: UpdateUserDto,
+  entityManager: EntityManager,
 ): Promise<User> {
-    const userRepo = entityManager.getRepository(User);
-    const user = await userRepo.findOne({ where: { userID: userId } });
-    if (!user) {
-        throw new NotFoundException(`User ${userId} not found`);
-    }
-    const updatedUser = userRepo.merge(user, dto);
-    return await userRepo.save(updatedUser);
+  const userRepo = entityManager.getRepository(User);
+  const user = await userRepo.findOne({ where: { userID: userId } });
+  
+  if (!user) {
+    throw new NotFoundException(`User ${userId} not found`);
+  }
+
+  // Manually assign each field to avoid TypeScript deep partial issues
+  if (dto.email !== undefined) user.email = dto.email;
+  if (dto.first_name !== undefined) user.first_name = dto.first_name;
+  if (dto.last_name !== undefined) user.last_name = dto.last_name;
+  if (dto.role !== undefined) user.role = dto.role as any; // Cast to avoid enum type issues
+  if (dto.profile_picture !== undefined) user.profile_picture = dto.profile_picture;
+
+  return await userRepo.save(user);
 }
 
   async createUserTransactional(
