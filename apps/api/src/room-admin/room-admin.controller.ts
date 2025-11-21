@@ -3,7 +3,7 @@ import { RoomAdminService } from './room-admin.service';
 import { CreateRoomAdminDto } from './dto/create-room-admin.dto';
 import { UpdateRoomAdminDto } from './dto/update-room-admin.dto';
 import { JwtAuthGuard } from 'src/auth/utils/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express'; // <-- Import FileInterceptor
+import { FileInterceptor } from '@nestjs/platform-express'; 
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -28,7 +28,7 @@ export class RoomAdminController {
     return this.roomAdminService.findAll();
   }
 
-  @Get('by-user') // THIS ROUTE MUST BE FIRST
+  @Get('by-user') 
   async findByAuthenticatedUser(@Req() req: AuthenticatedRequest) {
     const userId = req.user.userID;
     return this.roomAdminService.findByUserId(userId);

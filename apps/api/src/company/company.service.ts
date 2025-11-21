@@ -191,7 +191,6 @@ export class CompanyService {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Fetch Company
       let company = await queryRunner.manager.findOne(Company, {
         where: { companyID: id },
       });
@@ -201,46 +200,36 @@ export class CompanyService {
       let newLogoPublicId: string | undefined;
       const oldLogoPublicId = company.logoPublicId;
 
-      // 2. Handle User DTO Update
       if (dto.user && company.userID) {
         await this.userService.updateUserInTransaction(company.userID, dto.user, queryRunner.manager);
       }
 
-      // 3. Destructure DTO
       const { user, ...companyUpdateFields } = dto;
 
-      // 4. Handle Logo File Upload / Replacement
       if (logoFile) {
-        // A. Upload new file
         const uploadResult = await this.cloudinaryService.uploadCompanyLogo(logoFile);
         newLogoUrl = uploadResult.secure_url;
         newLogoPublicId = uploadResult.public_id;
         
-        // B. Delete old file
         if (oldLogoPublicId) {
           await this.cloudinaryService.deleteFile(oldLogoPublicId);
         }
         
-        // C. Override the logo/logoPublicId fields
         companyUpdateFields.logo = newLogoUrl;
         companyUpdateFields.logoPublicId = newLogoPublicId;
         
       } else {
-          // 5. Handle Explicit Logo Deletion (Client sent 'logo: null')
           if ('logo' in dto && dto.logo === null) {
               
-              // If logo is null, manually delete the old file
               if (oldLogoPublicId) {
                 await this.cloudinaryService.deleteFile(oldLogoPublicId);
               }
               
-              // Ensure we set the fields to null for TypeORM merge
               companyUpdateFields.logo = null;
               companyUpdateFields.logoPublicId = null;
           }
       }
 
-      // 6. Merge and Save Company Data
       company = queryRunner.manager.merge(Company, company, companyUpdateFields) as Company;
 
       await queryRunner.manager.save(company);
