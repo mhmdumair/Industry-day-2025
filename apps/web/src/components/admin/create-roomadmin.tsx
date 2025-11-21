@@ -35,11 +35,10 @@ export default function CreateRoomadmin() {
             role: "room_admin",
             first_name: "",
             last_name: "",
-            profile_picture: ""
         },
         roomAdmin: {
             designation: "",
-            contact: "", // Added contact field
+            contact: "",
             roomID: "",
         },
     });
@@ -51,7 +50,6 @@ export default function CreateRoomadmin() {
     const [roomsError, setRoomsError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
-    // Fetch rooms on component mount
     useEffect(() => {
         fetchRooms();
     }, []);
@@ -62,7 +60,7 @@ export default function CreateRoomadmin() {
             setRoomsError(null);
             const response = await api.get("/room");
             console.log("Rooms fetched:", response.data);
-            setRooms(response.data.filter((room: Room) => room.isActive)); // Only show active rooms
+            setRooms(response.data.filter((room: Room) => room.isActive));
         } catch (error: any) {
             console.error("Error fetching rooms:", error);
             const errorMessage = error.response?.data?.message || 
@@ -112,18 +110,16 @@ export default function CreateRoomadmin() {
         try {
             await api.post("/room-admin", formData);
             setSuccess(true);
-            // Reset form
             setFormData({
                 user: {
                     email: "",
                     role: "room_admin",
                     first_name: "",
                     last_name: "",
-                    profile_picture: ""
                 },
                 roomAdmin: {
                     designation: "",
-                    contact: "", // Reset contact field
+                    contact: "", 
                     roomID: "",
                 },
             });
@@ -150,7 +146,6 @@ export default function CreateRoomadmin() {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* User Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label>Email</Label>
@@ -181,18 +176,21 @@ export default function CreateRoomadmin() {
                                 className="rounded-none"
                             />
                         </div>
+
                         <div>
-                            <Label>Profile Picture URL (optional)</Label>
+                            <Label>Contact</Label>
                             <Input
-                                name="profile_picture"
-                                value={formData.user.profile_picture}
-                                onChange={(e) => handleInputChange(e, "user")}
+                                name="contact"
+                                value={formData.roomAdmin.contact}
+                                onChange={(e) => handleInputChange(e, "roomAdmin")}
+                                placeholder="e.g., +94 77 123 4567"
+                                required
                                 className="rounded-none"
                             />
                         </div>
+                        
                     </div>
 
-                    {/* Room Admin Inputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <div>
                             <Label>Designation</Label>
@@ -205,17 +203,7 @@ export default function CreateRoomadmin() {
                                 className="rounded-none"
                             />
                         </div>
-                        <div>
-                            <Label>Contact</Label>
-                            <Input
-                                name="contact"
-                                value={formData.roomAdmin.contact}
-                                onChange={(e) => handleInputChange(e, "roomAdmin")}
-                                placeholder="e.g., +94 77 123 4567"
-                                required
-                                className="rounded-none"
-                            />
-                        </div>
+                        
                         <div className="sm:col-span-2">
                             <Label>Assigned Room</Label>
                             {roomsError ? (
@@ -266,7 +254,6 @@ export default function CreateRoomadmin() {
                         </div>
                     </div>
 
-                    {/* Error Message */}
                     {error && (
                         <Alert variant="destructive" className="rounded-none">
                             <AlertTitle>Error</AlertTitle>
@@ -274,7 +261,6 @@ export default function CreateRoomadmin() {
                         </Alert>
                     )}
 
-                    {/* Success Message */}
                     {success && (
                         <Alert variant="default" className="rounded-none">
                             <AlertTitle>Success</AlertTitle>
