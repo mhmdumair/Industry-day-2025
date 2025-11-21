@@ -205,7 +205,6 @@ export default function StudentProfileCard() {
     const apiError = error as AxiosError;
     console.error("Save error:", apiError.response?.data || apiError.message);
     
-    // Better error message extraction
     const errorData = apiError.response?.data as { message?: string | string[] };
     let errorMessage = apiError.message;
     
@@ -239,7 +238,6 @@ export default function StudentProfileCard() {
 
     setImageUploadLoading(true);
     const formData = new FormData();
-    // 'file' must match the interceptor name in NestJS controller
     formData.append('file', profileImageFile); 
 
     try {
@@ -249,7 +247,6 @@ export default function StudentProfileCard() {
             },
         });
 
-        // The NestJS controller returns the updated user object structure
         const updatedUser = res.data; 
 
         setProfileData(prev => prev ? { 
@@ -282,7 +279,7 @@ export default function StudentProfileCard() {
   const levelDisplay = profileData.level.replace('level_', 'Level ');
 
   return (
-    <div className="mt-3 w-[65vh] mx-auto p-4 bg-teal-900/40 min-h-[80vh] flex items-center justify-center">
+    <div className="mt-3 w-fit mx-auto p-4 bg-teal-900/40 min-h-[80vh] flex items-center justify-center">
       <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
           <div className="flex items-center gap-2 mx-auto mb-3">
@@ -294,7 +291,6 @@ export default function StudentProfileCard() {
           <div className="relative mx-auto mb-4">
             <Avatar className="h-24 w-24 ring-4 ring-blue-500/50 dark:ring-blue-400/50">
               <AvatarImage
-                // Use the profile_picture URL directly from the fetched data
                 src={profileData?.user?.profile_picture || "/baurs.png"}
                 alt="Student Profile"
               />
