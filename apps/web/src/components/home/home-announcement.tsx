@@ -269,8 +269,8 @@ const HomeAnnouncement = () => {
                 </div>
 
                 {/* Pagination Footer - Responsive */}
-                <div className="flex flex-col sm:flex-row items-center justify-between py-4 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
+                <div className="flex flex-col items-center justify-center py-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center">
                         Showing {showingStart}-{showingEnd} of {totalCount} announcements
                     </p>
 
