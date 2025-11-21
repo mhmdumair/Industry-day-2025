@@ -90,7 +90,7 @@ export class ShortlistService {
         relations: ['company', 'student', 'student.user'],
       });
 
-      return shortlists; // Return empty array if no shortlists found
+      return shortlists; 
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -110,7 +110,7 @@ export class ShortlistService {
         relations: ['company', 'student', 'student.user'],
       });
 
-      return shortlists; // Return empty array if no shortlists found
+      return shortlists; 
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -129,9 +129,8 @@ export class ShortlistService {
         throw new BadRequestException('At least one field must be provided for update');
       }
 
-      const shortlist = await this.findOne(id); // This will throw NotFoundException if not found
+      const shortlist = await this.findOne(id); 
 
-      // Check for duplicate if companyID or studentID is being updated
       if (updateShortlistDto.companyID || updateShortlistDto.studentID) {
         const companyID = updateShortlistDto.companyID || shortlist.companyID;
         const studentID = updateShortlistDto.studentID || shortlist.studentID;
@@ -171,7 +170,7 @@ export class ShortlistService {
         throw new BadRequestException('Shortlist ID is required');
       }
 
-      const shortlist = await this.findOne(id); // This will throw NotFoundException if not found
+      const shortlist = await this.findOne(id);
       await this.shortlistRepository.remove(shortlist);
       
       return { message: `Shortlist with ID ${id} has been successfully deleted` };

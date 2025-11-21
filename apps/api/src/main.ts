@@ -11,7 +11,6 @@ async function bootstrap() {
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
 
-    // Add cookie-parser middleware here to parse cookies from incoming requests
     app.use(cookieParser());
 
     app.enableCors({

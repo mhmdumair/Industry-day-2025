@@ -22,7 +22,6 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
-// Types
 export interface User {
   userID: string;
   email: string;
@@ -49,7 +48,6 @@ export interface CompanyProfile {
   user: User;
 }
 
-// Helper function to ensure string values are never null
 const safeString = (value: string | null | undefined): string => {
   return value || '';
 };
@@ -148,12 +146,18 @@ export default function ProfileCard() {
         contactPersonName: editData.contactPersonName,
         contactPersonDesignation: editData.contactPersonDesignation,
         contactNumber: editData.contactNumber,
-        logo: editData.logo,
         location: editData.location,
         companyWebsite: editData.companyWebsite,
       };
 
-      await api.patch(`/company/${profileData.companyID}`, updatePayload);
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(updatePayload));
+
+      await api.patch(`/company/${profileData.companyID}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       setProfileData((prev) =>
         prev ? { ...prev, ...updatePayload } : prev
@@ -349,6 +353,10 @@ export default function ProfileCard() {
                     />
                   </div>
                 </div>
+              )}
+
+              {saveError && (
+                <div className="text-red-500 text-sm">{saveError}</div>
               )}
 
               <DialogFooter>
