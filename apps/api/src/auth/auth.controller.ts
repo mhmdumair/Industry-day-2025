@@ -60,7 +60,8 @@ async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
   const user = req.user;
 
   const payload = { userID: user.userID, email: user.email, role: user.role };
-    const token = this.jwtService.sign(payload);
+  console.log(payload)
+  const token = this.jwtService.sign(payload);
 
     res.cookie('access_token', token, {
       httpOnly: true,
@@ -68,12 +69,11 @@ async login(@Req() req: AuthenticatedRequest,@Res() res: Response) {
       sameSite: 'lax',
     });
 
-  return {
+  return res.json({
     success: true,
     message: 'Login successful',
     user: user,
-    redirectUrl: `${process.env.FRONTEND_URL}/home?id=${user.userID}`
-  };
+  });
 }
 
   @Post('logout')

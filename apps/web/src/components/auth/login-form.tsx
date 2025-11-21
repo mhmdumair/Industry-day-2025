@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import api from "../../lib/axios";
+import { useRouter } from "next/navigation";
 
 export function StudentLoginForm() {
     const [isLoading, setIsLoading] = useState(false);
@@ -45,24 +46,38 @@ export function StudentLoginForm() {
 }
 
 export function CompanyLoginForm() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError("");
+
         try {
             const response = await api.post('/auth/login', {
                 email,
                 password
             });
-            if (response.data.success) {
-                console.log('Login successful:', response.data);
-                window.location.href = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/home`;
+
+            if (response.data && response.data.success) {
+                router.push('/home');
+            } else {
+                setError('Login failed. Invalid response from server.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Login error:', error);
+            
+            if (error.response?.data?.message) {
+                setError(error.response.data.message);
+            } else if (error.response?.status === 401) {
+                setError('Invalid email or password.');
+            } else {
+                setError('Login failed. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -101,6 +116,13 @@ export function CompanyLoginForm() {
                                 className="rounded-none border-1 dark:bg-black dark:border-gray-700"
                             />
                         </div>
+                        
+                        {error && (
+                            <div className="text-red-500 text-sm text-center">
+                                {error}
+                            </div>
+                        )}
+
                         <Button type="submit" className="w-full rounded-none" disabled={isLoading}>
                             {isLoading ? 'Signing in...' : 'Sign in'}
                         </Button>
