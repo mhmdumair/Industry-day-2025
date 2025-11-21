@@ -16,6 +16,7 @@ const navItems = [
   { title: "Announcements", url: "/company/announcements" },
   { title: "Feedback", url: "/company/feedback" },
   { title: "Shortlist", url: "/company/shortlists" },
+  { title: "Vacancies", url: "/company/vacancies" },
 ];
 
 export default function CompanyNavbar() {
