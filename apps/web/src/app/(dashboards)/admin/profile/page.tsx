@@ -130,55 +130,61 @@ export default function AdminProfileCard() {
         setIsDialogOpen(true);
     };
 
-    const handleSave = async () => {
-        if (!editData || !profileData?.adminID) {
-            console.error("Missing edit data or admin ID.");
-            return;
-        }
+   const handleSave = async () => {
+    if (!editData || !profileData?.adminID) {
+        console.error("Missing edit data or admin ID.");
+        return;
+    }
 
-        setLoading(true);
+    setLoading(true);
 
-        // Note: The backend `AdminService` handles the update by splitting fields into `admin` and `user` objects.
-        const nestedPayload = {
-            admin: {
-                designation: editData.designation,
-            },
-            user: {
-                first_name: editData.user.first_name,
-                last_name: editData.user.last_name,
-                email: editData.user.email,
-                role: editData.user.role,
-            },
-        };
-
-        try {
-            await api.patch(`/admin/${profileData.adminID}`, nestedPayload);
-
-            // Re-fetch data to ensure all related fields (like updated_at) are fresh, or manually update
-            setProfileData((prev) =>
-                prev ? {
-                    ...prev,
-                    designation: editData.designation,
-                    user: {
-                        ...prev.user,
-                        first_name: editData.user.first_name,
-                        last_name: editData.user.last_name,
-                        email: editData.user.email,
-                    },
-                } : prev
-            );
-
-            setIsDialogOpen(false);
-            alert("Profile updated successfully!");
-
-        } catch (error) {
-            const apiError = error as AxiosError;
-            console.error("Save error:", apiError.response?.data || apiError.message);
-            alert(`Error saving profile: ${(apiError.response?.data as { message: string })?.message || apiError.message}`);
-        } finally {
-            setLoading(false);
-        }
+    const correctPayload = {
+        designation: editData.designation,
+        user: {
+            first_name: editData.user.first_name,
+            last_name: editData.user.last_name,
+            email: editData.user.email,
+            role: editData.user.role,
+        },
     };
+
+    try {
+        await api.patch(`/admin/${profileData.adminID}`, correctPayload);
+
+        setProfileData((prev) =>
+            prev ? {
+                ...prev,
+                designation: editData.designation,
+                user: {
+                    ...prev.user,
+                    first_name: editData.user.first_name,
+                    last_name: editData.user.last_name,
+                    email: editData.user.email,
+                },
+            } : prev
+        );
+
+        setIsDialogOpen(false);
+        alert("Profile updated successfully!");
+
+    } catch (error) {
+        const apiError = error as AxiosError;
+        console.error("Save error:", apiError.response?.data || apiError.message);
+        
+        const errorData = apiError.response?.data as { message?: string | string[] };
+        let errorMessage = apiError.message;
+        
+        if (errorData?.message) {
+            errorMessage = Array.isArray(errorData.message) 
+                ? errorData.message.join(', ') 
+                : errorData.message;
+        }
+        
+        alert(`Error saving profile: ${errorMessage}`);
+    } finally {
+        setLoading(false);
+    }
+};
     
     // --- Profile Picture Handlers ---
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,7 +249,7 @@ export default function AdminProfileCard() {
     const fullName = `${profileData.user.first_name} ${profileData.user.last_name}`.trim();
 
     return (
-        <div className="mt-3 w-[65vh] mx-auto p-4 bg-green-900/40 min-h-[80vh] flex items-center justify-center">
+        <div className="mt-3 w-fit mx-auto p-4 bg-green-900/40 min-h-[80vh] flex items-center justify-center">
             <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
                 <CardHeader className="text-center items-center justify-center pb-4">
                     <div className="flex items-center gap-2 mx-auto mb-3">
