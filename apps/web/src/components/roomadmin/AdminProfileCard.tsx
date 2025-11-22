@@ -249,7 +249,6 @@ export default function RoomAdminProfileCard() {
       setImageUploadLoading(false);
     }
   };
-  // --- End Profile Picture Handlers ---
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;

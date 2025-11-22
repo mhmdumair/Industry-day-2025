@@ -18,7 +18,6 @@ const navItems = [
   { title: "Room Admins", url: "/admin/room-admins" },
   { title: "Stalls", url: "/admin/stalls" },
   { title: "Feedbacks", url: "/admin/feedback" },
-  { title: "Upload CV", url: "/admin/student-cv" },
 ];
 
 export default function AdminNavbar() {

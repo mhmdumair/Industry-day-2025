@@ -12,308 +12,336 @@ import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class StudentService {
-  constructor(
-    @InjectRepository(Student) private studentRepository: Repository<Student>,
-    private readonly userService: UserService,
-    @Inject(forwardRef(() => CvService)) 
-    private readonly cvService: CvService,
-    private readonly cloudinaryService: CloudinaryService,
-    @InjectRepository(StudentCv) private readonly cvRepository: Repository<StudentCv>, 
-  ) {}
+  constructor(
+    @InjectRepository(Student) private studentRepository: Repository<Student>,
+    private readonly userService: UserService,
+    @Inject(forwardRef(() => CvService))
+    private readonly cvService: CvService,
+    private readonly cloudinaryService: CloudinaryService,
+    @InjectRepository(StudentCv) private readonly cvRepository: Repository<StudentCv>,
+  ) {}
 
-  private async _executeCreateStudent(
-    createStudentDto: CreateStudentDto,
-    manager: EntityManager,
-  ): Promise<Student> {
-    const createdUser = await this.userService.createUserTransactional(
-      createStudentDto.user,
-      manager
-    );
+  private async _executeCreateStudent(
+    createStudentDto: CreateStudentDto,
+    manager: EntityManager,
+  ): Promise<Student> {
+    const createdUser = await this.userService.createUserTransactional(
+      createStudentDto.user,
+      manager
+    );
 
-    const student = manager.create(Student, {
-      ...createStudentDto.student,
-      userID: createdUser.userID,
-    });
+    const student = manager.create(Student, {
+      ...createStudentDto.student,
+      userID: createdUser.userID,
+    });
 
-    return await manager.save(Student, student);
-  }
+    return await manager.save(Student, student);
+  }
 
-  async register(
-  createStudentDto: CreateStudentDto,
-  file: Express.Multer.File,
-): Promise<Student> {
-  const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
-  await queryRunner.connect();
-  await queryRunner.startTransaction();
+  async register(
+    createStudentDto: CreateStudentDto,
+    file: Express.Multer.File,
+  ): Promise<Student> {
+    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-  let savedStudent: Student;
-  let uploadedFileId: string | null = null; 
+    let savedStudent: Student;
+    let uploadedFileId: string | null = null;
 
-  try {
-    savedStudent = await this._executeCreateStudent(
-      createStudentDto,
-      queryRunner.manager
-    );
-    
-    const studentID = savedStudent.studentID;
+    try {
+      savedStudent = await this._executeCreateStudent(
+        createStudentDto,
+        queryRunner.manager
+      );
 
-    const cleanedRegNo = savedStudent.regNo.replace(/\//g, ''); 
-    const originalExtension = file.originalname.split('.').pop();
-    const driveFilename = `${cleanedRegNo}.${originalExtension}`;
+      const studentID = savedStudent.studentID;
 
-    const driveFileId = await this.cvService.uploadCvFile(
-      file,
-      driveFilename,
-    );
-    uploadedFileId = driveFileId; 
+      const cleanedRegNo = savedStudent.regNo.replace(/\//g, '');
+      const originalExtension = file.originalname.split('.').pop();
+      const driveFilename = `${cleanedRegNo}.${originalExtension}`;
 
-    const cvRecord = queryRunner.manager.create(this.cvRepository.target, {
-        studentID: studentID,
-        fileName: driveFileId,
-    });
-    await queryRunner.manager.save(cvRecord); 
+      const driveFileId = await this.cvService.uploadCvFile(
+        file,
+        driveFilename,
+      );
+      uploadedFileId = driveFileId;
 
-    await queryRunner.commitTransaction();
-    return savedStudent;
+      const cvRecord = queryRunner.manager.create(this.cvRepository.target, {
+        studentID: studentID,
+        fileName: driveFileId,
+      });
+      await queryRunner.manager.save(cvRecord);
 
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
+      await queryRunner.commitTransaction();
+      return savedStudent;
 
-    if (uploadedFileId) {
-      console.warn(`Attempting cleanup of Drive file ${uploadedFileId} after DB failure.`);
-      try {
-        await this.cvService.deleteCvFile(uploadedFileId); 
-      } catch (cleanupError) {
-        console.error(`Failed to cleanup Drive file ${uploadedFileId}:`, cleanupError.message);
-      }
-    }
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
 
-    throw new InternalServerErrorException(
-      `Failed to register student and CV: ${error.message}`
-    );
-  } finally {
-    await queryRunner.release();
-  }
-}
+      if (uploadedFileId) {
+        console.warn(`Attempting cleanup of Drive file ${uploadedFileId} after DB failure.`);
+        try {
+          await this.cvService.deleteCvFile(uploadedFileId);
+        } catch (cleanupError) {
+          console.error(`Failed to cleanup Drive file ${uploadedFileId}:`, cleanupError.message);
+        }
+      }
 
-  async updateProfilePicture(studentID: string, file: Express.Multer.File): Promise<User> {
-    const student = await this.findOne(studentID);
-    
-    if (!student) {
-      throw new NotFoundException(`Student with ID ${studentID} not found.`);
-    }
+      throw new InternalServerErrorException(
+        `Failed to register student and CV: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
-    // 1. Fetch User to get old public ID and userID
-    const user = await this.userService.fetchUserById(student.userID);
-    if (!user) {
-        throw new NotFoundException('Associated user account not found.');
-    }
+  async updateProfilePicture(studentID: string, file: Express.Multer.File): Promise<User> {
+    const student = await this.findOne(studentID);
 
-    const oldPublicId = user.profile_picture_public_id;
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentID} not found.`);
+    }
 
-    // 2. Delegate the full transactional upload/delete/save logic to UserService
-    const updatedUser = await this.userService.updateProfilePicture(
-        user.userID,
-        file,
-        oldPublicId
-    );
-    
-    return updatedUser;
-  }
+    const user = await this.userService.fetchUserById(student.userID);
+    if (!user) {
+      throw new NotFoundException('Associated user account not found.');
+    }
 
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
-    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const oldPublicId = user.profile_picture_public_id;
 
-    try {
-      const savedStudent = await this._executeCreateStudent(
-        createStudentDto,
-        queryRunner.manager
-      );
-      
-      await queryRunner.commitTransaction();
-      return savedStudent;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(
-        `Failed to create student: ${error.message}`
-      );
-    } finally {
-      await queryRunner.release();
-    }
-  }
+    const updatedUser = await this.userService.updateProfilePicture(
+      user.userID,
+      file,
+      oldPublicId
+    );
 
-  async createBulk(createStudentDtos: CreateStudentDto[]): Promise<{
-    successful: Student[];
-    failed: { index: number; dto: CreateStudentDto; error: string }[];
-    summary: { total: number; successful: number; failed: number };
-  }> {
-    const successful: Student[] = [];
-    const failed: { index: number; dto: CreateStudentDto; error: string }[] = [];
+    return updatedUser;
+  }
 
-    for (let i = 0; i < createStudentDtos.length; i++) {
-      try {
-        const dto = createStudentDtos[i];
-        const createdStudent = await this.create(dto);
-        successful.push(createdStudent);
-      } catch (error) {
-        failed.push({
-          index: i,
-          dto: createStudentDtos[i],
-          error: error.message || 'Failed to create student',
-        });
-      }
-    }
+  async create(createStudentDto: CreateStudentDto, file?: Express.Multer.File): Promise<Student> {
+    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    return {
-      successful,
-      failed,
-      summary: {
-        total: createStudentDtos.length,
-        successful: successful.length,
-        failed: failed.length,
-      },
-    };
-  }
+    let savedStudent: Student;
+    let uploadedFileId: string | null = null;
 
- async findAll(): Promise<Student[]> {
-    try {
-      return await this.studentRepository
-        .createQueryBuilder('student')
-        .leftJoinAndSelect('student.user', 'user')
-        .orderBy(`CAST(SUBSTRING(student.regNo, 2) AS UNSIGNED)`, 'ASC')
-        .addOrderBy('student.regNo', 'ASC') 
-        .getMany();
-    } catch (error) {
-      console.error('Failed to fetch students:', error);
-      throw new InternalServerErrorException('Failed to fetch students');
-    }
-    }
+    try {
+      savedStudent = await this._executeCreateStudent(
+        createStudentDto,
+        queryRunner.manager
+      );
 
-  async findOne(id: string): Promise<Student | null> {
-    try {
-      return await this.studentRepository.findOne({ 
-        where: { studentID: id },
-        relations: ['user'],
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch student');
-    }
-  }
+      // If CV file is provided, upload it
+      if (file) {
+        const studentID = savedStudent.studentID;
 
-  async findByUserId(userId: string): Promise<Student | null> {
-    try {
-      return await this.studentRepository.findOne({ 
-        where: { userID: userId },
-        relations: ['user'],
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch student by userID');
-    }
-  }
+        const cleanedRegNo = savedStudent.regNo.replace(/\//g, '');
+        const originalExtension = file.originalname.split('.').pop();
+        const driveFilename = `${cleanedRegNo}.${originalExtension}`;
 
-  async findByRegNo(regNo: string): Promise<Student | null> {
-    try {
-      return await this.studentRepository.findOne({ 
-        where: { regNo: regNo },
-        relations: ['user'],
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch student by registration number');
-    }
-  }
+        const driveFileId = await this.cvService.uploadCvFile(
+          file,
+          driveFilename,
+        );
+        uploadedFileId = driveFileId;
 
-  async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
-    try {
-      const where: any = {};
-      if (group) where.group = group;
-      if (level) where.level = level;
-      return await this.studentRepository.find({ 
-        where,
-        relations: ['user'],
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to filter students');
-    }
-  }
+        const cvRecord = queryRunner.manager.create(this.cvRepository.target, {
+          studentID: studentID,
+          fileName: driveFileId,
+        });
+        await queryRunner.manager.save(cvRecord);
+      }
 
-  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
-    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+      await queryRunner.commitTransaction();
+      return savedStudent;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
 
-    try {
-      const student = await queryRunner.manager.findOne(Student, {
-        where: { studentID: id },
-        relations: ['user'],
-      });
+      // Cleanup uploaded file if DB operations failed
+      if (uploadedFileId) {
+        console.warn(`Attempting cleanup of Drive file ${uploadedFileId} after DB failure.`);
+        try {
+          await this.cvService.deleteCvFile(uploadedFileId);
+        } catch (cleanupError) {
+          console.error(`Failed to cleanup Drive file ${uploadedFileId}:`, cleanupError.message);
+        }
+      }
 
-      if (!student) {
-        throw new NotFoundException(`Student with ID ${id} not found`);
-      }
+      throw new InternalServerErrorException(
+        `Failed to create student: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
-      // Update student fields (excluding user)
-      const { user: userDto, ...studentFields } = updateStudentDto;
-      
-      // Merge only the student-specific fields
-      Object.assign(student, studentFields);
+  async createBulk(createStudentDtos: CreateStudentDto[]): Promise<{
+    successful: Student[];
+    failed: { index: number; dto: CreateStudentDto; error: string }[];
+    summary: { total: number; successful: number; failed: number };
+  }> {
+    const successful: Student[] = [];
+    const failed: { index: number; dto: CreateStudentDto; error: string }[] = [];
 
-      // Update user fields if provided
-      if (userDto) {
-        await this.userService.updateUserInTransaction(
-          student.userID,
-          userDto,
-          queryRunner.manager
-        );
-      }
+    for (let i = 0; i < createStudentDtos.length; i++) {
+      try {
+        const dto = createStudentDtos[i];
+        const createdStudent = await this.create(dto);
+        successful.push(createdStudent);
+      } catch (error) {
+        failed.push({
+          index: i,
+          dto: createStudentDtos[i],
+          error: error.message || 'Failed to create student',
+        });
+      }
+    }
 
-      // Save the updated student
-      await queryRunner.manager.save(Student, student);
+    return {
+      successful,
+      failed,
+      summary: {
+        total: createStudentDtos.length,
+        successful: successful.length,
+        failed: failed.length,
+      },
+    };
+  }
 
-      await queryRunner.commitTransaction();
+  async findAll(): Promise<Student[]> {
+    try {
+      return await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.user', 'user')
+        .orderBy(`CAST(SUBSTRING(student.regNo, 2) AS UNSIGNED)`, 'ASC')
+        .addOrderBy('student.regNo', 'ASC')
+        .getMany();
+    } catch (error) {
+      console.error('Failed to fetch students:', error);
+      throw new InternalServerErrorException('Failed to fetch students');
+    }
+  }
 
-      // Fetch and return the complete student with updated user relations
-      const updatedStudent = await this.studentRepository.findOne({
-        where: { studentID: id },
-        relations: ['user'],
-      });
+  async findOne(id: string): Promise<Student | null> {
+    try {
+      return await this.studentRepository.findOne({
+        where: { studentID: id },
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch student');
+    }
+  }
 
-      if (!updatedStudent) {
-        throw new NotFoundException(`Student with ID ${id} not found after update`);
-      }
+  async findByUserId(userId: string): Promise<Student | null> {
+    try {
+      return await this.studentRepository.findOne({
+        where: { userID: userId },
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch student by userID');
+    }
+  }
 
-      return updatedStudent;
+  async findByRegNo(regNo: string): Promise<Student | null> {
+    try {
+      return await this.studentRepository.findOne({
+        where: { regNo: regNo },
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch student by registration number');
+    }
+  }
 
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(`Failed to update student: ${error.message}`);
-    } finally {
-      await queryRunner.release();
-    }
-  }
+  async filterByGroupAndLevel(group?: string, level?: string): Promise<Student[]> {
+    try {
+      const where: any = {};
+      if (group) where.group = group;
+      if (level) where.level = level;
+      return await this.studentRepository.find({
+        where,
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to filter students');
+    }
+  }
 
-  async remove(id: string): Promise<{ message: string }> {
-    try {
-      const student = await this.studentRepository.findOne({ 
-        where: { studentID: id } 
-      });
-      
-      if (!student) {
-        throw new NotFoundException(`Student with ID ${id} not found`);
-      }
-      
-      await this.studentRepository.remove(student);
-      return { message: `Student ${id} removed successfully` };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to remove student');
-    }
-  }
+  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
+    const queryRunner = this.studentRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const student = await queryRunner.manager.findOne(Student, {
+        where: { studentID: id },
+        relations: ['user'],
+      });
+
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${id} not found`);
+      }
+
+      const { user: userDto, ...studentFields } = updateStudentDto;
+
+      Object.assign(student, studentFields);
+
+      if (userDto) {
+        await this.userService.updateUserInTransaction(
+          student.userID,
+          userDto,
+          queryRunner.manager
+        );
+      }
+
+      await queryRunner.manager.save(Student, student);
+
+      await queryRunner.commitTransaction();
+
+      const updatedStudent = await this.studentRepository.findOne({
+        where: { studentID: id },
+        relations: ['user'],
+      });
+
+      if (!updatedStudent) {
+        throw new NotFoundException(`Student with ID ${id} not found after update`);
+      }
+
+      return updatedStudent;
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Failed to update student: ${error.message}`);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const student = await this.studentRepository.findOne({
+        where: { studentID: id }
+      });
+
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${id} not found`);
+      }
+
+      await this.studentRepository.remove(student);
+      return { message: `Student ${id} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove student');
+    }
+  }
 }

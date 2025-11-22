@@ -18,8 +18,8 @@ type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
 interface CreateUserDto {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;  // Changed from firstName
+    last_name: string;   // Changed from lastName
     role: UserRole;
 }
 
@@ -43,7 +43,7 @@ interface StudentResponse {
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState<CreateStudentDto>({
-        user: { email: '', password: '', firstName: '', lastName: '', role: 'student' as UserRole },
+        user: { email: '', password: '', first_name: '', last_name: '', role: 'student' as UserRole },
         student: { regNo: '', nic: '', contact: '', linkedin: '', group: '', level: 'level_4' }
     });
     const [cvFile, setCvFile] = useState<File | null>(null);
@@ -158,15 +158,15 @@ const RegisterPage = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="user.firstName" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="user.first_name" className="text-gray-700 dark:text-gray-300">
                                             First Name
                                         </Label>
                                         <Input
-                                            id="user.firstName"
-                                            name="user.firstName"
+                                            id="user.first_name"
+                                            name="user.first_name"
                                             type="text"
                                             placeholder="Alex"
-                                            value={formData.user.firstName}
+                                            value={formData.user.first_name}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -174,15 +174,15 @@ const RegisterPage = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="user.lastName" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="user.last_name" className="text-gray-700 dark:text-gray-300">
                                             Last Name
                                         </Label>
                                         <Input
-                                            id="user.lastName"
-                                            name="user.lastName"
+                                            id="user.last_name"
+                                            name="user.last_name"
                                             type="text"
                                             placeholder="Johnson"
-                                            value={formData.user.lastName}
+                                            value={formData.user.last_name}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -226,7 +226,7 @@ const RegisterPage = () => {
                                             value={formData.student.regNo}
                                             onChange={handleChange}
                                             required
-                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:tex-gray-100"
+                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                                         />
                                     </div>
 
