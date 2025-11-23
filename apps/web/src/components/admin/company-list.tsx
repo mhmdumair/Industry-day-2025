@@ -18,7 +18,9 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import type { ComponentProps } from 'react';
+import { Download, Loader2 } from "lucide-react";
 
 interface User {
   email: string;
@@ -32,11 +34,13 @@ interface Company {
   companyName: string;
   sponsership: string;
   contactPersonName: string;
+  contactPersonDesignation: string;
   contactNumber: string;
   location: string;
   companyWebsite: string;
   logo?: string;
   user: User;
+  description: string;
 }
 
 const Td = ({ children, ...rest }: ComponentProps<"td">) => (
@@ -78,6 +82,36 @@ function InputField({
   );
 }
 
+function TextareaField({
+    label,
+    name,
+    value,
+    onChange,
+    section,
+}: {
+    label: string;
+    name: string;
+    value: string;
+    onChange: (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+        section: "user" | "company"
+    ) => void;
+    section: "user" | "company";
+}) {
+    return (
+        <div>
+            <Label htmlFor={`${section}-${name}`}>{label}</Label>
+            <Textarea
+                id={`${section}-${name}`}
+                name={name}
+                value={value}
+                onChange={(e) => onChange(e, section)}
+                className="rounded-none resize-y"
+            />
+        </div>
+    );
+}
+
 
 export default function CompanyList() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -87,8 +121,8 @@ export default function CompanyList() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  // --- Data Fetching ---
   useEffect(() => {
     (async () => {
       try {
@@ -105,7 +139,6 @@ export default function CompanyList() {
     })();
   }, []);
 
-  // --- Dialog Handlers ---
   const handleEditClick = (company: Company) => {
     try {
       setEditingCompany({ ...company });
@@ -126,8 +159,8 @@ export default function CompanyList() {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+  const handleCompanyDetailChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: "user" | "company"
   ) => {
     try {
@@ -152,7 +185,6 @@ export default function CompanyList() {
     }
   };
 
-  // --- File Change Handler ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setLogoFile(e.target.files[0]);
@@ -161,7 +193,6 @@ export default function CompanyList() {
     }
   };
 
-  // --- Form Submission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCompany) return;
@@ -169,11 +200,11 @@ export default function CompanyList() {
     try {
       setUpdateLoading(true);
 
-      // 1. Prepare JSON payload for the 'data' field
       const dataPayload = {
         companyName: editingCompany.companyName,
         sponsership: editingCompany.sponsership,
         contactPersonName: editingCompany.contactPersonName,
+        contactPersonDesignation: editingCompany.contactPersonDesignation,
         contactNumber: editingCompany.contactNumber,
         location: editingCompany.location,
         companyWebsite: editingCompany.companyWebsite,
@@ -183,9 +214,9 @@ export default function CompanyList() {
           first_name: editingCompany.user.first_name,
           last_name: editingCompany.user.last_name,
         },
+        description: editingCompany.description,
       };
 
-      // 2. Create FormData object
       const formData = new FormData();
       formData.append('data', JSON.stringify(dataPayload));
 
@@ -215,14 +246,93 @@ export default function CompanyList() {
       setUpdateLoading(false);
     }
   };
+  
+  const exportCompanyInfo = () => {
+    setExporting(true);
+    try {
+      const headers = [
+        "Company Name",
+        "Sponsership",
+        "Contact Person",
+        "Contact Person Designation",
+        "Contact Number",
+        "Location",
+        "Website",
+        "Account Email",
+        "User First Name",
+        "User Last Name",
+        "Description",
+      ];
+
+      const rows = companies.map(company => [
+        company.companyName,
+        company.sponsership,
+        company.contactPersonName,
+        company.contactPersonDesignation,
+        company.contactNumber,
+        company.location,
+        company.companyWebsite,
+        company.user.email,
+        company.user.first_name,
+        company.user.last_name,
+        company.description,
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row =>
+          row.map(cell => {
+            const cellStr = String(cell || "").replace(/"/g, '""');
+            if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+              return `"${cellStr}"`;
+            }
+            return cellStr;
+          }).join(",")
+        )
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `company-list-report-${timestamp}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export company info.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <Card className="h-full shadow-md rounded-none">
-      <CardHeader>
-        <CardTitle>Company List</CardTitle>
-        <CardDescription>Fetched from database</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Company List</CardTitle>
+          <CardDescription>Fetched from database</CardDescription>
+        </div>
+        <Button
+          onClick={exportCompanyInfo}
+          disabled={exporting || companies.length === 0}
+          className="rounded-none"
+        >
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Download Company Info
+        </Button>
       </CardHeader>
-
+      
       <CardContent className="overflow-x-auto">
         {loading ? (
           <div className="p-4 text-center">Loading companies...</div>
@@ -246,7 +356,7 @@ export default function CompanyList() {
               {companies.length ? (
                 companies.map((c, i) => (
                   <tr
-                    key={i}
+                    key={c.companyID}
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     <Td>{c.companyName}</Td>
@@ -282,51 +392,58 @@ export default function CompanyList() {
           {editingCompany && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* COMPANY FIELDS */}
                 <InputField
                   label="Company Name"
                   name="companyName"
                   value={editingCompany.companyName}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
                 <InputField
                   label="Sponsership"
                   name="sponsership"
                   value={editingCompany.sponsership}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
+                
                 <InputField
                   label="Contact Person Name"
                   name="contactPersonName"
                   value={editingCompany.contactPersonName}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
+                <InputField
+                  label="Contact Person Designation"
+                  name="contactPersonDesignation"
+                  value={editingCompany.contactPersonDesignation}
+                  onChange={handleCompanyDetailChange}
+                  section="company"
+                />
+                
                 <InputField
                   label="Contact Number"
                   name="contactNumber"
                   value={editingCompany.contactNumber}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
                 <InputField
                   label="Location"
                   name="location"
                   value={editingCompany.location}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
                 <InputField
                   label="Company Website"
                   name="companyWebsite"
                   value={editingCompany.companyWebsite}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="company"
                 />
                 
-                {/* File Uploader */}
                 <div className="col-span-1">
                   <Label htmlFor="logo-upload">Company Logo </Label>
                   <Input
@@ -337,7 +454,6 @@ export default function CompanyList() {
                     onChange={handleFileChange}
                     className="rounded-none file:text-foreground"
                   />
-                  {/* Display current logo or selected file name */}
                   {(editingCompany.logo && !logoFile) && (
                     <p className="text-xs text-muted-foreground mt-1">Current: <a href={editingCompany.logo} target="_blank" rel="noopener noreferrer" className="underline truncate">{editingCompany.logo.substring(0, 50)}...</a></p>
                   )}
@@ -346,28 +462,37 @@ export default function CompanyList() {
                   )}
                 </div>
 
-                {/* USER FIELDS */}
                 <InputField
                   label="Email"
                   name="email"
                   value={editingCompany.user.email}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="user"
                 />
                 <InputField
                   label="First Name"
                   name="first_name"
                   value={editingCompany.user.first_name}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="user"
                 />
                 <InputField
                   label="Last Name"
                   name="last_name"
                   value={editingCompany.user.last_name}
-                  onChange={handleInputChange}
+                  onChange={handleCompanyDetailChange}
                   section="user"
                 />
+                
+                <div className="sm:col-span-2">
+                    <TextareaField
+                        label="Description"
+                        name="description"
+                        value={editingCompany.description}
+                        onChange={handleCompanyDetailChange}
+                        section="company"
+                    />
+                </div>
 
               </div>
               <div className="flex gap-2">
