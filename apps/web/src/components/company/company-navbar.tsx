@@ -7,6 +7,7 @@ import { ModeToggle } from "../common/mode-toggle";
 import { Home } from "lucide-react";
 import { Button } from "../ui/button";
 import api from "@/lib/axios";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   { title: "Profile", url: "/company/profile" },
@@ -14,6 +15,8 @@ const navItems = [
   { title: "Interviews", url: "/company/interviews" },
   { title: "Announcements", url: "/company/announcements" },
   { title: "Feedback", url: "/company/feedback" },
+  { title: "Shortlist", url: "/company/shortlists" },
+  { title: "Vacancies", url: "/company/vacancies" },
 ];
 
 export default function CompanyNavbar() {
@@ -22,6 +25,7 @@ export default function CompanyNavbar() {
   const companyId = searchParams.get("companyId");
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchCompanyName = async () => {
@@ -40,7 +44,7 @@ export default function CompanyNavbar() {
   }, []);
 
   return (
-    <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
+    <header className="w-full bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-800 relative">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side - Company branding */}
@@ -74,7 +78,41 @@ export default function CompanyNavbar() {
               })}
             </nav>
           </div>
+          <div className="ml-auto">
+            {/* Mobile Menu Button */}
+            <Button
+              variant="secondary"
+              size="icon"
+              className="lg:hidden rounded-none bg-white dark:bg-transparent border-1 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
+         {/* Mobile Dropdown Menu */}
+        {menuOpen && (
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white dark:bg-black flex flex-col gap-4 p-4 shadow-md border-b border-gray-200 dark:border-gray-800 z-50">
+            {navItems.map((item) => {
+              const isActive = pathname === item.url;
+
+              return (
+                <Link
+                  key={item.title}
+                  href={`${item.url}${companyId ? `?companyId=${companyId}` : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                  className={`text-sm font-medium py-2 ${
+                    isActive
+                      ? "text-black font-semibold bg-gray-100/90 px-5 py-3 "
+                      : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-5 py-3"
+                  }`}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </header>
   );

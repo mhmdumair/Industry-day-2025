@@ -414,12 +414,12 @@ export default function StudentProfileCard() {
         <CardFooter className="justify-center pt-6 rounded-none border-t border-gray-200 dark:border-gray-700">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button type="submit" className="rounded-md" onClick={handleEditOpen}>
+              <Button type="submit" className="rounded-none" onClick={handleEditOpen}>
                 Edit Profile
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-md dark:bg-gray-900 dark:text-gray-100">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-none dark:bg-gray-900 dark:text-gray-100">
               <DialogHeader>
                 <DialogTitle>Edit Student Profile</DialogTitle>
                 <DialogDescription className="dark:text-gray-400">
@@ -438,7 +438,7 @@ export default function StudentProfileCard() {
                       id="first-name"
                       value={safeString(editData.user.first_name)}
                       onChange={(e) => handleUserInputChange("first_name", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter first name"
                     />
                   </div>
@@ -452,7 +452,7 @@ export default function StudentProfileCard() {
                       id="last-name"
                       value={safeString(editData.user.last_name)}
                       onChange={(e) => handleUserInputChange("last_name", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter last name"
                     />
                   </div>
@@ -466,7 +466,7 @@ export default function StudentProfileCard() {
                       id="email"
                       value={safeString(editData.user.email)}
                       onChange={(e) => handleUserInputChange("email", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter email address"
                       type="email"
                     />
@@ -481,7 +481,7 @@ export default function StudentProfileCard() {
                       id="regNo"
                       value={safeString(editData.regNo)}
                       onChange={(e) => handleInputChange("regNo", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter registration number"
                     />
                   </div>
@@ -495,7 +495,7 @@ export default function StudentProfileCard() {
                       id="nic"
                       value={safeString(editData.nic)}
                       onChange={(e) => handleInputChange("nic", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter NIC"
                     />
                   </div>
@@ -509,7 +509,7 @@ export default function StudentProfileCard() {
                       id="contact"
                       value={safeString(editData.contact)}
                       onChange={(e) => handleInputChange("contact", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter contact number"
                       type="tel"
                     />
@@ -524,7 +524,7 @@ export default function StudentProfileCard() {
                       id="group"
                       value={safeString(editData.group)}
                       onChange={(e) => handleInputChange("group", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter group"
                     />
                   </div>
@@ -538,7 +538,7 @@ export default function StudentProfileCard() {
                       id="level"
                       value={safeString(editData.level)}
                       onChange={(e) => handleInputChange("level", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter level"
                     />
                   </div>
@@ -552,7 +552,7 @@ export default function StudentProfileCard() {
                       id="linkedin"
                       value={safeString(editData.linkedin)}
                       onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                      className="col-span-3 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter LinkedIn URL (Optional)"
                       type="url"
                     />
@@ -592,7 +592,7 @@ export default function StudentProfileCard() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-md dark:border-gray-600 dark:text-gray-300"
+                  className="rounded-none dark:border-gray-600 dark:text-gray-300"
                   onClick={() => setIsDialogOpen(false)}
                 >
                   Cancel
@@ -600,7 +600,7 @@ export default function StudentProfileCard() {
                 <Button
                   type="submit"
                   onClick={handleSave}
-                  className="rounded-md"
+                  className="rounded-none"
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Save Changes"}
