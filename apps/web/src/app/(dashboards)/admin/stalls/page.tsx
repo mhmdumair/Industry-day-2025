@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Plus, Edit } from "lucide-react";
+import { X, Plus, Edit, Download, Loader2 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import api from "../../../../lib/axios";
 import {
@@ -77,13 +77,14 @@ enum Preference {
 }
 
 const StallsGroupCard = () => {
-  /* ---------- state ---------- */
+  // --- state ---
   const [companiesWithStalls, setCompaniesWithStalls] = useState<
     (Company & { stalls: Stall[] })[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
-  /* dialog state */
+  // --- dialog state ---
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStall, setEditingStall] = useState<Stall | null>(null);
   const [newCompanyID, setNewCompanyID] = useState<string>();
@@ -93,23 +94,23 @@ const StallsGroupCard = () => {
   );
   const [creating, setCreating] = useState(false);
 
-  /* room state */
+  // --- room state ---
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoomID, setSelectedRoomID] = useState<string>();
 
-  /* alert dialog state */
+  // --- alert dialog state ---
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [alertDialogTitle, setAlertDialogTitle] = useState("");
   const [alertDialogDescription, setAlertDialogDescription] = useState("");
 
-  /* delete confirmation dialog state */
+  // --- delete confirmation dialog state ---
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stallToDelete, setStallToDelete] = useState<{
     stallID: string;
     companyID: string;
   } | null>(null);
 
-  /* ---------- initial load ---------- */
+  // --- initial load ---
   useEffect(() => {
     const fetchCompaniesStallsAndRooms = async () => {
       setLoading(true);
@@ -148,7 +149,7 @@ const StallsGroupCard = () => {
     fetchCompaniesStallsAndRooms();
   }, []);
 
-  /* ---------- actions ---------- */
+  // --- actions ---
   const confirmRemove = (stallID: string, companyID: string) => {
     setStallToDelete({ stallID, companyID });
     setDeleteDialogOpen(true);
@@ -188,7 +189,7 @@ const StallsGroupCard = () => {
     setNewCompanyID(companyID);
     setNewTitle("");
     setNewPreference(Preference.ALL);
-    setSelectedRoomID(undefined); // Reset the room selection for a new stall
+    setSelectedRoomID(undefined);
     setDialogOpen(true);
   };
 
@@ -197,7 +198,7 @@ const StallsGroupCard = () => {
     setNewCompanyID(stall.companyID);
     setNewTitle(stall.title);
     setNewPreference(stall.preference as Preference);
-    setSelectedRoomID(stall.roomID); // Pre-select the stall's current room
+    setSelectedRoomID(stall.roomID);
     setDialogOpen(true);
   };
 
@@ -212,7 +213,7 @@ const StallsGroupCard = () => {
 
     try {
       const dto = {
-        roomID: selectedRoomID, // Use the selected room from the dropdown
+        roomID: selectedRoomID,
         companyID: newCompanyID,
         status: "active",
         title: newTitle,
@@ -253,7 +254,7 @@ const StallsGroupCard = () => {
 
     try {
       const dto = {
-        roomID: selectedRoomID, // Use the selected room from the dropdown
+        roomID: selectedRoomID,
         companyID: newCompanyID,
         title: newTitle,
         preference: newPreference,
@@ -298,7 +299,70 @@ const StallsGroupCard = () => {
     setSelectedRoomID(undefined);
   };
 
-  /* ---------- render ---------- */
+  // --- CSV Export Logic ---
+  const exportStallInfo = () => {
+    setExporting(true);
+    try {
+      const allStalls = companiesWithStalls.flatMap((company) =>
+        company.stalls.map((stall) => ({
+          ...stall,
+          companyName: company.companyName,
+          roomName: rooms.find((r) => r.roomID === stall.roomID)?.roomName || "N/A",
+        }))
+      );
+
+      const headers = [
+        "Company Name",
+        "Stall Title",
+        "Stream Preference",
+        "Assigned Room",
+      ];
+
+      const rows = allStalls.map(stall => [
+        stall.companyName,
+        stall.title,
+        stall.preference,
+        stall.roomName,
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row =>
+          row.map(cell => {
+            const cellStr = String(cell || "").replace(/"/g, '""');
+            if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+              return `"${cellStr}"`;
+            }
+            return cellStr;
+          }).join(",")
+        )
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `interview-stalls-${timestamp}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (error) {
+      console.error("Export failed:", error);
+      setAlertDialogTitle("Export Error");
+      setAlertDialogDescription("Failed to export stall data.");
+      setAlertDialogOpen(true);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // --- render ---
   if (loading)
     return (
       <div className="flex justify-center items-center h-64">
@@ -308,7 +372,21 @@ const StallsGroupCard = () => {
 
   return (
     <div className="mt-6 mx-auto p-4 max-w-7xl">
-      <h1 className="text-3xl font-bold mb-6">Manage Interview Stalls</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Manage Interview Stalls</h1>
+        <Button
+          onClick={exportStallInfo}
+          disabled={exporting || companiesWithStalls.every(c => c.stalls.length === 0)}
+          className="rounded-none"
+        >
+          {exporting ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Download Stalls Data
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companiesWithStalls.map((company) => (
           <Card
@@ -376,7 +454,7 @@ const StallsGroupCard = () => {
         ))}
       </div>
 
-      {/* ---------- dialog for add/edit stall ---------- */}
+      {/* dialog for add/edit stall */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-none">
           <DialogHeader>
