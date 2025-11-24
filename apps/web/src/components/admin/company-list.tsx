@@ -112,7 +112,6 @@ function TextareaField({
     );
 }
 
-
 export default function CompanyList() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +121,9 @@ export default function CompanyList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
+  // Fetch companies on mount
   useEffect(() => {
     (async () => {
       try {
@@ -139,6 +140,7 @@ export default function CompanyList() {
     })();
   }, []);
 
+  // Dialog handlers
   const handleEditClick = (company: Company) => {
     try {
       setEditingCompany({ ...company });
@@ -159,6 +161,7 @@ export default function CompanyList() {
     }
   };
 
+  // Form handlers
   const handleCompanyDetailChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: "user" | "company"
@@ -193,8 +196,28 @@ export default function CompanyList() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleResetPassword = async () => {
+    if (!editingCompany) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to reset the password for ${editingCompany.companyName}? The password will be reset to the default company password.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setResetPasswordLoading(true);
+      await api.patch(`/company/reset-password/${editingCompany.companyID}`);
+      alert("Password reset successfully. The new password is: companypassword");
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      alert("Failed to reset password");
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!editingCompany) return;
 
     try {
@@ -247,6 +270,7 @@ export default function CompanyList() {
     }
   };
   
+  // Export functionality
   const exportCompanyInfo = () => {
     setExporting(true);
     try {
@@ -333,6 +357,7 @@ export default function CompanyList() {
         </Button>
       </CardHeader>
       
+      {/* Company table */}
       <CardContent className="overflow-x-auto">
         {loading ? (
           <div className="p-4 text-center">Loading companies...</div>
@@ -383,128 +408,138 @@ export default function CompanyList() {
         )}
       </CardContent>
 
+      {/* Edit dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-none bg-background">
+        <DialogContent className="max-w-2xl max-h-[90vh] rounded-none bg-background flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Company</DialogTitle>
           </DialogHeader>
 
           {editingCompany && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputField
-                  label="Company Name"
-                  name="companyName"
-                  value={editingCompany.companyName}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                <InputField
-                  label="Sponsership"
-                  name="sponsership"
-                  value={editingCompany.sponsership}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                
-                <InputField
-                  label="Contact Person Name"
-                  name="contactPersonName"
-                  value={editingCompany.contactPersonName}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                <InputField
-                  label="Contact Person Designation"
-                  name="contactPersonDesignation"
-                  value={editingCompany.contactPersonDesignation}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                
-                <InputField
-                  label="Contact Number"
-                  name="contactNumber"
-                  value={editingCompany.contactNumber}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                <InputField
-                  label="Location"
-                  name="location"
-                  value={editingCompany.location}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                <InputField
-                  label="Company Website"
-                  name="companyWebsite"
-                  value={editingCompany.companyWebsite}
-                  onChange={handleCompanyDetailChange}
-                  section="company"
-                />
-                
-                <div className="col-span-1">
-                  <Label htmlFor="logo-upload">Company Logo </Label>
-                  <Input
-                    id="logo-upload"
-                    type="file"
-                    name="logo"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="rounded-none file:text-foreground"
+            <div className="flex flex-col flex-1 min-h-0">
+              <div className="overflow-y-auto flex-1 pr-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Company information section */}
+                  <InputField
+                    label="Company Name"
+                    name="companyName"
+                    value={editingCompany.companyName}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
                   />
-                  {(editingCompany.logo && !logoFile) && (
-                    <p className="text-xs text-muted-foreground mt-1">Current: <a href={editingCompany.logo} target="_blank" rel="noopener noreferrer" className="underline truncate">{editingCompany.logo.substring(0, 50)}...</a></p>
-                  )}
-                  {logoFile && (
-                    <p className="text-xs text-green-500 mt-1">Selected new file: {logoFile.name}</p>
-                  )}
-                </div>
-
-                <InputField
-                  label="Email"
-                  name="email"
-                  value={editingCompany.user.email}
-                  onChange={handleCompanyDetailChange}
-                  section="user"
-                />
-                <InputField
-                  label="First Name"
-                  name="first_name"
-                  value={editingCompany.user.first_name}
-                  onChange={handleCompanyDetailChange}
-                  section="user"
-                />
-                <InputField
-                  label="Last Name"
-                  name="last_name"
-                  value={editingCompany.user.last_name}
-                  onChange={handleCompanyDetailChange}
-                  section="user"
-                />
-                
-                <div className="sm:col-span-2">
-                    <TextareaField
-                        label="Description"
-                        name="description"
-                        value={editingCompany.description}
-                        onChange={handleCompanyDetailChange}
-                        section="company"
+                  <InputField
+                    label="Sponsership"
+                    name="sponsership"
+                    value={editingCompany.sponsership}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  
+                  <InputField
+                    label="Contact Person Name"
+                    name="contactPersonName"
+                    value={editingCompany.contactPersonName}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  <InputField
+                    label="Contact Person Designation"
+                    name="contactPersonDesignation"
+                    value={editingCompany.contactPersonDesignation}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  
+                  <InputField
+                    label="Contact Number"
+                    name="contactNumber"
+                    value={editingCompany.contactNumber}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  <InputField
+                    label="Location"
+                    name="location"
+                    value={editingCompany.location}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  <InputField
+                    label="Company Website"
+                    name="companyWebsite"
+                    value={editingCompany.companyWebsite}
+                    onChange={handleCompanyDetailChange}
+                    section="company"
+                  />
+                  
+                  <div className="col-span-1">
+                    <Label htmlFor="logo-upload">Company Logo</Label>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      name="logo"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="rounded-none file:text-foreground"
                     />
-                </div>
+                    {logoFile && (
+                      <p className="text-xs text-green-500 mt-1">Selected: {logoFile.name}</p>
+                    )}
+                  </div>
 
+                  {/* User information section */}
+                  <InputField
+                    label="Email"
+                    name="email"
+                    value={editingCompany.user.email}
+                    onChange={handleCompanyDetailChange}
+                    section="user"
+                  />
+                  <InputField
+                    label="First Name"
+                    name="first_name"
+                    value={editingCompany.user.first_name}
+                    onChange={handleCompanyDetailChange}
+                    section="user"
+                  />
+                  <InputField
+                    label="Last Name"
+                    name="last_name"
+                    value={editingCompany.user.last_name}
+                    onChange={handleCompanyDetailChange}
+                    section="user"
+                  />
+                  
+                  <div className="sm:col-span-2">
+                      <TextareaField
+                          label="Description"
+                          name="description"
+                          value={editingCompany.description}
+                          onChange={handleCompanyDetailChange}
+                          section="company"
+                      />
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
+              
+              {/* Action buttons */}
+              <div className="flex gap-2 mt-4 pt-4 border-t">
                 <Button
-                  type="submit"
+                  onClick={handleSubmit}
                   className="flex-1 rounded-none"
                   disabled={updateLoading}
                 >
                   {updateLoading ? "Saving..." : "Save Changes"}
                 </Button>
                 <Button
-                  type="button"
+                  variant="destructive"
+                  className="rounded-none"
+                  onClick={handleResetPassword}
+                  disabled={resetPasswordLoading || updateLoading}
+                >
+                  {resetPasswordLoading ? "Resetting..." : "Reset Password"}
+                </Button>
+                <Button
                   variant="outline"
                   className="rounded-none"
                   onClick={handleDialogClose}
@@ -513,7 +548,7 @@ export default function CompanyList() {
                   Cancel
                 </Button>
               </div>
-            </form>
+            </div>
           )}
         </DialogContent>
       </Dialog>

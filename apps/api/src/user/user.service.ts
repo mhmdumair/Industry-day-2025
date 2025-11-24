@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -113,6 +114,43 @@ export class UserService {
     }
   }
 
+  async updatePassword(
+    userID: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { userID } });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userID} not found`);
+    }
+
+    if (!user.password || !(await bcrypt.compare(currentPassword, user.password))) {
+      throw new BadRequestException('Invalid current password');
+    }
+    
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Password updated successfully' };
+  }
+
+  async resetPassword(
+    userID: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { userID } });
+    const defaultPassword = 'companypassword';
+
+    if (!user) {
+      throw new NotFoundException(`User ${userID} not found`);
+    }
+
+    user.password = await bcrypt.hash(defaultPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Password reset successfully' };
+  }
+
   async removeUser(userID: string): Promise<{ message: string }> {
     try {
       const user = await this.userRepository.findOne({ where: { userID } });
@@ -131,27 +169,25 @@ export class UserService {
     }
   }
 
- async updateUserInTransaction(
-  userId: string,
-  dto: UpdateUserDto,
-  entityManager: EntityManager,
-): Promise<User> {
-  const userRepo = entityManager.getRepository(User);
-  const user = await userRepo.findOne({ where: { userID: userId } });
-  
-  if (!user) {
-    throw new NotFoundException(`User ${userId} not found`);
+  async updateUserInTransaction(
+    userId: string,
+    dto: UpdateUserDto,
+    entityManager: EntityManager,
+  ): Promise<User> {
+    const userRepo = entityManager.getRepository(User);
+    const user = await userRepo.findOne({ where: { userID: userId } });
+    
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.first_name !== undefined) user.first_name = dto.first_name;
+    if (dto.last_name !== undefined) user.last_name = dto.last_name;
+    if (dto.role !== undefined) user.role = dto.role as any;
+
+    return await userRepo.save(user);
   }
-
-  // Manually assign each field to avoid TypeScript deep partial issues
-  if (dto.email !== undefined) user.email = dto.email;
-  if (dto.first_name !== undefined) user.first_name = dto.first_name;
-  if (dto.last_name !== undefined) user.last_name = dto.last_name;
-  if (dto.role !== undefined) user.role = dto.role as any; // Cast to avoid enum type issues
-  if (dto.profile_picture !== undefined) user.profile_picture = dto.profile_picture;
-
-  return await userRepo.save(user);
-}
 
   async createUserTransactional(
     createUserDto: CreateUserDto,
