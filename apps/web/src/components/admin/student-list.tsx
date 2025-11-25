@@ -26,6 +26,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -73,6 +75,7 @@ enum Preference {
 }
 
 export default function StudentReport() {
+    const router = useRouter();
     const [students, setStudents] = useState<StudentResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -81,15 +84,17 @@ export default function StudentReport() {
     const [updateLoading, setUpdateLoading] = useState(false);
     const [exporting, setExporting] = useState(false);
 
-    // --- State for search and filter ---
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedGroup, setSelectedGroup] = useState<Preference | "ALL">(Preference.ALL);
 
-    // --- Pagination state ---
     const [currentPage, setCurrentPage] = useState(1);
     const studentsPerPage = 20;
 
-    // --- Data Fetching ---
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
+
     useEffect(() => {
         fetchStudents();
     }, []);
@@ -124,15 +129,19 @@ export default function StudentReport() {
             setStudents(formatted);
             setError(null);
         } catch (e) {
-            console.error("Error fetching students:", e);
-            setError("Failed to fetch students");
-            setStudents([]);
+            const axiosError = e as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Error fetching students:", e);
+                setError("Failed to fetch students");
+                setStudents([]);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    // --- Filtering and Searching ---
     const filteredStudents = useMemo(() => {
         let filtered = students;
 
@@ -153,7 +162,6 @@ export default function StudentReport() {
         return filtered;
     }, [students, searchQuery, selectedGroup]);
 
-    // --- Pagination Logic ---
     const indexOfLastStudent = currentPage * studentsPerPage;
     const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
     const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
@@ -163,7 +171,6 @@ export default function StudentReport() {
         setCurrentPage(pageNumber);
     };
 
-    // --- Dialog Handlers ---
     const handleEditClick = (student: StudentResponse) => {
         try {
             setEditingStudent({ ...student });
@@ -182,7 +189,6 @@ export default function StudentReport() {
         }
     };
 
-    // --- Input Change Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => {
         try {
             if (!editingStudent) return;
@@ -216,7 +222,6 @@ export default function StudentReport() {
         }
     };
 
-    // --- Form Submission ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingStudent) return;
@@ -250,19 +255,23 @@ export default function StudentReport() {
             handleDialogClose();
 
         } catch (error) {
-            console.error("Update failed:", error);
-            alert("Failed to update student");
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Update failed:", error);
+                alert("Failed to update student");
+            }
         } finally {
             setUpdateLoading(false);
         }
     };
 
-    // --- CSV Export Logic ---
     const exportStudentInfo = () => {
         setExporting(true);
         try {
             const headers = [
-                "Registration Number", // studentID removed
+                "Registration Number",
                 "NIC",
                 "First Name",
                 "Last Name",
@@ -274,7 +283,7 @@ export default function StudentReport() {
             ];
 
             const rows = students.map(s => [
-                s.student.regNo, // studentID removed
+                s.student.regNo,
                 s.student.nic || "N/A",
                 s.user.first_name,
                 s.user.last_name,
@@ -320,7 +329,6 @@ export default function StudentReport() {
         }
     };
 
-    // --- Render Component ---
     return (
         <Card className="bg-white dark:bg-black shadow-md w-full rounded-none">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -342,7 +350,6 @@ export default function StudentReport() {
                 </Button>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-                {/* Search and Filter Section */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                     <div className="flex-1">
                         <Label className="mb-1 dark:text-gray-300" htmlFor="search">Search</Label>
@@ -424,7 +431,6 @@ export default function StudentReport() {
                                 )}
                             </tbody>
                         </table>
-                        {/* Pagination Controls */}
                         {filteredStudents.length > studentsPerPage && (
                             <div className="flex justify-between items-center mt-4">
                                 <Button

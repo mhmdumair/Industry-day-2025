@@ -28,6 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface User {
   email: string;
@@ -52,6 +54,7 @@ interface RoomAdmin {
 }
 
 export default function RoomadminList() {
+  const router = useRouter();
   const [roomAdmins, setRoomAdmins] = useState<RoomAdmin[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +72,11 @@ export default function RoomadminList() {
   );
   const [exporting, setExporting] = useState(false);
 
-  // --- Data Fetching ---
+  const handleAuthError = () => {
+    alert("Session expired. Please login again.");
+    router.push("/auth/login");
+  };
+
   useEffect(() => {
     Promise.all([fetchRoomAdmins(), fetchRooms()]);
   }, []);
@@ -80,13 +87,18 @@ export default function RoomadminList() {
       const { data } = await api.get<RoomAdmin[]>("/room-admin");
       setRoomAdmins(data);
     } catch (e: any) {
-      console.error("Error fetching room admins:", e);
-      const errorMessage =
-        e.response?.data?.message ||
-        e.response?.data?.error ||
-        "Failed to fetch room admins. Please try again.";
-      setError(errorMessage);
-      setRoomAdmins([]);
+      const axiosError = e as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Error fetching room admins:", e);
+        const errorMessage =
+          e.response?.data?.message ||
+          e.response?.data?.error ||
+          "Failed to fetch room admins. Please try again.";
+        setError(errorMessage);
+        setRoomAdmins([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -98,17 +110,21 @@ export default function RoomadminList() {
       const { data } = await api.get<Room[]>("/room");
       setRooms(data.filter((room: Room) => room.isActive));
     } catch (e: any) {
-      console.error("Error fetching rooms:", e);
-      const errorMessage =
-        e.response?.data?.message ||
-        e.response?.data?.error ||
-        "Failed to fetch rooms for editing.";
-      setRoomsError(errorMessage);
-      setRooms([]);
+      const axiosError = e as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Error fetching rooms:", e);
+        const errorMessage =
+          e.response?.data?.message ||
+          e.response?.data?.error ||
+          "Failed to fetch rooms for editing.";
+        setRoomsError(errorMessage);
+        setRooms([]);
+      }
     }
   };
 
-  // --- Dialog Handlers ---
   const handleEditClick = (roomAdmin: RoomAdmin) => {
     try {
       setUpdateError(null);
@@ -132,7 +148,6 @@ export default function RoomadminList() {
     }
   };
 
-  // --- Input Change Handlers ---
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     section: "user" | "roomAdmin"
@@ -159,7 +174,6 @@ export default function RoomadminList() {
     }
   };
 
-  // --- Form Submission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRoomAdmin) return;
@@ -187,18 +201,22 @@ export default function RoomadminList() {
 
       handleDialogClose();
     } catch (error: any) {
-      console.error("Update failed:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to update room admin. Please try again.";
-      setUpdateError(errorMessage);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Update failed:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to update room admin. Please try again.";
+        setUpdateError(errorMessage);
+      }
     } finally {
       setUpdateLoading(false);
     }
   };
 
-  // --- Delete Handler ---
   const handleDelete = async (roomAdminID: string) => {
     if (
       !confirm("Are you sure you want to permanently delete this room admin?")
@@ -219,18 +237,22 @@ export default function RoomadminList() {
 
       console.log("Room admin permanently deleted successfully");
     } catch (error: any) {
-      console.error("Delete failed:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to permanently delete room admin. Please try again.";
-      setDeleteError(errorMessage);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Delete failed:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to permanently delete room admin. Please try again.";
+        setDeleteError(errorMessage);
+      }
     } finally {
       setDeletingRoomAdminId(null);
     }
   };
 
-  // --- Utility Functions ---
   const handleRetryFetch = () => {
     setLoading(true);
     fetchRoomAdmins();
@@ -245,7 +267,6 @@ export default function RoomadminList() {
     return `${user.first_name || ""} ${user.last_name || ""}`.trim() || "N/A";
   };
   
-  // --- CSV Export Logic ---
   const exportRoomAdminInfo = () => {
     setExporting(true);
     try {
@@ -303,7 +324,6 @@ export default function RoomadminList() {
     }
   };
 
-  // --- Render Component ---
   return (
     <Card className="rounded-none">
       <CardHeader>
@@ -343,7 +363,6 @@ export default function RoomadminList() {
       </CardHeader>
 
       <CardContent className="overflow-x-auto">
-        {/* Delete Error Message */}
         {deleteError && (
           <Alert variant="destructive" className="rounded-none mb-4">
             <AlertTitle>Delete Error</AlertTitle>
@@ -435,7 +454,6 @@ export default function RoomadminList() {
         )}
       </CardContent>
 
-      {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl rounded-none">
           <DialogHeader>
@@ -467,7 +485,6 @@ export default function RoomadminList() {
                   section="user"
                 />
 
-                {/* Read-only fields */}
                 <div>
                   <Label>Designation (Read-only)</Label>
                   <Input

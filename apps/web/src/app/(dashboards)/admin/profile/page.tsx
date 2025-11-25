@@ -19,6 +19,7 @@ import { User, Building, Mail, Camera } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
 
 export interface User {
     userID: string;
@@ -27,7 +28,7 @@ export interface User {
     first_name: string;
     last_name: string;
     profile_picture: string | null;
-    profile_picture_public_id: string | null; // Added for completeness, though not strictly required for frontend
+    profile_picture_public_id: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -44,6 +45,7 @@ const safeString = (value: string | null | undefined): string => {
 };
 
 export default function AdminProfileCard() {
+    const router = useRouter();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [imageUploadLoading, setImageUploadLoading] = useState(false);
@@ -54,6 +56,11 @@ export default function AdminProfileCard() {
     const [error, setError] = useState<string | null>(null);
 
     const [editData, setEditData] = useState<AdminProfile | null>(null);
+
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
 
     const fetchData = () => {
         setLoading(true);
@@ -81,8 +88,13 @@ export default function AdminProfileCard() {
                 }
                 setLoading(false);
             })
-            .catch(() => {
-                setError("Failed to fetch admin profile.");
+            .catch((error) => {
+                const axiosError = error as AxiosError;
+                if (axiosError.response?.status === 401) {
+                    handleAuthError();
+                } else {
+                    setError("Failed to fetch admin profile.");
+                }
                 setLoading(false);
             });
     }
@@ -169,6 +181,12 @@ export default function AdminProfileCard() {
 
     } catch (error) {
         const apiError = error as AxiosError;
+        
+        if (apiError.response?.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
         console.error("Save error:", apiError.response?.data || apiError.message);
         
         const errorData = apiError.response?.data as { message?: string | string[] };
@@ -186,7 +204,6 @@ export default function AdminProfileCard() {
     }
 };
     
-    // --- Profile Picture Handlers ---
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setProfileImageFile(e.target.files[0]);
@@ -205,18 +222,15 @@ export default function AdminProfileCard() {
 
         setImageUploadLoading(true);
         const formData = new FormData();
-        // 'file' must match the interceptor name in NestJS controller
         formData.append('file', profileImageFile); 
 
         try {
-            // Note the new admin-specific endpoint
             const res = await api.patch('/admin/profile-picture', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
 
-            // The NestJS controller returns the updated user object structure
             const updatedUser = res.data; 
 
             setProfileData(prev => prev ? { 
@@ -234,13 +248,18 @@ export default function AdminProfileCard() {
 
         } catch (error) {
             const apiError = error as AxiosError;
+            
+            if (apiError.response?.status === 401) {
+                handleAuthError();
+                return;
+            }
+            
             const errorMessage = (apiError.response?.data as { message: string })?.message || apiError.message;
             alert(`Image update failed: ${errorMessage}`);
         } finally {
             setImageUploadLoading(false);
         }
     };
-    // --- End Profile Picture Handlers ---
 
     if (loading) return <div className="flex justify-center items-center h-64"><Spinner className="h-8 w-8" /></div>;
     if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -258,7 +277,6 @@ export default function AdminProfileCard() {
                         </Badge>
                     </div>
 
-                    {/* Profile Picture with Camera Icon & Dialog Trigger */}
                     <div className="relative mx-auto mb-4">
                         <Avatar className="h-24 w-24 ring-4 ring-blue-100/50 dark:ring-blue-900/50">
                             <AvatarImage
@@ -312,7 +330,6 @@ export default function AdminProfileCard() {
                             </DialogContent>
                         </Dialog>
                     </div>
-                    {/* End Profile Picture with Camera Icon */}
 
                     <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                         {fullName || "Admin"}
@@ -370,7 +387,6 @@ export default function AdminProfileCard() {
 
                             {editData && (
                                 <div className="grid gap-6 py-4">
-                                    {/* First Name */}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
                                             First Name
@@ -384,7 +400,6 @@ export default function AdminProfileCard() {
                                         />
                                     </div>
 
-                                    {/* Last Name */}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
                                             Last Name
@@ -398,7 +413,6 @@ export default function AdminProfileCard() {
                                         />
                                     </div>
 
-                                    {/* Email */}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
                                             Email
@@ -413,7 +427,6 @@ export default function AdminProfileCard() {
                                         />
                                     </div>
 
-                                    {/* Role */}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
                                             Role
@@ -426,7 +439,6 @@ export default function AdminProfileCard() {
                                         </div>
                                     </div>
 
-                                    {/* Designation */}
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="designation" className="text-right font-medium dark:text-gray-300">
                                             Designation

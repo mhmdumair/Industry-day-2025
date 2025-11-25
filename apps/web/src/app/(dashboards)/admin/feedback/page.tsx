@@ -31,6 +31,8 @@ import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface User {
     userID: string;
@@ -69,6 +71,7 @@ interface Feedback {
 const MAX_COMMENT_LENGTH = 100;
 
 export default function FeedbackList() {
+    const router = useRouter();
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -76,7 +79,11 @@ export default function FeedbackList() {
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
     const [exporting, setExporting] = useState<string | null>(null);
 
-    // --- Data Fetching ---
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
+
     useEffect(() => {
         const fetchFeedback = async () => {
             setLoading(true);
@@ -116,8 +123,13 @@ export default function FeedbackList() {
 
                 setFeedbacks(feedbacksWithDetails);
             } catch (err) {
-                console.error("Failed to fetch feedback:", err);
-                setError("Failed to load feedback data. Please try again.");
+                const axiosError = err as AxiosError;
+                if (axiosError.response?.status === 401) {
+                    handleAuthError();
+                } else {
+                    console.error("Failed to fetch feedback:", err);
+                    setError("Failed to load feedback data. Please try again.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -138,7 +150,6 @@ export default function FeedbackList() {
         }));
     };
     
-    // --- CSV Export Logic ---
     const exportFeedbackToCSV = (role: 'student' | 'company') => {
         setExporting(role);
         try {
@@ -223,7 +234,6 @@ export default function FeedbackList() {
         );
     }
 
-    // --- Render Component ---
     return (
         <Card className="m-4 rounded-none">
             <CardHeader>
@@ -235,7 +245,6 @@ export default function FeedbackList() {
                         </CardDescription>
                     </div>
                     <div className="flex flex-col md:flex-row items-end md:items-center space-y-2 md:space-y-0 md:space-x-4">
-                        {/* Download Buttons */}
                         <Button
                             onClick={() => exportFeedbackToCSV('student')}
                             disabled={exporting === 'student' || feedbacks.filter(f => f.user.role === 'student').length === 0}
@@ -263,7 +272,6 @@ export default function FeedbackList() {
                             Download Company Feedback
                         </Button>
                         
-                        {/* Filter Select */}
                         <div className="flex items-center space-x-2 pt-2 md:pt-0">
                             <Label className="hidden sm:block">Filter by Role:</Label>
                             <Select onValueChange={setFilter} defaultValue="all">

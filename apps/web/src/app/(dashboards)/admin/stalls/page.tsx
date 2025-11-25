@@ -38,6 +38,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface Stall {
   stallID: string;
@@ -77,14 +79,13 @@ enum Preference {
 }
 
 const StallsGroupCard = () => {
-  // --- state ---
+  const router = useRouter();
   const [companiesWithStalls, setCompaniesWithStalls] = useState<
     (Company & { stalls: Stall[] })[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
-  // --- dialog state ---
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStall, setEditingStall] = useState<Stall | null>(null);
   const [newCompanyID, setNewCompanyID] = useState<string>();
@@ -94,23 +95,24 @@ const StallsGroupCard = () => {
   );
   const [creating, setCreating] = useState(false);
 
-  // --- room state ---
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoomID, setSelectedRoomID] = useState<string>();
 
-  // --- alert dialog state ---
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [alertDialogTitle, setAlertDialogTitle] = useState("");
   const [alertDialogDescription, setAlertDialogDescription] = useState("");
 
-  // --- delete confirmation dialog state ---
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stallToDelete, setStallToDelete] = useState<{
     stallID: string;
     companyID: string;
   } | null>(null);
 
-  // --- initial load ---
+  const handleAuthError = () => {
+    alert("Session expired. Please login again.");
+    router.push("/auth/login");
+  };
+
   useEffect(() => {
     const fetchCompaniesStallsAndRooms = async () => {
       setLoading(true);
@@ -135,12 +137,17 @@ const StallsGroupCard = () => {
         );
         setCompaniesWithStalls(companiesWithStallsData);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
-        setAlertDialogTitle("Error");
-        setAlertDialogDescription(
-          "Failed to load data. Please check your network connection and try again."
-        );
-        setAlertDialogOpen(true);
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 401) {
+          handleAuthError();
+        } else {
+          console.error("Failed to fetch data:", error);
+          setAlertDialogTitle("Error");
+          setAlertDialogDescription(
+            "Failed to load data. Please check your network connection and try again."
+          );
+          setAlertDialogOpen(true);
+        }
       } finally {
         setLoading(false);
       }
@@ -149,7 +156,6 @@ const StallsGroupCard = () => {
     fetchCompaniesStallsAndRooms();
   }, []);
 
-  // --- actions ---
   const confirmRemove = (stallID: string, companyID: string) => {
     setStallToDelete({ stallID, companyID });
     setDeleteDialogOpen(true);
@@ -174,10 +180,15 @@ const StallsGroupCard = () => {
         })
       );
     } catch (error) {
-      console.error("Error deleting stall:", error);
-      setAlertDialogTitle("Error");
-      setAlertDialogDescription("Failed to delete stall. Please try again.");
-      setAlertDialogOpen(true);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Error deleting stall:", error);
+        setAlertDialogTitle("Error");
+        setAlertDialogDescription("Failed to delete stall. Please try again.");
+        setAlertDialogOpen(true);
+      }
     } finally {
       setDeleteDialogOpen(false);
       setStallToDelete(null);
@@ -236,12 +247,17 @@ const StallsGroupCard = () => {
       setDialogOpen(false);
       resetDialogState();
     } catch (error) {
-      console.error("Error creating stall:", error);
-      setAlertDialogTitle("Error");
-      setAlertDialogDescription(
-        "Failed to create stall. Please check the console for details."
-      );
-      setAlertDialogOpen(true);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Error creating stall:", error);
+        setAlertDialogTitle("Error");
+        setAlertDialogDescription(
+          "Failed to create stall. Please check the console for details."
+        );
+        setAlertDialogOpen(true);
+      }
     } finally {
       setCreating(false);
     }
@@ -280,12 +296,17 @@ const StallsGroupCard = () => {
       setDialogOpen(false);
       resetDialogState();
     } catch (error) {
-      console.error("Error updating stall:", error);
-      setAlertDialogTitle("Error");
-      setAlertDialogDescription(
-        "Failed to update stall. Please check the console for details."
-      );
-      setAlertDialogOpen(true);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Error updating stall:", error);
+        setAlertDialogTitle("Error");
+        setAlertDialogDescription(
+          "Failed to update stall. Please check the console for details."
+        );
+        setAlertDialogOpen(true);
+      }
     } finally {
       setCreating(false);
     }
@@ -299,7 +320,6 @@ const StallsGroupCard = () => {
     setSelectedRoomID(undefined);
   };
 
-  // --- CSV Export Logic ---
   const exportStallInfo = () => {
     setExporting(true);
     try {
@@ -362,7 +382,6 @@ const StallsGroupCard = () => {
     }
   };
 
-  // --- render ---
   if (loading)
     return (
       <div className="flex justify-center items-center h-64">
@@ -454,7 +473,6 @@ const StallsGroupCard = () => {
         ))}
       </div>
 
-      {/* dialog for add/edit stall */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-none">
           <DialogHeader>
@@ -544,7 +562,7 @@ const StallsGroupCard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Alert Dialog for errors and info */}
+
       <AlertDialog open={alertDialogOpen} onOpenChange={setAlertDialogOpen}>
         <AlertDialogContent className="rounded-none">
           <AlertDialogHeader>
@@ -563,7 +581,7 @@ const StallsGroupCard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {/* Delete Confirmation Dialog */}
+
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="rounded-none">
           <AlertDialogHeader>

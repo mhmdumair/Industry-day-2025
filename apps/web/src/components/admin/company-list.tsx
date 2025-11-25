@@ -21,6 +21,8 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import type { ComponentProps } from 'react';
 import { Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface User {
   email: string;
@@ -113,6 +115,7 @@ function TextareaField({
 }
 
 export default function CompanyList() {
+  const router = useRouter();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,7 +126,11 @@ export default function CompanyList() {
   const [exporting, setExporting] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
-  // Fetch companies on mount
+  const handleAuthError = () => {
+    alert("Session expired. Please login again.");
+    router.push("/auth/login");
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -131,16 +138,20 @@ export default function CompanyList() {
         setCompanies(data);
         setError(null);
       } catch (e) {
-        console.error(e);
-        setError("Failed to fetch companies.");
-        setCompanies([]);
+        const axiosError = e as AxiosError;
+        if (axiosError.response?.status === 401) {
+          handleAuthError();
+        } else {
+          console.error(e);
+          setError("Failed to fetch companies.");
+          setCompanies([]);
+        }
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // Dialog handlers
   const handleEditClick = (company: Company) => {
     try {
       setEditingCompany({ ...company });
@@ -161,7 +172,6 @@ export default function CompanyList() {
     }
   };
 
-  // Form handlers
   const handleCompanyDetailChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: "user" | "company"
@@ -210,8 +220,13 @@ export default function CompanyList() {
       await api.patch(`/company/reset-password/${editingCompany.companyID}`);
       alert("Password reset successfully. The new password is: companypassword");
     } catch (error) {
-      console.error("Password reset failed:", error);
-      alert("Failed to reset password");
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Password reset failed:", error);
+        alert("Failed to reset password");
+      }
     } finally {
       setResetPasswordLoading(false);
     }
@@ -263,14 +278,18 @@ export default function CompanyList() {
 
       handleDialogClose();
     } catch (error) {
-      console.error("Update failed:", error);
-      alert("Failed to update company");
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Update failed:", error);
+        alert("Failed to update company");
+      }
     } finally {
       setUpdateLoading(false);
     }
   };
   
-  // Export functionality
   const exportCompanyInfo = () => {
     setExporting(true);
     try {
@@ -357,7 +376,6 @@ export default function CompanyList() {
         </Button>
       </CardHeader>
       
-      {/* Company table */}
       <CardContent className="overflow-x-auto">
         {loading ? (
           <div className="p-4 text-center">Loading companies...</div>
@@ -408,7 +426,6 @@ export default function CompanyList() {
         )}
       </CardContent>
 
-      {/* Edit dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] rounded-none bg-background flex flex-col">
           <DialogHeader>
@@ -419,7 +436,6 @@ export default function CompanyList() {
             <div className="flex flex-col flex-1 min-h-0">
               <div className="overflow-y-auto flex-1 pr-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Company information section */}
                   <InputField
                     label="Company Name"
                     name="companyName"
@@ -487,7 +503,6 @@ export default function CompanyList() {
                     )}
                   </div>
 
-                  {/* User information section */}
                   <InputField
                     label="Email"
                     name="email"
@@ -522,7 +537,6 @@ export default function CompanyList() {
                 </div>
               </div>
               
-              {/* Action buttons */}
               <div className="flex gap-2 mt-4 pt-4 border-t">
                 <Button
                   onClick={handleSubmit}

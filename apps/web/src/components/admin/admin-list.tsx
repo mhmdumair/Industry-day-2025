@@ -20,6 +20,8 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface User {
     userID: string;
@@ -69,9 +71,10 @@ interface EditAdminDialogProps {
     isOpen: boolean;
     onClose: () => void;
     onUpdate: (updatedAdmin: Admin) => void;
+    onAuthError: () => void;
 }
 
-const EditAdminDialog: React.FC<EditAdminDialogProps> = ({ admin, isOpen, onClose, onUpdate }) => {
+const EditAdminDialog: React.FC<EditAdminDialogProps> = ({ admin, isOpen, onClose, onUpdate, onAuthError }) => {
     const [formData, setFormData] = useState<Admin>(admin);
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -123,9 +126,14 @@ const EditAdminDialog: React.FC<EditAdminDialogProps> = ({ admin, isOpen, onClos
             onUpdate(updatedAdmin);
             onClose();
         } catch (error) {
-            console.error("Update failed:", error);
-            const message = (error as any).response?.data?.message || "Failed to update admin details.";
-            setApiError(Array.isArray(message) ? message.join(', ') : message);
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                onAuthError();
+            } else {
+                console.error("Update failed:", error);
+                const message = (error as any).response?.data?.message || "Failed to update admin details.";
+                setApiError(Array.isArray(message) ? message.join(', ') : message);
+            }
         } finally {
             setLoading(false);
         }
@@ -206,12 +214,18 @@ const EditAdminDialog: React.FC<EditAdminDialogProps> = ({ admin, isOpen, onClos
 }
 
 export default function AdminList() {
+    const router = useRouter();
     const [admins, setAdmins] = useState<Admin[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
+
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
 
     const fetchAdmins = async () => {
         setLoading(true);
@@ -227,9 +241,14 @@ export default function AdminList() {
             setAdmins(formattedData);
             setError(null);
         } catch (e) {
-            console.error(e);
-            setError("Failed to fetch admin list.");
-            setAdmins([]);
+            const axiosError = e as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error(e);
+                setError("Failed to fetch admin list.");
+                setAdmins([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -311,8 +330,13 @@ export default function AdminList() {
             await api.delete(`/admin/${adminID}`);
             setAdmins(prev => prev.filter(admin => admin.adminID !== adminID));
         } catch (error) {
-            console.error("Delete failed:", error);
-            alert("Failed to delete admin. Check console for details.");
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Delete failed:", error);
+                alert("Failed to delete admin. Check console for details.");
+            }
         } finally {
             setDeletingId(null);
         }
@@ -407,6 +431,7 @@ export default function AdminList() {
                     isOpen={!!editingAdmin}
                     onClose={() => setEditingAdmin(null)}
                     onUpdate={handleUpdateAdmin}
+                    onAuthError={handleAuthError}
                 />
             )}
         </Card>

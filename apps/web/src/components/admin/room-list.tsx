@@ -35,6 +35,8 @@ import {
   TableRow,
 } from "../ui/table";
 import { Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface Room {
   roomID: string;
@@ -46,6 +48,7 @@ interface Room {
 }
 
 export default function RoomsListCard() {
+  const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +57,11 @@ export default function RoomsListCard() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  // --- Data Fetching ---
+  const handleAuthError = () => {
+    alert("Session expired. Please login again.");
+    router.push("/auth/login");
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -62,16 +69,20 @@ export default function RoomsListCard() {
         setRooms(data);
         setError(null);
       } catch (e) {
-        console.error(e);
-        setError("Failed to fetch rooms.");
-        setRooms([]);
+        const axiosError = e as AxiosError;
+        if (axiosError.response?.status === 401) {
+          handleAuthError();
+        } else {
+          console.error(e);
+          setError("Failed to fetch rooms.");
+          setRooms([]);
+        }
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // --- Dialog Handlers ---
   const handleEditClick = (room: Room) => {
     try {
       setEditingRoom({ ...room });
@@ -90,7 +101,6 @@ export default function RoomsListCard() {
     }
   };
 
-  // --- Input Change Handlers ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (!editingRoom) return;
@@ -116,7 +126,6 @@ export default function RoomsListCard() {
     }
   };
 
-  // --- Form Submission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRoom) return;
@@ -140,14 +149,18 @@ export default function RoomsListCard() {
 
       handleDialogClose();
     } catch (error) {
-      console.error("Update failed:", error);
-      alert("Failed to update room");
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Update failed:", error);
+        alert("Failed to update room");
+      }
     } finally {
       setUpdateLoading(false);
     }
   };
 
-  // --- Delete Handler ---
   const handleDelete = async (roomID: string) => {
     try {
       await api.delete(`/room/${roomID}`);
@@ -155,11 +168,15 @@ export default function RoomsListCard() {
       
       setRooms((prev) => prev.filter((r) => r.roomID !== roomID));
     } catch (error) {
-      console.error("Delete failed:", error);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Delete failed:", error);
+      }
     }
   };
 
-  // --- CSV Export Logic ---
   const exportRoomInfo = () => {
     setExporting(true);
     try {
@@ -211,7 +228,6 @@ export default function RoomsListCard() {
     }
   };
 
-  // --- Render Component ---
   return (
     <Card className="bg-white dark:bg-transparent shadow-md rounded-none">
       <CardHeader className="flex flex-row items-center justify-between">
