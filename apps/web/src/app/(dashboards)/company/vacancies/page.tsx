@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Upload, Eye, Trash2, FileText, X } from "lucide-react";
+import { Upload, Eye, Trash2, FileText, X, ExternalLink } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import axios from "axios";
@@ -29,8 +29,8 @@ import axios from "axios";
 interface JobPost {
     jobPostID: string;
     companyID: string;
-    // Renamed from 'fileName' to clarify it holds the Google Drive File ID
-    driveFileId: string; 
+    // This field contains the Google Drive File ID
+    fileName: string;
 }
 
 interface CompanyProfile {
@@ -59,6 +59,8 @@ export default function VacanciesPage() {
     const [postToDelete, setPostToDelete] = useState<JobPost | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    const [currentCvFileName, setCurrentCvFileName] = useState<string | null>(null);
+
     // --- Effect: Initial Data Fetch (Company Profile & Job Posts) ---
     useEffect(() => {
         const fetchData = async () => {
@@ -73,6 +75,7 @@ export default function VacanciesPage() {
 
                 // Get job posts for this company
                 const jobPostsResponse = await api.get<JobPost[]>(`/job-posts/company/${companyId}`);
+                console.log('Fetched job posts:', jobPostsResponse.data);
                 setJobPosts(jobPostsResponse.data);
             } catch (error) {
                 console.error("Failed to fetch data:", error);
@@ -161,8 +164,10 @@ export default function VacanciesPage() {
     };
 
     // --- Handler: Preview PDF ---
-    const handlePreview = (driveFileId: string) => {
-        setFileIdToPreview(driveFileId);
+    const handlePreview = (fileName: string) => {
+        console.log('Preview clicked - Drive File ID:', fileName);
+        console.log('Full PDF URL:', `https://drive.google.com/file/d/${fileName}/preview`);
+        setFileIdToPreview(fileName);
         setIsPreviewDialogOpen(true);
     };
 
@@ -171,6 +176,10 @@ export default function VacanciesPage() {
         setPostToDelete(jobPost);
         setIsDeleteDialogOpen(true);
     };
+
+    const pdfSource = fileIdToPreview 
+        ? `https://drive.google.com/file/d/${fileIdToPreview}/preview` 
+        : 'about:blank'; 
 
     // --- Handler: Delete Confirmation ---
     const handleDeleteConfirm = async () => {
@@ -260,56 +269,58 @@ export default function VacanciesPage() {
                                 </Button>
                             </div>
                         ) : (
-                            <div className="border border-gray-200 dark:border-gray-800 rounded-none overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50 dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900">
-                                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">#</TableHead>
-                                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">File Name</TableHead>
-                                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {jobPosts.map((jobPost, index) => (
-                                                <TableRow
-                                                    key={jobPost.jobPostID}
-                                                    className="hover:bg-gray-50 dark:hover:bg-gray-900/50 border-gray-200 dark:border-gray-800"
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {jobPosts.map((jobPost, index) => (
+                                    <div
+                                        key={jobPost.jobPostID}
+                                        className="group relative border border-gray-200 dark:border-gray-800 rounded-none overflow-hidden bg-white dark:bg-black hover:shadow-lg transition-shadow duration-200"
+                                    >
+                                        {/* PDF Preview Thumbnail */}
+                                        <div
+                                            className="relative square bg-gray-100 dark:bg-gray-900 cursor-pointer overflow-hidden"
+                                            onClick={() => {
+                                                console.log('Job Post Object:', jobPost);
+                                                console.log('Job Post fileName:', jobPost.fileName);
+                                                handlePreview(jobPost.fileName);
+                                            }}
+                                        >
+                                            {/* PDF Embed for thumbnail */}
+                                            <iframe
+                                                src={`https://drive.google.com/file/d/${jobPost.fileName}/preview`}
+                                                className="w-full h-full pointer-events-none"
+                                                title={`Job Vacancy ${index + 1} Preview`}
+                                            />
+
+                                            {/* Hover Overlay */}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                                <div className="text-white text-center">
+                                                    <Eye className="h-8 w-8 mx-auto mb-2" />
+                                                    <p className="text-sm font-medium">Click to view</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Footer with Actions */}
+                                        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                                    <span className="text-sm font-medium dark:text-gray-300">
+                                                        Vacancy {index + 1}
+                                                    </span>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteClick(jobPost)}
+                                                    className="rounded-none border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 h-8 w-8 p-0"
                                                 >
-                                                    <TableCell className="font-medium dark:text-gray-300">
-                                                        {index + 1}
-                                                    </TableCell>
-                                                    <TableCell className="dark:text-gray-300">
-                                                        <div className="flex items-center gap-2">
-                                                            <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
-                                                            <span>Job Vacancy {index + 1}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex justify-end gap-2">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handlePreview(jobPost.driveFileId)}
-                                                                className="rounded-none border-gray-300 dark:border-gray-700"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleDeleteClick(jobPost)}
-                                                                className="rounded-none border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </CardContent>
@@ -394,34 +405,30 @@ export default function VacanciesPage() {
 
             {/* Preview Dialog (Modal) */}
             <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
-                <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] h-[90vh] rounded-none dark:bg-black p-0">
+                <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] h-[90vh] rounded-none dark:bg-black flex flex-col gap-0">
                     <DialogHeader className="p-6 pb-0">
                         <div className="flex items-center justify-between">
-                            <DialogTitle className="dark:text-white">Job Vacancy Preview</DialogTitle>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-none"
-                                onClick={() => setIsPreviewDialogOpen(false)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
+                            <DialogTitle className="text-xl dark:text-white">Job Vacancy Preview</DialogTitle>
                         </div>
                     </DialogHeader>
 
-                    <div className="flex-1 p-6 pt-4 h-full">
-                        {fileIdToPreview ? (
-                            // Uses Google Drive embed feature to display PDF
-                            <iframe
-                                src={`https://drive.google.com/file/d/${fileIdToPreview}/preview`}
-                                className="w-full h-full border-0 rounded-none"
-                                title="Job Vacancy Preview"
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                                No preview available
-                            </div>
-                        )}
+                    <div className="flex-1 px-8 pt-4">
+                        {(() => {
+                            console.log('Preview Dialog - fileIdToPreview:', fileIdToPreview);
+                            console.log('Preview Dialog - pdfSource:', pdfSource);
+                            return fileIdToPreview ? (
+                                // Uses Google Drive embed feature to display PDF
+                                <iframe
+                                    src={pdfSource}
+                                    className="w-full h-full border-0 rounded-none"
+                                    title="Job Vacancy Preview"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                                    No preview available
+                                </div>
+                            );
+                        })()}
                     </div>
                 </DialogContent>
             </Dialog>
