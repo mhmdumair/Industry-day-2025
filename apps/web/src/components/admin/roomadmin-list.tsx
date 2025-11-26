@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import api from "@/lib/axios";
 import {
   Card,
@@ -18,7 +21,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Trash2, Download, Loader2 } from "lucide-react";
+import { Trash2, Download, Loader2, Edit } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Table,
@@ -30,6 +33,8 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
+
+// --- 1. Interfaces & Schema ---
 
 interface User {
   email: string;
@@ -53,24 +58,46 @@ interface RoomAdmin {
   room?: Room;
 }
 
+// Define Validation Schema
+const formSchema = z.object({
+  user: z.object({
+    email: z.string().min(1, "Email is required").email("Invalid email address"),
+    first_name: z.string().min(1, "First Name is required"),
+    last_name: z.string().min(1, "Last Name is required"),
+  }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+// --- 2. Main Component ---
+
 export default function RoomadminList() {
   const router = useRouter();
   const [roomAdmins, setRoomAdmins] = useState<RoomAdmin[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [roomsError, setRoomsError] = useState<string | null>(null);
-  const [editingRoomAdmin, setEditingRoomAdmin] = useState<RoomAdmin | null>(
-    null
-  );
+  
+  // Editing State
+  const [editingRoomAdmin, setEditingRoomAdmin] = useState<RoomAdmin | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [updateLoading, setUpdateLoading] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deletingRoomAdminId, setDeletingRoomAdminId] = useState<string | null>(
-    null
-  );
+  const [deletingRoomAdminId, setDeletingRoomAdminId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+
+  // Setup React Hook Form
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      user: { email: "", first_name: "", last_name: "" },
+    },
+  });
 
   const handleAuthError = () => {
     alert("Session expired. Please login again.");
@@ -80,6 +107,19 @@ export default function RoomadminList() {
   useEffect(() => {
     Promise.all([fetchRoomAdmins(), fetchRooms()]);
   }, []);
+
+  // Reset form when editingRoomAdmin changes
+  useEffect(() => {
+    if (editingRoomAdmin) {
+      reset({
+        user: {
+          email: editingRoomAdmin.user.email,
+          first_name: editingRoomAdmin.user.first_name,
+          last_name: editingRoomAdmin.user.last_name,
+        },
+      });
+    }
+  }, [editingRoomAdmin, reset]);
 
   const fetchRoomAdmins = async () => {
     try {
@@ -92,10 +132,7 @@ export default function RoomadminList() {
         handleAuthError();
       } else {
         console.error("Error fetching room admins:", e);
-        const errorMessage =
-          e.response?.data?.message ||
-          e.response?.data?.error ||
-          "Failed to fetch room admins. Please try again.";
+        const errorMessage = e.response?.data?.message || "Failed to fetch room admins.";
         setError(errorMessage);
         setRoomAdmins([]);
       }
@@ -106,96 +143,46 @@ export default function RoomadminList() {
 
   const fetchRooms = async () => {
     try {
-      setRoomsError(null);
       const { data } = await api.get<Room[]>("/room");
       setRooms(data.filter((room: Room) => room.isActive));
     } catch (e: any) {
-      const axiosError = e as AxiosError;
-      if (axiosError.response?.status === 401) {
-        handleAuthError();
-      } else {
-        console.error("Error fetching rooms:", e);
-        const errorMessage =
-          e.response?.data?.message ||
-          e.response?.data?.error ||
-          "Failed to fetch rooms for editing.";
-        setRoomsError(errorMessage);
-        setRooms([]);
-      }
+      console.error("Error fetching rooms:", e);
     }
   };
 
   const handleEditClick = (roomAdmin: RoomAdmin) => {
-    try {
-      setUpdateError(null);
-      setEditingRoomAdmin({ ...roomAdmin });
-      setIsDialogOpen(true);
-      if (roomsError) {
-        fetchRooms();
-      }
-    } catch (e) {
-      console.error("Error opening dialog:", e);
-    }
+    setUpdateError(null);
+    setEditingRoomAdmin(roomAdmin);
+    setIsDialogOpen(true);
   };
 
   const handleDialogClose = () => {
-    try {
-      setEditingRoomAdmin(null);
-      setIsDialogOpen(false);
-      setUpdateError(null);
-    } catch (e) {
-      console.error("Error closing dialog:", e);
-    }
+    setEditingRoomAdmin(null);
+    setIsDialogOpen(false);
+    setUpdateError(null);
+    reset();
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    section: "user" | "roomAdmin"
-  ) => {
-    try {
-      if (!editingRoomAdmin) return;
-      const { name, value } = e.target;
-      if (section === "user") {
-        setEditingRoomAdmin((prev) => ({
-          ...prev!,
-          user: {
-            ...prev!.user,
-            [name]: value,
-          },
-        }));
-      } else {
-        setEditingRoomAdmin((prev) => ({
-          ...prev!,
-          [name]: value,
-        }));
-      }
-    } catch (e) {
-      console.error("Error updating input:", e);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // --- Submit Handler ---
+  const onSubmit = async (values: FormValues) => {
     if (!editingRoomAdmin) return;
 
     try {
-      setUpdateLoading(true);
       setUpdateError(null);
 
+      // Payload structure matches the schema structure exactly
       const payload = {
-        user: {
-          email: editingRoomAdmin.user.email,
-          first_name: editingRoomAdmin.user.first_name,
-          last_name: editingRoomAdmin.user.last_name,
-        },
+        user: values.user,
       };
-      console.log(editingRoomAdmin.roomAdminID);
 
       await api.patch(`/room-admin/${editingRoomAdmin.roomAdminID}`, payload);
 
+      // Update local state
       setRoomAdmins((prev) =>
         prev.map((ra) =>
-          ra.roomAdminID === editingRoomAdmin.roomAdminID ? editingRoomAdmin : ra
+          ra.roomAdminID === editingRoomAdmin.roomAdminID 
+            ? { ...ra, user: { ...ra.user, ...values.user } } 
+            : ra
         )
       );
 
@@ -206,47 +193,27 @@ export default function RoomadminList() {
         handleAuthError();
       } else {
         console.error("Update failed:", error);
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to update room admin. Please try again.";
+        const errorMessage = error.response?.data?.message || "Failed to update room admin.";
         setUpdateError(errorMessage);
       }
-    } finally {
-      setUpdateLoading(false);
     }
   };
 
   const handleDelete = async (roomAdminID: string) => {
-    if (
-      !confirm("Are you sure you want to permanently delete this room admin?")
-    )
-      return;
+    if (!confirm("Are you sure you want to permanently delete this room admin?")) return;
 
     try {
       setDeletingRoomAdminId(roomAdminID);
       setDeleteError(null);
-
-      console.log("Permanently deleting room admin:", roomAdminID);
-
       await api.delete(`/room-admin/${roomAdminID}`);
-
-      setRoomAdmins((prev) =>
-        prev.filter((ra) => ra.roomAdminID !== roomAdminID)
-      );
-
-      console.log("Room admin permanently deleted successfully");
+      setRoomAdmins((prev) => prev.filter((ra) => ra.roomAdminID !== roomAdminID));
     } catch (error: any) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 401) {
         handleAuthError();
       } else {
         console.error("Delete failed:", error);
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to permanently delete room admin. Please try again.";
-        setDeleteError(errorMessage);
+        setDeleteError("Failed to delete room admin.");
       }
     } finally {
       setDeletingRoomAdminId(null);
@@ -270,16 +237,7 @@ export default function RoomadminList() {
   const exportRoomAdminInfo = () => {
     setExporting(true);
     try {
-      const headers = [
-        "First Name",
-        "Last Name",
-        "Email",
-        "Designation",
-        "Room Name",
-        "Room Location",
-        "User Role",
-      ];
-
+      const headers = ["First Name", "Last Name", "Email", "Designation", "Room Name", "Room Location", "User Role"];
       const rows = roomAdmins.map(ra => [
         ra.user.first_name,
         ra.user.last_name,
@@ -292,27 +250,13 @@ export default function RoomadminList() {
 
       const csvContent = [
         headers.join(","),
-        ...rows.map(row =>
-          row.map(cell => {
-            const cellStr = String(cell || "").replace(/"/g, '""');
-            if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
-              return `"${cellStr}"`;
-            }
-            return cellStr;
-          }).join(",")
-        )
+        ...rows.map(row => row.map(cell => `"${String(cell || "").replace(/"/g, '""')}"`).join(","))
       ].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      
-      const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `room-admin-list-${timestamp}.csv`;
-
-      link.setAttribute("href", url);
-      link.setAttribute("download", filename);
-      link.style.visibility = "hidden";
+      link.href = URL.createObjectURL(blob);
+      link.download = `room-admin-list-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -325,37 +269,21 @@ export default function RoomadminList() {
   };
 
   return (
-    <Card className="rounded-none">
+    <Card className="rounded-none shadow-md dark:bg-black">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Room Admin List</CardTitle>
-            <CardDescription>
-              Manage room administrators in the system
-            </CardDescription>
+            <CardDescription>Manage room administrators</CardDescription>
           </div>
           <div className="flex gap-2">
             {error && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetryFetch}
-                disabled={loading}
-                className="rounded-none"
-              >
+              <Button variant="outline" size="sm" onClick={handleRetryFetch} disabled={loading} className="rounded-none">
                 {loading ? "Loading..." : "Retry"}
               </Button>
             )}
-            <Button
-              onClick={exportRoomAdminInfo}
-              disabled={exporting || roomAdmins.length === 0}
-              className="rounded-none"
-            >
-              {exporting ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
+            <Button onClick={exportRoomAdminInfo} disabled={exporting || roomAdmins.length === 0} className="rounded-none">
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
               Download Data
             </Button>
           </div>
@@ -368,14 +296,7 @@ export default function RoomadminList() {
             <AlertTitle>Delete Error</AlertTitle>
             <AlertDescription>
               {deleteError}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDeleteError(null)}
-                className="ml-2 h-auto p-1"
-              >
-                ×
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteError(null)} className="ml-2 h-auto p-1">×</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -383,54 +304,46 @@ export default function RoomadminList() {
         {loading ? (
           <div className="p-4 text-center">Loading room admins...</div>
         ) : error ? (
-          <div className="p-4 text-center">
-            <div className="text-destructive mb-2">{error}</div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetryFetch}
-              className="rounded-none"
-            >
-              Try Again
-            </Button>
-          </div>
+          <div className="p-4 text-center text-red-500">{error}</div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                {["Name", "Email", "Designation", "Room", "Actions"].map(
-                  (h) => (
-                    <TableHead key={h}>{h}</TableHead>
-                  )
-                )}
+                {["Name", "Email", "Designation", "Room", "Actions"].map((h) => (
+                  <TableHead key={h}>{h}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {roomAdmins.length ? (
-                roomAdmins.map((ra, i) => (
-                  <TableRow key={ra.roomAdminID || i}>
+                roomAdmins.map((ra) => (
+                  <TableRow key={ra.roomAdminID}>
                     <TableCell>{getFullName(ra.user)}</TableCell>
                     <TableCell>{ra.user.email}</TableCell>
                     <TableCell>{ra.designation}</TableCell>
-                    <TableCell>{ra.room?.location}</TableCell>
+                    <TableCell>{ra.room?.location || getRoomName(ra.roomID)}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        {/* EDIT ICON */}
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
                           onClick={() => handleEditClick(ra)}
                           disabled={deletingRoomAdminId === ra.roomAdminID}
-                          className="rounded-none"
+                          className="h-8 w-8 text-gray-500 hover:text-black"
+                          title="Edit Room Admin"
                         >
-                          Edit
+                          <Edit className="h-4 w-4" />
                         </Button>
 
+                        {/* DELETE ICON */}
                         <Button
-                          size="sm"
-                          variant="destructive"
+                          size="icon"
+                          variant="ghost"
                           onClick={() => handleDelete(ra.roomAdminID)}
                           disabled={deletingRoomAdminId === ra.roomAdminID}
-                          className="rounded-none"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          title="Delete Room Admin"
                         >
                           {deletingRoomAdminId === ra.roomAdminID ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -444,9 +357,7 @@ export default function RoomadminList() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    No room admins found.
-                  </TableCell>
+                  <TableCell colSpan={5} className="text-center">No room admins found.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -454,6 +365,7 @@ export default function RoomadminList() {
         )}
       </CardContent>
 
+      {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl rounded-none">
           <DialogHeader>
@@ -461,46 +373,39 @@ export default function RoomadminList() {
           </DialogHeader>
 
           {editingRoomAdmin && (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputField
-                  label="Email"
-                  name="email"
-                  value={editingRoomAdmin.user.email}
-                  onChange={handleInputChange}
-                  section="user"
-                />
-                <InputField
-                  label="First Name"
-                  name="first_name"
-                  value={editingRoomAdmin.user.first_name}
-                  onChange={handleInputChange}
-                  section="user"
-                />
-                <InputField
-                  label="Last Name"
-                  name="last_name"
-                  value={editingRoomAdmin.user.last_name}
-                  onChange={handleInputChange}
-                  section="user"
-                />
+                
+                {/* Email */}
+                <div>
+                    <Label>Email</Label>
+                    <Input {...register("user.email")} className="rounded-none" />
+                    {errors.user?.email && <p className="text-red-500 text-xs">{errors.user.email.message}</p>}
+                </div>
 
+                {/* First Name */}
+                <div>
+                    <Label>First Name</Label>
+                    <Input {...register("user.first_name")} className="rounded-none" />
+                    {errors.user?.first_name && <p className="text-red-500 text-xs">{errors.user.first_name.message}</p>}
+                </div>
+
+                {/* Last Name */}
+                <div>
+                    <Label>Last Name</Label>
+                    <Input {...register("user.last_name")} className="rounded-none" />
+                    {errors.user?.last_name && <p className="text-red-500 text-xs">{errors.user.last_name.message}</p>}
+                </div>
+
+                {/* Read-only Fields */}
                 <div>
                   <Label>Designation (Read-only)</Label>
-                  <Input
-                    value={editingRoomAdmin.designation}
-                    disabled
-                    className="rounded-none"
-                  />
+                  <Input value={editingRoomAdmin.designation} disabled className="rounded-none bg-gray-100" />
                 </div>
 
                 <div>
                   <Label>Assigned Room (Read-only)</Label>
-                  <Input
-                    value={getRoomName(editingRoomAdmin.roomID)}
-                    disabled
-                    className="rounded-none"
-                  />
+                  <Input value={getRoomName(editingRoomAdmin.roomID)} disabled className="rounded-none bg-gray-100" />
                 </div>
               </div>
 
@@ -511,21 +416,11 @@ export default function RoomadminList() {
                 </Alert>
               )}
 
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  className="flex-1 rounded-none"
-                  disabled={updateLoading}
-                >
-                  {updateLoading ? "Saving..." : "Save Changes"}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button type="submit" className="flex-1 rounded-none" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDialogClose}
-                  disabled={updateLoading}
-                  className="rounded-none"
-                >
+                <Button type="button" variant="outline" onClick={handleDialogClose} disabled={isSubmitting} className="rounded-none">
                   Cancel
                 </Button>
               </div>
@@ -534,34 +429,5 @@ export default function RoomadminList() {
         </DialogContent>
       </Dialog>
     </Card>
-  );
-}
-
-function InputField({
-  label,
-  name,
-  value,
-  onChange,
-  section,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    section: "user" | "roomAdmin"
-  ) => void;
-  section: "user" | "roomAdmin";
-}) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <Input
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e, section)}
-        className="rounded-none"
-      />
-    </div>
   );
 }

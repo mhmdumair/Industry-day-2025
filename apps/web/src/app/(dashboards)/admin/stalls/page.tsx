@@ -391,7 +391,7 @@ const StallsGroupCard = () => {
 
   return (
     <div className="mt-6 mx-auto p-4 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 ">
         <h1 className="text-3xl font-bold">Manage Interview Stalls</h1>
         <Button
           onClick={exportStallInfo}
@@ -410,7 +410,7 @@ const StallsGroupCard = () => {
         {companiesWithStalls.map((company) => (
           <Card
             key={company.companyID}
-            className="rounded-none flex flex-col"
+            className="rounded-none flex flex-col dark:bg-black"
           >
             <CardHeader className="border-b p-4">
               <CardTitle className="text-xl font-semibold">
@@ -422,7 +422,7 @@ const StallsGroupCard = () => {
                 company.stalls.map((stall) => (
                   <div
                     key={stall.stallID}
-                    className="relative p-3 border rounded-none bg-muted"
+                    className="relative p-3 border rounded-none bg-muted dark:bg-black"
                   >
                     <div className="flex justify-between items-center">
                       <div>

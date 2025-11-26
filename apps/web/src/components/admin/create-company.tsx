@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import api from "@/lib/axios";
 import {
   Card,
@@ -23,150 +26,117 @@ import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { isAxiosError } from "axios";
 
-const companySponsorships = ["GOLD", "SILVER", "BRONZE"];
+// --- 1. Define Constants & Zod Schema ---
 
-interface FieldProps {
-  label: string;
-  name: string;
-  value: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onSelectChange?: (value: string) => void;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  isSelect?: boolean;
-  isFile?: boolean;
-  onFileChange?: (file: File | null) => void;
-}
+const companySponsorships = ["GOLD", "SILVER", "BRONZE"] as const;
 
+const formSchema = z.object({
+  user: z.object({
+    email: z.string().min(1, "Email is required").email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    role: z.literal("company"),
+  }),
+  company: z.object({
+    companyName: z.string().min(1, "Company name is required"),
+    description: z.string().min(10, "Description must be at least 10 characters"),
+    sponsership: z.enum(companySponsorships),
+    contactPersonName: z.string().min(1, "Contact person is required"),
+    contactPersonDesignation: z.string().min(1, "Designation is required"),
+    contactNumber: z.string().min(1, "Contact number is required"), // You can add regex here for phone validation
+    location: z.string().min(1, "Location is required"),
+    companyWebsite: z.string().url("Invalid URL").optional().or(z.literal("")),
+  }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function CreateCompany() {
-  const [formData, setFormData] = useState({
-    user: {
-      email: "",
-      password: "",
-      role: "company",
-    },
-    company: {
-      companyName: "",
-      description: "",
-      sponsership: "GOLD",
-      contactPersonName: "",
-      contactPersonDesignation: "",
-      contactNumber: "",
-      location: "",
-      companyWebsite: "",
+  // --- 2. Setup React Hook Form ---
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      user: {
+        email: "",
+        password: "",
+        role: "company",
+      },
+      company: {
+        companyName: "",
+        description: "",
+        sponsership: "GOLD",
+        contactPersonName: "",
+        contactPersonDesignation: "",
+        contactNumber: "",
+        location: "",
+        companyWebsite: "",
+      },
     },
   });
 
+  // File state remains manual as it's often cleaner than RHF for simple file inputs
   const [logoFile, setLogoFile] = useState<File | null>(null);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    section: "user" | "company",
-  ) => {
-    const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [section]: { ...p[section], [name]: value } }));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogoFile(e.target.files[0]);
+    }
   };
 
-  const handleFileChange = (file: File | null) => {
-    setLogoFile(file);
-  };
-
-  const handleSponsorshipSelect = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      company: { ...prev.company, sponsership: value },
-    }));
-  };
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  // --- 3. Form Submission Handler ---
+  const onSubmit = async (values: FormValues) => {
+    setApiError(null);
     setSuccess(null);
 
-    // 1. Construct the JSON part of the payload (excluding the file)
+    // Construct payload
     const jsonPayload = {
-      user: {
-        email: formData.user.email,
-        password: formData.user.password,
-        role: formData.user.role,
-      },
+      user: values.user,
       company: {
-        companyName: formData.company.companyName,
-        description: formData.company.description,
-        sponsership: formData.company.sponsership,
-        contactPersonName: formData.company.contactPersonName,
-        contactPersonDesignation: formData.company.contactPersonDesignation,
-        contactNumber: formData.company.contactNumber,
-        location: formData.company.location,
-        // Since logo is uploaded as a file, we remove the string field here,
-        // but include companyWebsite if present.
-        ...(formData.company.companyWebsite && {
-          companyWebsite: formData.company.companyWebsite,
-        }),
+        ...values.company,
+        // Only include website if it has a value
+        ...(values.company.companyWebsite ? { companyWebsite: values.company.companyWebsite } : {}),
       },
     };
 
-    // 2. Use FormData for file and JSON submission
     const data = new FormData();
-
-    // Append the file using the key 'logo'
     if (logoFile) {
       data.append("logo", logoFile);
     }
-    
-    // Append the JSON DTO payload as a string under the key 'data'
-    data.append('data', JSON.stringify(jsonPayload));
-
+    data.append("data", JSON.stringify(jsonPayload));
 
     try {
-      // 3. Target the secured single creation route /company
       await api.post("/company", data, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Crucial for file uploads
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setSuccess("Company created successfully!");
       
-      // Reset form and file state
-      setFormData({
-        user: { email: "", password: "", role: "company" },
-        company: {
-          companyName: "",
-          description: "",
-          sponsership: "GOLD",
-          contactPersonName: "",
-          contactPersonDesignation: "",
-          contactNumber: "",
-          location: "",
-          companyWebsite: "",
-        },
-      });
+      // Reset Form
+      reset(); 
       setLogoFile(null);
+      // Manually reset file input visual
+      const fileInput = document.getElementById("logo") as HTMLInputElement;
+      if(fileInput) fileInput.value = "";
 
     } catch (err) {
       if (isAxiosError(err)) {
-        console.error("Error details:", err.response?.data);
         const message = err.response?.data?.message || "An API error occurred.";
-        setError(message);
+        setApiError(message);
       } else {
-        console.error("An unexpected error occurred:", err);
-        setError("An unexpected error occurred.");
+        setApiError("An unexpected error occurred.");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="h-full mx-auto shadow-lg rounded-none">
+    <Card className="h-full mx-auto dark:bg-black shadow-lg rounded-none">
       <CardHeader>
         <CardTitle>Create Company (Internal)</CardTitle>
         <CardDescription>
@@ -174,105 +144,153 @@ export default function CreateCompany() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field
-              label="Company Name *"
-              name="companyName"
-              value={formData.company.companyName}
-              onChange={(e) => handleInputChange(e, "company")}
-              placeholder="e.g., Tech Solutions Inc."
-            />
-            <Field
-              label="Sponsorship *"
-              name="sponsership"
-              value={formData.company.sponsership}
-              isSelect={true}
-              onSelectChange={handleSponsorshipSelect}
-            />
-            <Field
-              label="Email *"
-              name="email"
-              type="email"
-              value={formData.user.email}
-              onChange={(e) => handleInputChange(e, "user")}
-              placeholder="e.g., contact@company.com"
-            />
-            <Field
-              label="Password *"
-              name="password"
-              type="password"
-              value={formData.user.password}
-              onChange={(e) => handleInputChange(e, "user")}
-              placeholder="Enter a secure password"
-            />
-            <Field
-              label="Contact Person *"
-              name="contactPersonName"
-              value={formData.company.contactPersonName}
-              onChange={(e) => handleInputChange(e, "company")}
-              placeholder="Full Name"
-            />
-            <Field
-              label="Designation *"
-              name="contactPersonDesignation"
-              value={formData.company.contactPersonDesignation}
-              onChange={(e) => handleInputChange(e, "company")}
-              placeholder="e.g., HR Manager"
-            />
-            <Field
-              label="Contact Number *"
-              name="contactNumber"
-              value={formData.company.contactNumber}
-              onChange={(e) => handleInputChange(e, "company")}
-              placeholder="e.g., +1234567890"
-            />
-            <Field
-              label="Location *"
-              name="location"
-              value={formData.company.location}
-              onChange={(e) => handleInputChange(e, "company")}
-              placeholder="e.g., New York, USA"
-            />
-            <Field
-              label="Company Website"
-              name="companyWebsite"
-              type="url"
-              value={formData.company.companyWebsite}
-              onChange={(e) => handleInputChange(e, "company")}
-              required={false}
-              placeholder="https://www.company.com"
-            />
             
-            <Field
-              label="Company Logo"
-              name="logo"
-              isFile={true}
-              value={logoFile ? logoFile.name : ""}
-              onFileChange={handleFileChange}
-              required={false}
-              placeholder="Upload Logo Image"
-            />
+            {/* Company Name */}
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name *</Label>
+              <Input 
+                {...register("company.companyName")} 
+                placeholder="e.g., Tech Solutions Inc." 
+                className="rounded-none" 
+              />
+              {errors.company?.companyName && <p className="text-red-500 text-sm">{errors.company.companyName.message}</p>}
+            </div>
+
+            {/* Sponsorship - Using Controller for Select */}
+            <div className="space-y-2">
+              <Label>Sponsorship *</Label>
+              <Controller
+                control={control}
+                name="company.sponsership"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger className="rounded-none">
+                      <SelectValue placeholder="Select sponsorship" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-none">
+                      {companySponsorships.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.company?.sponsership && <p className="text-red-500 text-sm">{errors.company.sponsership.message}</p>}
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input 
+                {...register("user.email")} 
+                type="email" 
+                placeholder="e.g., contact@company.com" 
+                className="rounded-none" 
+              />
+              {errors.user?.email && <p className="text-red-500 text-sm">{errors.user.email.message}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password *</Label>
+              <Input 
+                {...register("user.password")} 
+                type="password" 
+                placeholder="Enter a secure password" 
+                className="rounded-none" 
+              />
+              {errors.user?.password && <p className="text-red-500 text-sm">{errors.user.password.message}</p>}
+            </div>
+
+            {/* Contact Person */}
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonName">Contact Person *</Label>
+              <Input 
+                {...register("company.contactPersonName")} 
+                placeholder="Full Name" 
+                className="rounded-none" 
+              />
+              {errors.company?.contactPersonName && <p className="text-red-500 text-sm">{errors.company.contactPersonName.message}</p>}
+            </div>
+
+            {/* Designation */}
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonDesignation">Designation *</Label>
+              <Input 
+                {...register("company.contactPersonDesignation")} 
+                placeholder="e.g., HR Manager" 
+                className="rounded-none" 
+              />
+              {errors.company?.contactPersonDesignation && <p className="text-red-500 text-sm">{errors.company.contactPersonDesignation.message}</p>}
+            </div>
+
+            {/* Contact Number */}
+            <div className="space-y-2">
+              <Label htmlFor="contactNumber">Contact Number *</Label>
+              <Input 
+                {...register("company.contactNumber")} 
+                placeholder="e.g., +1234567890" 
+                className="rounded-none" 
+              />
+              {errors.company?.contactNumber && <p className="text-red-500 text-sm">{errors.company.contactNumber.message}</p>}
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location">Location *</Label>
+              <Input 
+                {...register("company.location")} 
+                placeholder="e.g., New York, USA" 
+                className="rounded-none" 
+              />
+              {errors.company?.location && <p className="text-red-500 text-sm">{errors.company.location.message}</p>}
+            </div>
+
+            {/* Company Website */}
+            <div className="space-y-2">
+              <Label htmlFor="companyWebsite">Company Website</Label>
+              <Input 
+                {...register("company.companyWebsite")} 
+                type="url" 
+                placeholder="https://www.company.com" 
+                className="rounded-none" 
+              />
+              {errors.company?.companyWebsite && <p className="text-red-500 text-sm">{errors.company.companyWebsite.message}</p>}
+            </div>
+
+            {/* Logo File (Manual Handler) */}
+            <div className="space-y-2">
+              <Label htmlFor="logo">Company Logo</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="logo"
+                  name="logo"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="rounded-none"
+                />
+              </div>
+            </div>
 
           </div>
+
+          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-700">
-              Description *
-            </Label>
+            <Label htmlFor="description">Description *</Label>
             <Textarea
-              id="description"
-              name="description"
-              value={formData.company.description}
-              onChange={(e) => handleInputChange(e, "company")}
-              required
+              {...register("company.description")}
               rows={4}
               placeholder="A brief description of your company..."
               className="rounded-none"
             />
+            {errors.company?.description && <p className="text-red-500 text-sm">{errors.company.description.message}</p>}
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
+          {/* Global API Errors / Success */}
+          {apiError && (
+            <p className="text-red-500 text-sm text-center">{apiError}</p>
           )}
           {success && (
             <p className="text-green-500 text-sm text-center">{success}</p>
@@ -281,78 +299,13 @@ export default function CreateCompany() {
           <Button
             type="submit"
             className="w-full mt-4 rounded-none"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading ? "Creating..." : "Create Company"}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Creating..." : "Create Company"}
           </Button>
         </form>
       </CardContent>
     </Card>
-  );
-}
-
-
-function Field({
-  label,
-  name,
-  value,
-  onChange,
-  onSelectChange,
-  onFileChange,
-  type = "text",
-  required = true,
-  placeholder = "",
-  isSelect = false,
-  isFile = false,
-}: FieldProps) {
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onFileChange) {
-      const file = e.target.files?.[0] || null;
-      onFileChange(file);
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={name} className="text-gray-700">{label}</Label>
-      {isSelect ? (
-        <Select value={value} onValueChange={onSelectChange}>
-          <SelectTrigger className="rounded-none">
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent className="rounded-none">
-            {companySponsorships.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ) : isFile ? (
-        <div className="flex items-center space-x-2">
-          <Input
-            id={name}
-            name={name}
-            type="file"
-            onChange={handleFileChange}
-            required={required}
-            className="rounded-none"
-          />
-        </div>
-      ) : (
-        <Input
-          id={name}
-          name={name}
-          type={type}
-          value={value}
-          onChange={onChange}
-          required={required}
-          placeholder={placeholder}
-          className="rounded-none"
-        />
-      )}
-    </div>
   );
 }
