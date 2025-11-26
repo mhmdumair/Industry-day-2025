@@ -176,6 +176,7 @@ export default function CreateStudent() {
               <Input
                 {...register("user.email")}
                 type="email"
+                placeholder="e.g., student@example.com"
                 className="rounded-none dark:bg-black dark:text-white"
               />
               {errors.user?.email && <p className="text-red-500 text-xs mt-1">{errors.user.email.message}</p>}
@@ -184,6 +185,7 @@ export default function CreateStudent() {
               <Label className="mb-1 dark:text-gray-300">First Name</Label>
               <Input
                 {...register("user.first_name")}
+                placeholder="e.g., John"
                 className="rounded-none dark:bg-black dark:text-white"
               />
               {errors.user?.first_name && <p className="text-red-500 text-xs mt-1">{errors.user.first_name.message}</p>}
@@ -192,6 +194,7 @@ export default function CreateStudent() {
               <Label className="mb-1 dark:text-gray-300">Last Name</Label>
               <Input
                 {...register("user.last_name")}
+                placeholder="e.g., Doe"
                 className="rounded-none dark:bg-black dark:text-white"
               />
               {errors.user?.last_name && <p className="text-red-500 text-xs mt-1">{errors.user.last_name.message}</p>}
@@ -244,6 +247,7 @@ export default function CreateStudent() {
               <Label className="mb-1 dark:text-gray-300">LinkedIn (Optional)</Label>
               <Input
                 {...register("student.linkedin")}
+                placeholder="e.g., https://linkedin.com/in/johndoe"
                 className="rounded-none dark:bg-black dark:text-white"
               />
             </div>

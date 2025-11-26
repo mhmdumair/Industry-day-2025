@@ -269,7 +269,7 @@ export default function RoomadminList() {
   };
 
   return (
-    <Card className="rounded-none shadow-md">
+    <Card className="rounded-none shadow-md dark:bg-black">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>

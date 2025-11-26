@@ -136,7 +136,7 @@ export default function CreateCompany() {
   };
 
   return (
-    <Card className="h-full mx-auto shadow-lg rounded-none">
+    <Card className="h-full mx-auto dark:bg-black shadow-lg rounded-none">
       <CardHeader>
         <CardTitle>Create Company (Internal)</CardTitle>
         <CardDescription>

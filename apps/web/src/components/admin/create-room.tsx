@@ -76,7 +76,7 @@ export default function CreateRoom() {
     };
 
     return (
-        <Card className="bg-white dark:bg-transparent shadow-md rounded-none">
+        <Card className="bg-white dark:bg-black shadow-md rounded-none">
             <CardHeader>
                 <CardTitle className="text-xl leading-tight">Create Room</CardTitle>
                 <CardDescription>Add a new room to the system</CardDescription>

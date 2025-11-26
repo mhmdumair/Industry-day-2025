@@ -293,7 +293,7 @@ export default function CompanyList() {
   };
 
   return (
-    <Card className="h-full shadow-md rounded-none">
+    <Card className="h-full shadow-md rounded-none dark:bg-black">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Company List</CardTitle>

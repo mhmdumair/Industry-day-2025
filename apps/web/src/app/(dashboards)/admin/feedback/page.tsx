@@ -235,7 +235,7 @@ export default function FeedbackList() {
     }
 
     return (
-        <Card className="m-4 rounded-none">
+        <Card className="m-4 rounded-none dark:bg-black">
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>

@@ -125,7 +125,7 @@ export default function CreateRoomadmin() {
   };
 
   return (
-    <Card className="rounded-none">
+    <Card className="rounded-none dark:bg-black">
       <CardHeader>
         <CardTitle>Create Room Admin</CardTitle>
         <CardDescription>
@@ -143,6 +143,7 @@ export default function CreateRoomadmin() {
               <Input
                 {...register("user.email")}
                 type="email"
+                placeholder="e.g., admin@example.com"
                 className="rounded-none"
               />
               {errors.user?.email && (
@@ -157,6 +158,7 @@ export default function CreateRoomadmin() {
               <Label>First Name</Label>
               <Input
                 {...register("user.first_name")}
+                placeholder="e.g., John"
                 className="rounded-none"
               />
               {errors.user?.first_name && (
@@ -171,6 +173,7 @@ export default function CreateRoomadmin() {
               <Label>Last Name</Label>
               <Input
                 {...register("user.last_name")}
+                placeholder="e.g., Doe"
                 className="rounded-none"
               />
               {errors.user?.last_name && (
