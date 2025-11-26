@@ -55,7 +55,7 @@ const SponsorDialog: React.FC<SponsorDialogProps> = ({
                         <div className="w-full max-w-md h-48 bg-gray-200 flex items-center justify-center">
                             {sponsor.logo ? (
                                 <img
-                                    src={`/logo/${sponsor.logo}`}
+                                    src={`${sponsor.logo}`}
                                     alt={`${sponsor.name} logo`}
                                     className="max-w-full max-h-full object-contain"
                                     onError={(e) => {

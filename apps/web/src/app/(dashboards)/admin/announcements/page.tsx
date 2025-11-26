@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Edit3 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface Announcement {
     announcementID: string;
@@ -40,24 +42,27 @@ interface AdminResponse {
 }
 
 export default function AnnouncementBoard() {
+    const router = useRouter();
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [audience, setAudience] = useState<string>("");
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null); // New state for editing
+    const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch the authenticated admin's profile
                 const adminRes = await api.get<AdminResponse>("/admin/by-user");
                 const fetchedAdmin: AdminResponse = adminRes.data;
                 const userId = fetchedAdmin.userID;
-                // setAdminUserId(userId); // Removed as it's unused
 
-                // Use the user ID to fetch their announcements
                 const announcementsRes = await api.get(`/announcement/user`);
                 
                 const fetchedAnnouncements: Announcement[] = (announcementsRes.data as ApiAnnouncement[]).map((a) => ({
@@ -73,8 +78,13 @@ export default function AnnouncementBoard() {
                 
                 setAnnouncements(fetchedAnnouncements);
             } catch (error) {
-                console.error("Failed to fetch initial data:", error);
-                setError("Failed to load announcements.");
+                const axiosError = error as AxiosError;
+                if (axiosError.response?.status === 401) {
+                    handleAuthError();
+                } else {
+                    console.error("Failed to fetch initial data:", error);
+                    setError("Failed to load announcements.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -98,7 +108,6 @@ export default function AnnouncementBoard() {
 
         try {
             if (editingAnnouncementId) {
-                // Update existing announcement
                 const res = await api.patch(`/announcement/${editingAnnouncementId}`, payload);
                 const updatedAnnouncement: Announcement = {
                     announcementID: res.data.announcementID,
@@ -114,7 +123,6 @@ export default function AnnouncementBoard() {
                 setEditingAnnouncementId(null);
                 alert("Announcement updated successfully!");
             } else {
-                // Create new announcement
                 const res = await api.post("/announcement", payload);
                 const newAnnouncement: Announcement = {
                     announcementID: res.data.announcementID,
@@ -135,8 +143,13 @@ export default function AnnouncementBoard() {
             setAudience("");
 
         } catch (error) {
-            console.error("Failed to post/update announcement:", error);
-            alert("Failed to post/update announcement.");
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Failed to post/update announcement:", error);
+                alert("Failed to post/update announcement.");
+            }
         }
     };
 
@@ -149,8 +162,13 @@ export default function AnnouncementBoard() {
             setAnnouncements(announcements.filter(a => a.announcementID !== id));
             alert("Announcement deleted successfully!");
         } catch (error) {
-            console.error("Failed to delete announcement:", error);
-            alert("Failed to delete announcement.");
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Failed to delete announcement:", error);
+                alert("Failed to delete announcement.");
+            }
         }
     };
 
@@ -160,7 +178,7 @@ export default function AnnouncementBoard() {
             setTitle(toEdit.title);
             setDescription(toEdit.description);
             setAudience(toEdit.audience);
-            setEditingAnnouncementId(id); // Set editing mode
+            setEditingAnnouncementId(id);
         }
     };
 

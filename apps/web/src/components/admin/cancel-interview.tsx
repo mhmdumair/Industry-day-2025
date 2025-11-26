@@ -22,6 +22,8 @@ import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
 
+// --- ENUMS & INTERFACES ---
+
 enum InterviewType {
   PRE_LISTED = "pre-listed",
   WALK_IN = "walk-in",
@@ -52,6 +54,8 @@ interface Interview {
 interface ManageInterviewsProps {
   students: Student[];
 }
+
+// --- MAIN COMPONENT ---
 
 export default function CancelInterview({ students }: ManageInterviewsProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -134,6 +138,8 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        
+        {/* --- SEARCH SECTION --- */}
         <div>
           <Label className="mb-1" htmlFor="student-search">Student</Label>
           <Input
@@ -189,6 +195,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
           )}
         </div>
 
+        {/* --- INTERVIEW LIST SECTION --- */}
         {selectedStudent && (
           <div className="mt-4 space-y-4">
             <div>
@@ -232,6 +239,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
                       size="sm"
                       className="rounded-none"
                       onClick={() => handleCancelInterview(interview.interviewID)}
+                      disabled={interview.status.toLowerCase() === "cancelled"}
                     >
                       Cancel
                     </Button>

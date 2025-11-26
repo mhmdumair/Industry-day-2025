@@ -24,13 +24,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Star, Download } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface User {
     userID: string;
@@ -48,7 +50,6 @@ interface StudentDetails {
     regNo: string;
 }
 
-// New interfaces to match the API response for company and student details
 interface CompanyApiResponse {
     companyName: string;
 }
@@ -70,11 +71,18 @@ interface Feedback {
 const MAX_COMMENT_LENGTH = 100;
 
 export default function FeedbackList() {
+    const router = useRouter();
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState("all");
     const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+    const [exporting, setExporting] = useState<string | null>(null);
+
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
 
     useEffect(() => {
         const fetchFeedback = async () => {
@@ -115,8 +123,13 @@ export default function FeedbackList() {
 
                 setFeedbacks(feedbacksWithDetails);
             } catch (err) {
-                console.error("Failed to fetch feedback:", err);
-                setError("Failed to load feedback data. Please try again.");
+                const axiosError = err as AxiosError;
+                if (axiosError.response?.status === 401) {
+                    handleAuthError();
+                } else {
+                    console.error("Failed to fetch feedback:", err);
+                    setError("Failed to load feedback data. Please try again.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -135,6 +148,71 @@ export default function FeedbackList() {
             ...prev,
             [feedbackID]: !prev[feedbackID],
         }));
+    };
+    
+    const exportFeedbackToCSV = (role: 'student' | 'company') => {
+        setExporting(role);
+        try {
+            const dataToExport = feedbacks.filter(f => f.user.role === role);
+
+            const headers = [
+                "Submitter First Name",
+                "Submitter Last Name",
+                "Submitter Email",
+                "Associated Detail",
+                "Rating (1-5)",
+                "Comment",
+                "Date Submitted",
+            ];
+
+            const rows = dataToExport.map(f => {
+                const associatedDetail = role === 'company'
+                    ? f.companyDetails?.companyName || "N/A"
+                    : f.studentDetails?.regNo || "N/A";
+                
+                return [
+                    f.user.first_name,
+                    f.user.last_name,
+                    f.user.email,
+                    associatedDetail,
+                    f.rating,
+                    f.comment,
+                    format(new Date(f.created_at), "yyyy-MM-dd HH:mm:ss"),
+                ];
+            });
+
+            const csvContent = [
+                headers.join(","),
+                ...rows.map(row =>
+                    row.map(cell => {
+                        const cellStr = String(cell || "").replace(/"/g, '""');
+                        if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+                            return `"${cellStr}"`;
+                        }
+                        return cellStr;
+                    }).join(",")
+                )
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            const timestamp = format(new Date(), "yyyyMMdd_HHmmss");
+            const filename = `${role}-feedback-report-${timestamp}.csv`;
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error(`Export failed for ${role}:`, error);
+            setError(`Failed to export ${role} feedback data.`);
+        } finally {
+            setExporting(null);
+        }
     };
 
     if (loading) {
@@ -159,25 +237,55 @@ export default function FeedbackList() {
     return (
         <Card className="m-4 rounded-none">
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-start">
                     <div>
                         <CardTitle className="text-3xl font-bold">All Feedback</CardTitle>
                         <CardDescription>
                             View and manage feedback from all users.
                         </CardDescription>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Label>Filter by Role:</Label>
-                        <Select onValueChange={setFilter} defaultValue="all">
-                            <SelectTrigger className="w-[180px] rounded-none">
-                                <SelectValue placeholder="Filter by role" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-none">
-                                <SelectItem value="all" className="rounded-none">All</SelectItem>
-                                <SelectItem value="student" className="rounded-none">Students</SelectItem>
-                                <SelectItem value="company" className="rounded-none">Companies</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="flex flex-col md:flex-row items-end md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                        <Button
+                            onClick={() => exportFeedbackToCSV('student')}
+                            disabled={exporting === 'student' || feedbacks.filter(f => f.user.role === 'student').length === 0}
+                            className="rounded-none w-full md:w-auto"
+                            variant="secondary"
+                        >
+                            {exporting === 'student' ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                            )}
+                            Download Student Feedback
+                        </Button>
+                        <Button
+                            onClick={() => exportFeedbackToCSV('company')}
+                            disabled={exporting === 'company' || feedbacks.filter(f => f.user.role === 'company').length === 0}
+                            className="rounded-none w-full md:w-auto"
+                            variant="secondary"
+                        >
+                            {exporting === 'company' ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                            )}
+                            Download Company Feedback
+                        </Button>
+                        
+                        <div className="flex items-center space-x-2 pt-2 md:pt-0">
+                            <Label className="hidden sm:block">Filter by Role:</Label>
+                            <Select onValueChange={setFilter} defaultValue="all">
+                                <SelectTrigger className="w-[180px] rounded-none">
+                                    <SelectValue placeholder="Filter by role" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-none">
+                                    <SelectItem value="all" className="rounded-none">All</SelectItem>
+                                    <SelectItem value="student" className="rounded-none">Students</SelectItem>
+                                    <SelectItem value="company" className="rounded-none">Companies</SelectItem>
+                                    <SelectItem value="room_admin" className="rounded-none">Room Admins</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </div>
             </CardHeader>

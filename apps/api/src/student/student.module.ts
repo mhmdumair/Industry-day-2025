@@ -6,10 +6,12 @@ import { Student } from 'src/student/entities/student.entity';
 import { UserModule } from 'src/user/user.module';
 import { CvModule } from 'src/cv/cv.module';
 import { StudentCv } from 'src/typeorm/entities';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
 imports : [
 TypeOrmModule.forFeature([Student, StudentCv]),
+CloudinaryModule,
 forwardRef(() => UserModule),
 forwardRef(() => CvModule)
 ],

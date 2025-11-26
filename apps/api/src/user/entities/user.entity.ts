@@ -8,7 +8,7 @@ import {
   OneToMany,
   BeforeInsert,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt'; // Import bcrypt
+import * as bcrypt from 'bcrypt';
 import { Admin } from '../../admin/entities/admin.entity';
 import { Student } from '../../student/entities/student.entity';
 import {RoomAdmin} from "../../room-admin/entities/room-admin.entity";
@@ -44,6 +44,9 @@ export class User {
 
   @Column({ nullable: true })
   profile_picture: string;
+
+  @Column({ nullable: true })
+  profile_picture_public_id: string;
 
   @CreateDateColumn()
   created_at: Date;

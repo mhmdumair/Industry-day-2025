@@ -15,14 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Globe, Phone, User, Building } from "lucide-react";
+import { MapPin, Globe, Phone, User, Building, Eye, EyeOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
-// Types
 export interface User {
   userID: string;
   email: string;
@@ -49,21 +48,33 @@ export interface CompanyProfile {
   user: User;
 }
 
-// Helper function to ensure string values are never null
 const safeString = (value: string | null | undefined): string => {
   return value || '';
 };
 
 export default function ProfileCard() {
   const router = useRouter();
+  
+  // Profile state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-
   const [editData, setEditData] = useState<CompanyProfile | null>(null);
 
+  // Password state
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -99,6 +110,7 @@ export default function ProfileCard() {
     fetchProfile();
   }, [router]);
 
+  // Profile edit handlers
   const handleInputChange = <K extends keyof CompanyProfile>(
     field: K,
     value: CompanyProfile[K]
@@ -148,12 +160,18 @@ export default function ProfileCard() {
         contactPersonName: editData.contactPersonName,
         contactPersonDesignation: editData.contactPersonDesignation,
         contactNumber: editData.contactNumber,
-        logo: editData.logo,
         location: editData.location,
         companyWebsite: editData.companyWebsite,
       };
 
-      await api.patch(`/company/${profileData.companyID}`, updatePayload);
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(updatePayload));
+
+      await api.patch(`/company/${profileData.companyID}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       setProfileData((prev) =>
         prev ? { ...prev, ...updatePayload } : prev
@@ -169,6 +187,70 @@ export default function ProfileCard() {
       } else {
         setSaveError("Failed to save due to an unexpected error. Please try again.");
       }
+    }
+  };
+
+  // Password update handlers
+  const handlePasswordDialogOpen = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError(null);
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setIsPasswordDialogOpen(true);
+  };
+
+  const handlePasswordUpdate = async () => {
+    setPasswordError(null);
+
+    if (!currentPassword.trim()) {
+      setPasswordError("Current password is required.");
+      return;
+    }
+    if (!newPassword.trim()) {
+      setPasswordError("New password is required.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirm password do not match.");
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      // Fixed: Send as JSON with proper Content-Type header
+      await api.patch('/company/password', {
+        currentPassword,
+        newPassword,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      setIsPasswordDialogOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      alert("Password updated successfully!");
+    } catch (e) {
+      console.error("Password update error:", e);
+      if (e instanceof AxiosError && e.response?.data?.message) {
+        setPasswordError(e.response.data.message);
+      } else if (e instanceof AxiosError && e.response?.status === 400) {
+        setPasswordError("Invalid request. Please check your current password.");
+      } else {
+        setPasswordError("Failed to update password. Please try again.");
+      }
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -244,7 +326,8 @@ export default function ProfileCard() {
           </div>
         </CardContent>
 
-        <CardFooter className="justify-center pt-6 rounded-none border-t border-gray-200 dark:border-gray-700">
+        {/* Card footer with buttons */}
+        <CardFooter className="justify-center pt-6 rounded-none border-t border-gray-200 dark:border-gray-700 flex-col gap-2">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button type="submit" className="rounded-none" onClick={handleEditOpen}>
@@ -351,6 +434,10 @@ export default function ProfileCard() {
                 </div>
               )}
 
+              {saveError && (
+                <div className="text-red-500 text-sm">{saveError}</div>
+              )}
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -371,8 +458,123 @@ export default function ProfileCard() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Password update dialog */}
+          <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+            <DialogTrigger asChild>
+              <button
+                onClick={handlePasswordDialogOpen}
+                className="text-sm text-blue-500 hover:underline cursor-pointer"
+              >
+                Update Password
+              </button>
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-[450px] rounded-none dark:bg-black dark:text-gray-100">
+              <DialogHeader>
+                <DialogTitle>Update Password</DialogTitle>
+                <DialogDescription className="dark:text-gray-400">
+                  Change your account password.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="current-password" className="font-medium dark:text-gray-300">
+                    Current Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="current-password"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="rounded-none dark:bg-gray-800 dark:text-gray-100 pr-10"
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="new-password" className="font-medium dark:text-gray-300">
+                    New Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="rounded-none dark:bg-gray-800 dark:text-gray-100 pr-10"
+                      placeholder="Enter new password (min 8 characters)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password" className="font-medium dark:text-gray-300">
+                    Confirm New Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="rounded-none dark:bg-gray-800 dark:text-gray-100 pr-10"
+                      placeholder="Confirm new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {passwordError && (
+                <div className="text-red-500 text-sm">{passwordError}</div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-none dark:border-gray-600 dark:text-gray-300"
+                  onClick={() => setIsPasswordDialogOpen(false)}
+                  disabled={passwordLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handlePasswordUpdate}
+                  className="rounded-none"
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardFooter>
       </Card>
     </div>
   );
-};
+}

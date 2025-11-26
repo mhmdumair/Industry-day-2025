@@ -15,10 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Phone, User, Building, Mail, GraduationCap, Users, CreditCard } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
+import { Globe, Phone, User, Building, Mail, GraduationCap, Users, CreditCard, Camera, UserIcon } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
+import { Spinner } from "@/components/ui/spinner";
 
 export enum StudentGroup {
   ZL = 'ZL', BT = 'BT', CH = 'CH', MT = 'MT', BMS = 'BMS', ST = 'ST', GL = 'GL', CS = 'CS', DS = 'DS', ML = 'ML', BL = 'BL', MB = 'MB', CM = 'CM', AS = 'AS', ES = 'ES', SOR = 'SOR',
@@ -35,6 +35,7 @@ export interface User {
   first_name: string;
   last_name: string;
   profile_picture: string | null;
+  profile_picture_public_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,13 +60,16 @@ const safeString = (value: string | null | undefined): string => {
 
 export default function StudentProfileCard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [editData, setEditData] = useState<StudentProfile | null>(null);
 
-  useEffect(() => {
+  const fetchData = () => {
     setLoading(true);
     api
       .get<StudentProfile>(`/student/by-user`)
@@ -86,6 +90,7 @@ export default function StudentProfileCard() {
               last_name: safeString(studentProfile.user.last_name),
               email: safeString(studentProfile.user.email),
               profile_picture: safeString(studentProfile.user.profile_picture),
+              profile_picture_public_id: safeString(studentProfile.user.profile_picture_public_id),
             }
           };
           setProfileData(sanitizedData);
@@ -95,10 +100,15 @@ export default function StudentProfileCard() {
         }
         setLoading(false);
       })
-      .catch(() => {
-        setError("Failed to fetch student profile.");
+      .catch((err) => {
+        const apiError = err as AxiosError;
+        setError(`Failed to fetch student profile: ${apiError.response?.statusText || apiError.message}`);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleInputChange = <K extends keyof StudentProfile>(
@@ -137,7 +147,6 @@ export default function StudentProfileCard() {
           first_name: safeString(profileData.user.first_name),
           last_name: safeString(profileData.user.last_name),
           email: safeString(profileData.user.email),
-          profile_picture: safeString(profileData.user.profile_picture),
         }
       };
       setEditData(sanitizedEditData);
@@ -146,61 +155,119 @@ export default function StudentProfileCard() {
   };
 
   const handleSave = async () => {
-    if (!editData || !profileData?.studentID) {
-      console.error("Missing edit data or student ID.");
-      return;
+  if (!editData || !profileData?.studentID) {
+    console.error("Missing edit data or student ID.");
+    return;
+  }
+
+  setLoading(true);
+
+  const correctPayload = {
+    regNo: editData.regNo,
+    nic: editData.nic,
+    contact: editData.contact,
+    linkedin: editData.linkedin || null,
+    group: editData.group,
+    level: editData.level,
+    user: {
+      first_name: editData.user.first_name,
+      last_name: editData.user.last_name,
+      email: editData.user.email,
+      role: editData.user.role,
     }
+  };
 
-    setLoading(true);
-
-    const nestedPayload = {
-      student: {
+  try {
+    await api.patch(`/student/${profileData.studentID}`, correctPayload);
+    
+    setProfileData((prev) =>
+      prev ? {
+        ...prev,
         regNo: editData.regNo,
         nic: editData.nic,
         contact: editData.contact,
-        linkedin: editData.linkedin || null,
+        linkedin: editData.linkedin,
         group: editData.group,
         level: editData.level,
-      },
-      user: {
-        first_name: editData.user.first_name,
-        last_name: editData.user.last_name,
-        email: editData.user.email,
-        profile_picture: editData.user.profile_picture,
-        role: editData.user.role,
-      },
-    };
+        user: {
+          ...prev.user,
+          first_name: editData.user.first_name,
+          last_name: editData.user.last_name,
+          email: editData.user.email,
+        },
+      } : prev
+    );
+
+    setIsDialogOpen(false);
+    alert("Profile details updated successfully!");
+
+  } catch (error) {
+    const apiError = error as AxiosError;
+    console.error("Save error:", apiError.response?.data || apiError.message);
+    
+    const errorData = apiError.response?.data as { message?: string | string[] };
+    let errorMessage = apiError.message;
+    
+    if (errorData?.message) {
+      errorMessage = Array.isArray(errorData.message) 
+        ? errorData.message.join(', ') 
+        : errorData.message;
+    }
+    
+    alert(`Error saving profile: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setProfileImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleImageUploadSubmit = async () => {
+    if (!profileImageFile) {
+        alert("Please select an image file first.");
+        return;
+    }
+    if (!profileData?.studentID) {
+        alert("Profile data missing.");
+        return;
+    }
+
+    setImageUploadLoading(true);
+    const formData = new FormData();
+    formData.append('file', profileImageFile); 
 
     try {
-      await api.patch(`/student/${profileData.studentID}`, nestedPayload);
+        const res = await api.patch('/student/profile-picture', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
 
-      setProfileData((prev) =>
-        prev ? {
-          ...prev,
-          regNo: editData.regNo,
-          nic: editData.nic,
-          contact: editData.contact,
-          linkedin: editData.linkedin,
-          group: editData.group,
-          level: editData.level,
-          user: {
-            ...prev.user,
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-            profile_picture: editData.user.profile_picture,
-          },
-        } : prev
-      );
+        const updatedUser = res.data; 
 
-      setIsDialogOpen(false);
-      alert("Profile updated successfully!");
+        setProfileData(prev => prev ? { 
+            ...prev, 
+            user: { 
+                ...prev.user, 
+                profile_picture: updatedUser.profile_picture,
+                profile_picture_public_id: updatedUser.profile_picture_public_id,
+            } 
+        } : null);
+
+        alert("Profile picture updated successfully!");
+        setIsImageDialogOpen(false);
+        setProfileImageFile(null);
 
     } catch (error) {
-      const apiError = error as AxiosError;
-      console.error("Save error:", apiError.response?.data || apiError.message);
+        const apiError = error as AxiosError;
+        const errorMessage = (apiError.response?.data as { message: string })?.message || apiError.message;
+        alert(`Image update failed: ${errorMessage}`);
     } finally {
-      setLoading(false);
+        setImageUploadLoading(false);
     }
   };
 
@@ -212,8 +279,8 @@ export default function StudentProfileCard() {
   const levelDisplay = profileData.level.replace('level_', 'Level ');
 
   return (
-    <div className="mt-3 w-full max-w-[65vh] mx-auto p-4 bg-teal-900/40 flex items-center justify-center">
-      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full px-5 lg:mx-10 border border-gray-200 dark:border-gray-700">
+    <div className="mt-3 w-fit mx-auto p-4 bg-teal-900/40 min-h-[80vh] flex items-center justify-center">
+      <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
           <div className="flex items-center gap-2 mx-auto mb-3">
             <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
@@ -221,12 +288,59 @@ export default function StudentProfileCard() {
             </Badge>
           </div>
 
-          <Avatar className="h-24 w-24 mx-auto mb-4 ring-2 ring-blue-100/50 dark:ring-blue-900/50">
-            <AvatarImage
-              src={profileData?.user?.profile_picture || "/baurs.png"}
-              alt="Student Profile"
-            />
-          </Avatar>
+          <div className="relative mx-auto mb-4">
+            <Avatar className="h-24 w-24 ring-4 ring-blue-500/50 dark:ring-blue-400/50">
+              <AvatarImage
+                src={profileData?.user?.profile_picture || "/baurs.png"}
+                alt="Student Profile"
+              />
+            </Avatar>
+            
+            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  size="icon" 
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 shadow-md"
+                  onClick={() => {
+                    setIsImageDialogOpen(true);
+                    setProfileImageFile(null);
+                  }}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] rounded-xl dark:bg-gray-900 dark:text-gray-100">
+                <DialogHeader>
+                  <DialogTitle>Update Profile Picture</DialogTitle>
+                  <DialogDescription className="dark:text-gray-400">
+                    Upload a new image file to replace your current profile picture.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Input 
+                    id="image-file" 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="col-span-3 rounded-md dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  {profileImageFile && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Selected: {profileImageFile.name}</p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button 
+                    type="submit" 
+                    onClick={handleImageUploadSubmit} 
+                    className="rounded-md"
+                    disabled={!profileImageFile || imageUploadLoading}
+                  >
+                    {imageUploadLoading ? "Uploading..." : "Upload & Save"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100">
             {fullName || "Student"}
@@ -240,7 +354,7 @@ export default function StudentProfileCard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <UserIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 <span className="font-medium text-gray-700 dark:text-gray-300">Name:</span>
                 <span className="text-gray-600 dark:text-gray-400">{fullName}</span>
               </div>
@@ -305,18 +419,18 @@ export default function StudentProfileCard() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-none dark:bg-black dark:text-gray-100">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-none dark:bg-gray-900 dark:text-gray-100">
               <DialogHeader>
                 <DialogTitle>Edit Student Profile</DialogTitle>
                 <DialogDescription className="dark:text-gray-400">
-                  Update your student information. Role cannot be changed.
+                  Update your student information. Role and Profile Picture are handled separately.
                 </DialogDescription>
               </DialogHeader>
 
               {editData && (
                 <div className="grid gap-6 py-4">
                   {/* First Name */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="first-name" className="text-right font-medium dark:text-gray-300">
                       First Name
                     </Label>
@@ -330,7 +444,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Last Name */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="last-name" className="text-right font-medium dark:text-gray-300">
                       Last Name
                     </Label>
@@ -344,7 +458,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Email */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="email" className="text-right font-medium dark:text-gray-300">
                       Email
                     </Label>
@@ -359,7 +473,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Registration Number */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="regNo" className="text-right font-medium dark:text-gray-300">
                       Reg No
                     </Label>
@@ -373,7 +487,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* NIC */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="nic" className="text-right font-medium dark:text-gray-300">
                       NIC
                     </Label>
@@ -387,7 +501,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Contact */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="contact" className="text-right font-medium dark:text-gray-300">
                       Contact
                     </Label>
@@ -402,7 +516,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Group */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="group" className="text-right font-medium dark:text-gray-300">
                       Group
                     </Label>
@@ -416,7 +530,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Level */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="level" className="text-right font-medium dark:text-gray-300">
                       Level
                     </Label>
@@ -430,7 +544,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* LinkedIn */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="linkedin" className="text-right font-medium dark:text-gray-300">
                       LinkedIn
                     </Label>
@@ -445,7 +559,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Profile Picture */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
                       Profile Picture
                     </Label>
@@ -460,7 +574,7 @@ export default function StudentProfileCard() {
                   </div>
 
                   {/* Role (read-only) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right font-medium dark:text-gray-300">
                       Role
                     </Label>

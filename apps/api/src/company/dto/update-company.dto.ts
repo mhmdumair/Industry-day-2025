@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsEnum, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsUrl, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { CompanySponsership } from 'src/company/entities/company.entity';
 import { UpdateUserDto } from 'src/user/dto/updateUser.dto';
 
@@ -29,7 +30,11 @@ export class UpdateCompanyDto {
 
   @IsOptional()
   @IsString()
-  logo?: string;
+  logo?: string | null;
+
+  @IsOptional()
+  @IsString()
+  logoPublicId?: string | null;
 
   @IsOptional()
   @IsString()
@@ -40,5 +45,7 @@ export class UpdateCompanyDto {
   companyWebsite?: string;
 
   @IsOptional()
-  user :UpdateUserDto
+  @ValidateNested()
+  @Type(() => UpdateUserDto)
+  user?: UpdateUserDto
 }

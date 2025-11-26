@@ -9,8 +9,8 @@ import {
 import { CompanyShortlist } from '../../shortlist/entities/company-shortlist.entity';
 import { Stall } from '../../stall/entities/stall.entity';
 import { User } from '../../user/entities/user.entity';
-import { Interview } from 'src/typeorm/entities';
-
+import { Interview } from '../../interview/entities/interview.entity';
+import { JobPost } from '../../job-posts/entities/job-post.entity';
 
 export enum CompanySponsership {
   MAIN = 'MAIN',
@@ -45,6 +45,9 @@ export class Company {
   @Column({ nullable: true })
   logo: string;
 
+  @Column({ nullable: true })
+  logoPublicId: string;
+
   @Column({ type: 'enum', enum: CompanySponsership })
   sponsership: CompanySponsership;
 
@@ -69,7 +72,6 @@ export class Company {
   @OneToMany(() => Interview, (interview) => interview.company)
   interviews: Interview[];
 
+  @OneToMany(() => JobPost, (jobPost) => jobPost.company, { nullable: true })
+  jobPosts: JobPost[];
 }
-
-
-

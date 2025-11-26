@@ -34,6 +34,9 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface Room {
   roomID: string;
@@ -45,12 +48,19 @@ interface Room {
 }
 
 export default function RoomsListCard() {
+  const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleAuthError = () => {
+    alert("Session expired. Please login again.");
+    router.push("/auth/login");
+  };
 
   useEffect(() => {
     (async () => {
@@ -59,9 +69,14 @@ export default function RoomsListCard() {
         setRooms(data);
         setError(null);
       } catch (e) {
-        console.error(e);
-        setError("Failed to fetch rooms.");
-        setRooms([]);
+        const axiosError = e as AxiosError;
+        if (axiosError.response?.status === 401) {
+          handleAuthError();
+        } else {
+          console.error(e);
+          setError("Failed to fetch rooms.");
+          setRooms([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -134,8 +149,13 @@ export default function RoomsListCard() {
 
       handleDialogClose();
     } catch (error) {
-      console.error("Update failed:", error);
-      alert("Failed to update room");
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Update failed:", error);
+        alert("Failed to update room");
+      }
     } finally {
       setUpdateLoading(false);
     }
@@ -148,15 +168,85 @@ export default function RoomsListCard() {
       
       setRooms((prev) => prev.filter((r) => r.roomID !== roomID));
     } catch (error) {
-      console.error("Delete failed:", error);
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        handleAuthError();
+      } else {
+        console.error("Delete failed:", error);
+      }
+    }
+  };
+
+  const exportRoomInfo = () => {
+    setExporting(true);
+    try {
+      const headers = [
+        "Room Name",
+        "Location",
+        "Status",
+        "Created At",
+      ];
+
+      const rows = rooms.map(room => [
+        room.roomName,
+        room.location,
+        room.isActive ? "Active" : "Inactive",
+        room.createdAt ? new Date(room.createdAt).toLocaleString() : "N/A",
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row =>
+          row.map(cell => {
+            const cellStr = String(cell || "").replace(/"/g, '""');
+            if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+              return `"${cellStr}"`;
+            }
+            return cellStr;
+          }).join(",")
+        )
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `room-list-${timestamp}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export room list.");
+    } finally {
+      setExporting(false);
     }
   };
 
   return (
     <Card className="bg-white dark:bg-transparent shadow-md rounded-none">
-      <CardHeader>
-        <CardTitle className="text-xl leading-tight">Room List</CardTitle>
-        <CardDescription>Fetched from database</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle className="text-xl leading-tight">Room List</CardTitle>
+            <CardDescription>Fetched from database</CardDescription>
+        </div>
+        <Button
+          onClick={exportRoomInfo}
+          disabled={exporting || rooms.length === 0}
+          className="rounded-none"
+        >
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Download Room List
+        </Button>
       </CardHeader>
 
       <CardContent>

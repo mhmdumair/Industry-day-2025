@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { User, Building, Mail, Phone, MapPin } from "lucide-react";
+import { User, Building, Mail, Phone, MapPin, Camera } from "lucide-react";
 import api from "@/lib/axios";
 import { AxiosError } from "axios";
 
@@ -26,6 +26,7 @@ export interface User {
   first_name: string;
   last_name: string;
   profile_picture: string | null;
+  profile_picture_public_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -56,6 +57,10 @@ const safeString = (value: string | null | undefined): string => {
 
 export default function RoomAdminProfileCard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  
   const [profileData, setProfileData] = useState<RoomAdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +84,7 @@ export default function RoomAdminProfileCard() {
               last_name: safeString(roomAdminProfile.user.last_name),
               email: safeString(roomAdminProfile.user.email),
               profile_picture: safeString(roomAdminProfile.user.profile_picture),
+              profile_picture_public_id: safeString(roomAdminProfile.user.profile_picture_public_id),
             }
           };
           setProfileData(sanitizedData);
@@ -142,22 +148,19 @@ export default function RoomAdminProfileCard() {
 
     setLoading(true);
 
-    const nestedPayload = {
-      roomAdmin: {
-        designation: editData.designation,
-        contact: editData.contact,
-      },
+    const correctPayload = {
+      designation: editData.designation,
+      contact: editData.contact,
       user: {
         first_name: editData.user.first_name,
         last_name: editData.user.last_name,
         email: editData.user.email,
-        profile_picture: editData.user.profile_picture,
         role: editData.user.role,
       },
     };
 
     try {
-      await api.patch(`/room-admin/${profileData.roomAdminID}`, nestedPayload);
+      await api.patch(`/room-admin/${profileData.roomAdminID}`, correctPayload);
 
       setProfileData((prev) =>
         prev ? {
@@ -169,7 +172,6 @@ export default function RoomAdminProfileCard() {
             first_name: editData.user.first_name,
             last_name: editData.user.last_name,
             email: editData.user.email,
-            profile_picture: editData.user.profile_picture,
           },
         } : prev
       );
@@ -180,8 +182,71 @@ export default function RoomAdminProfileCard() {
     } catch (error) {
       const apiError = error as AxiosError;
       console.error("Save error:", apiError.response?.data || apiError.message);
+      
+      const errorData = apiError.response?.data as { message?: string | string[] };
+      let errorMessage = apiError.message;
+      
+      if (errorData?.message) {
+        errorMessage = Array.isArray(errorData.message) 
+          ? errorData.message.join(', ') 
+          : errorData.message;
+      }
+      
+      alert(`Error saving profile: ${errorMessage}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // --- Profile Picture Handlers ---
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setProfileImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleImageUploadSubmit = async () => {
+    if (!profileImageFile) {
+      alert("Please select an image file first.");
+      return;
+    }
+    if (!profileData?.roomAdminID) {
+      alert("Profile data missing.");
+      return;
+    }
+
+    setImageUploadLoading(true);
+    const formData = new FormData();
+    formData.append('file', profileImageFile); 
+
+    try {
+      const res = await api.patch('/room-admin/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const updatedData = res.data; 
+
+      setProfileData(prev => prev ? { 
+        ...prev, 
+        user: { 
+          ...prev.user, 
+          profile_picture: updatedData.profile_picture,
+          profile_picture_public_id: updatedData.profile_picture_public_id,
+        } 
+      } : null);
+
+      alert("Profile picture updated successfully!");
+      setIsImageDialogOpen(false);
+      setProfileImageFile(null);
+
+    } catch (error) {
+      const apiError = error as AxiosError;
+      const errorMessage = (apiError.response?.data as { message: string })?.message || apiError.message;
+      alert(`Image update failed: ${errorMessage}`);
+    } finally {
+      setImageUploadLoading(false);
     }
   };
 
@@ -193,7 +258,7 @@ export default function RoomAdminProfileCard() {
   const roomDisplay = profileData.room?.roomNumber || profileData.room?.roomName || profileData.roomID;
 
   return (
-    <div className="mt-3 max-w-[65vh] mx-auto p-4 bg-purple-900/40 flex items-center justify-center">
+    <div className="mt-3 max-w-fit mx-auto p-4 bg-purple-900/40 flex items-center justify-center">
       <Card className="bg-gray-50 dark:bg-black shadow-lg rounded-none w-full px-5 lg:mx-10 border border-gray-200 dark:border-gray-700">
         <CardHeader className="text-center items-center justify-center pb-4">
           <div className="flex items-center gap-2 mx-auto mb-3">
@@ -202,12 +267,61 @@ export default function RoomAdminProfileCard() {
             </Badge>
           </div>
 
-          <Avatar className="h-24 w-24 mx-auto mb-4 ring-2 ring-purple-100/50 dark:ring-purple-900/50">
-            <AvatarImage
-              src={profileData?.user?.profile_picture || "/logo/admin.png"}
-              alt="Room Admin Profile"
-            />
-          </Avatar>
+          {/* Profile Picture with Camera Icon & Dialog Trigger */}
+          <div className="relative mx-auto mb-4">
+            <Avatar className="h-24 w-24 ring-4 ring-purple-100/50 dark:ring-purple-900/50">
+              <AvatarImage
+                src={profileData?.user?.profile_picture || "/logo/admin.png"}
+                alt="Room Admin Profile"
+              />
+            </Avatar>
+
+            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  size="icon" 
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 shadow-md"
+                  onClick={() => {
+                    setIsImageDialogOpen(true);
+                    setProfileImageFile(null);
+                  }}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] rounded-none dark:bg-black dark:text-gray-100">
+                <DialogHeader>
+                  <DialogTitle>Update Profile Picture</DialogTitle>
+                  <DialogDescription className="dark:text-gray-400">
+                    Upload a new image file to replace your current profile picture.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Input 
+                    id="image-file" 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
+                  />
+                  {profileImageFile && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Selected: {profileImageFile.name}</p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button 
+                    type="submit" 
+                    onClick={handleImageUploadSubmit} 
+                    className="rounded-none"
+                    disabled={!profileImageFile || imageUploadLoading}
+                  >
+                    {imageUploadLoading ? "Uploading..." : "Upload & Save"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+          {/* End Profile Picture with Camera Icon */}
 
           <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100">
             {fullName || "Room Admin"}
@@ -271,7 +385,7 @@ export default function RoomAdminProfileCard() {
               <DialogHeader>
                 <DialogTitle>Edit Room Admin Profile</DialogTitle>
                 <DialogDescription className="dark:text-gray-400">
-                  Update your room admin information. Role cannot be changed.
+                  Update your room admin information. Role and Profile Picture are handled separately.
                 </DialogDescription>
               </DialogHeader>
 
@@ -346,21 +460,6 @@ export default function RoomAdminProfileCard() {
                       className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
                       placeholder="Enter contact number"
                       type="tel"
-                    />
-                  </div>
-
-                  {/* Profile Picture */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 sm:col-span-3 items-center gap-4">
-                    <Label htmlFor="profile-picture" className="text-right font-medium dark:text-gray-300">
-                      Profile Picture
-                    </Label>
-                    <Input
-                      id="profile-picture"
-                      value={safeString(editData.user.profile_picture)}
-                      onChange={(e) => handleUserInputChange("profile_picture", e.target.value)}
-                      className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
-                      placeholder="Enter profile picture URL (Optional)"
-                      type="url"
                     />
                   </div>
 

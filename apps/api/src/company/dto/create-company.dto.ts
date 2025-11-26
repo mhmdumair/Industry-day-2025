@@ -10,9 +10,7 @@ import { Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/createUser.dto';
 import { CompanySponsership } from 'src/company/entities/company.entity';
 
-
 export class CompanyDto {
-
   @IsString()
   @IsNotEmpty()
   companyName: string;
@@ -42,6 +40,10 @@ export class CompanyDto {
   logo?: string;
 
   @IsString()
+  @IsOptional()
+  logoPublicId?: string;
+
+  @IsString()
   @IsNotEmpty()
   location: string;
 
@@ -59,4 +61,3 @@ export class CreateCompanyDto {
   @Type(() => CompanyDto)
   company: CompanyDto;
 }
-

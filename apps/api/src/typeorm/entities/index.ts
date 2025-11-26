@@ -21,6 +21,7 @@ export { Interview } from '../../interview/entities/interview.entity';
 export { Announcement } from '../../announcement/entities/announcement.entity';
 export {Feedback} from "../../feedback/entities/feedback.entity"
 
+export {JobPost} from '../../job-posts/entities/job-post.entity'
 // Event-related entities
 
 // export { EventDetails } from './event/event-details.entity';

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Home, X } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +73,7 @@ export default function ResumePage() {
     const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
     const [interviewComment, setInterviewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [isShortlisting, setIsShortlisting] = useState(false);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
     const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
@@ -205,7 +206,7 @@ export default function ResumePage() {
 
             // Complete the interview
             await api.patch(`/interview/${currentStudent.interviewID}/complete`);
-            
+
             // Close the dialog
             setIsCommentDialogOpen(false);
             setInterviewComment('');
@@ -229,6 +230,57 @@ export default function ResumePage() {
             console.error("Failed to finish interview:", error);
         } finally {
             setIsSubmittingComment(false);
+        }
+    };
+
+    // Shortlist student and finish interview
+    const handleShortlistAndFinish = async () => {
+        if (!currentStudent || !companyID || !stallID) return;
+
+        setIsShortlisting(true);
+        try {
+            // Add student to shortlist
+            await api.post('/shortlist', {
+                companyID: companyID,
+                studentID: currentStudent.studentID,
+                description: interviewComment.trim() || 'Shortlisted during interview'
+            });
+
+            // Submit the remark if provided
+            if (interviewComment.trim()) {
+                await api.patch(`/interview/${currentStudent.interviewID}`, {
+                    remark: interviewComment
+                });
+            }
+
+            // Complete the interview
+            await api.patch(`/interview/${currentStudent.interviewID}/complete`);
+
+            // Close the dialog
+            setIsCommentDialogOpen(false);
+            setInterviewComment('');
+            setCurrentRemark(''); // Clear the remark field
+
+            // Refresh the queue
+            await refreshQueue(companyID, stallID);
+
+            // Move to next student
+            const nextStudentIndex = activeStudents.findIndex((s: StudentData) => s.interviewID === currentStudent.interviewID) + 1;
+            if (nextStudentIndex < activeStudents.length) {
+                setCurrentInterviewID(activeStudents[nextStudentIndex]?.interviewID);
+                fetchCvFileName(activeStudents[nextStudentIndex]?.studentID);
+            } else {
+                setCurrentInterviewID(null);
+                setCurrentCvFileName(null);
+            }
+
+            await fillEmptySlots(companyID, stallID);
+        } catch (error) {
+            const err = error as AxiosError;
+            console.error("Failed to shortlist student:", error);
+            alert(`Failed to shortlist: ${err.response?.data || err.message}`);
+        } finally {
+            setIsShortlisting(false);
         }
     };
 
@@ -411,14 +463,6 @@ export default function ResumePage() {
                     <DialogHeader>
                         <div className="flex items-center justify-between">
                             <DialogTitle>Interview Comment</DialogTitle>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 rounded-none"
-                                onClick={() => setIsCommentDialogOpen(false)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
                         </div>
                         <DialogDescription>
                             Add a comment on the student for later review.
@@ -452,11 +496,18 @@ export default function ResumePage() {
                             className="min-h-[150px] rounded-none resize-none"
                         />
                     </div>
-                    
-                    <div className="flex justify-end mt-4">
+
+                    <div className="flex justify-end gap-3 mt-4">
+                        <Button
+                            onClick={handleShortlistAndFinish}
+                            disabled={isSubmittingComment || isShortlisting}
+                            className="rounded-none bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-2"
+                        >
+                            {isShortlisting ? 'Shortlisting...' : 'Shortlist'}
+                        </Button>
                         <Button
                             onClick={handleSubmitInterview}
-                            disabled={isSubmittingComment}
+                            disabled={isSubmittingComment || isShortlisting}
                             className="rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black px-6 py-2"
                         >
                             {isSubmittingComment ? 'Submitting...' : 'Submit'}

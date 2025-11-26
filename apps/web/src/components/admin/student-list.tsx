@@ -25,7 +25,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 const studentLevels = [
     "level_1", "level_2", "level_3", "level_4",
@@ -55,38 +57,43 @@ interface StudentResponse {
 }
 
 enum Preference {
-    BT = "BT", //Botany
-    ZL = "ZL", //Zoology
-    CH = "CH", //Chemistry
-    MT = "MT", //Mathematics
-    BMS = "BMS", //Biomedical Science
-    ST = "ST", //Statistics
-    GL = "GL", // Geology
-    CS = "CS", //Computer Science
-    DS = "DS", //Data Science
-    ML = "ML", //Microbiology
-    CM = "CM", //Computation and Management
-    ES = "ES", //Environmental Science
-    MB = "MB", //Molecular Biology
-    PH = "PH", //Physics
+    BT = "BT",
+    ZL = "ZL",
+    CH = "CH",
+    MT = "MT",
+    BMS = "BMS",
+    ST = "ST",
+    GL = "GL",
+    CS = "CS",
+    DS = "DS",
+    ML = "ML",
+    CM = "CM",
+    ES = "ES",
+    MB = "MB",
+    PH = "PH",
     ALL = "ALL"
 }
 
-export default function StudentList() {
+export default function StudentReport() {
+    const router = useRouter();
     const [students, setStudents] = useState<StudentResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingStudent, setEditingStudent] = useState<StudentResponse | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [updateLoading, setUpdateLoading] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
-    // State for search and filter
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedGroup, setSelectedGroup] = useState<Preference | "ALL">(Preference.ALL);
 
-    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const studentsPerPage = 20;
+
+    const handleAuthError = () => {
+        alert("Session expired. Please login again.");
+        router.push("/auth/login");
+    };
 
     useEffect(() => {
         fetchStudents();
@@ -122,24 +129,26 @@ export default function StudentList() {
             setStudents(formatted);
             setError(null);
         } catch (e) {
-            console.error("Error fetching students:", e);
-            setError("Failed to fetch students");
-            setStudents([]);
+            const axiosError = e as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Error fetching students:", e);
+                setError("Failed to fetch students");
+                setStudents([]);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    // Memoized filtered and searched students
     const filteredStudents = useMemo(() => {
         let filtered = students;
 
-        // Filter by group
         if (selectedGroup !== Preference.ALL) {
             filtered = filtered.filter(s => s.student.group.includes(selectedGroup));
         }
 
-        // Search by query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(s =>
@@ -153,7 +162,6 @@ export default function StudentList() {
         return filtered;
     }, [students, searchQuery, selectedGroup]);
 
-    // Pagination logic
     const indexOfLastStudent = currentPage * studentsPerPage;
     const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
     const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
@@ -247,21 +255,101 @@ export default function StudentList() {
             handleDialogClose();
 
         } catch (error) {
-            console.error("Update failed:", error);
-            alert("Failed to update student");
+            const axiosError = error as AxiosError;
+            if (axiosError.response?.status === 401) {
+                handleAuthError();
+            } else {
+                console.error("Update failed:", error);
+                alert("Failed to update student");
+            }
         } finally {
             setUpdateLoading(false);
         }
     };
 
+    const exportStudentInfo = () => {
+        setExporting(true);
+        try {
+            const headers = [
+                "Registration Number",
+                "NIC",
+                "First Name",
+                "Last Name",
+                "Email",
+                "Contact Number",
+                "Group",
+                "Level",
+                "LinkedIn",
+            ];
+
+            const rows = students.map(s => [
+                s.student.regNo,
+                s.student.nic || "N/A",
+                s.user.first_name,
+                s.user.last_name,
+                s.user.email,
+                s.student.contact,
+                s.student.group,
+                s.student.level,
+                s.student.linkedin || "N/A",
+            ]);
+
+            const csvContent = [
+                headers.join(","),
+                ...rows.map(row =>
+                    row.map(cell => {
+                        const cellStr = String(cell || "").replace(/"/g, '""');
+                        if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+                            return `"${cellStr}"`;
+                        }
+                        return cellStr;
+                    }).join(",")
+                )
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            const timestamp = new Date().toISOString().split('T')[0];
+            const filename = `student-report-${timestamp}.csv`;
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Failed to export student report.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
     return (
         <Card className="bg-white dark:bg-black shadow-md w-full rounded-none">
-            <CardHeader>
-                <CardTitle className="text-xl leading-4 dark:text-white">Student List</CardTitle>
-                <CardDescription className="dark:text-gray-400">Fetched from database</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="text-xl leading-4 dark:text-white">Student List</CardTitle>
+                    <CardDescription className="dark:text-gray-400">Fetched from database</CardDescription>
+                </div>
+                <Button
+                    onClick={exportStudentInfo}
+                    disabled={exporting || students.length === 0}
+                    className="rounded-none dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                >
+                    {exporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                        <Download className="h-4 w-4 mr-2" />
+                    )}
+                    Download Student Report
+                </Button>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-                {/* Search and Filter Section */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                     <div className="flex-1">
                         <Label className="mb-1 dark:text-gray-300" htmlFor="search">Search</Label>
@@ -281,8 +369,8 @@ export default function StudentList() {
                                 <SelectValue placeholder="Select a group" />
                             </SelectTrigger>
                             <SelectContent className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
-                                <SelectItem value={Preference.ALL}></SelectItem>
-                                {Object.values(Preference).map((group) => (
+                                <SelectItem value={Preference.ALL}>All Groups</SelectItem>
+                                {Object.values(Preference).filter(p => p !== Preference.ALL).map((group) => (
                                     <SelectItem key={group} value={group}>
                                         {group}
                                     </SelectItem>
@@ -343,7 +431,6 @@ export default function StudentList() {
                                 )}
                             </tbody>
                         </table>
-                        {/* Pagination Controls */}
                         {filteredStudents.length > studentsPerPage && (
                             <div className="flex justify-between items-center mt-4">
                                 <Button
@@ -393,7 +480,6 @@ export default function StudentList() {
                                 <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
                                 <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
 
-                                {/* Input field for Student Group - kept as input field as it can be a combination */}
                                 <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
 
                                 <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />

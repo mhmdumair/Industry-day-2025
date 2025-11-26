@@ -1,13 +1,17 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UpdateUserDto } from './dto/updateUser.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async fetchUsers(): Promise<User[]> {
@@ -52,23 +56,138 @@ export class UserService {
     }
   }
 
-  async removeUser(userID: string): Promise<{ message: string }> {
-  try {
+  async updateProfilePicture(
+    userID: string,
+    file: Express.Multer.File,
+    oldPublicId: string | null,
+  ): Promise<User> {
+    const queryRunner = this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let newPublicId: string | null = null;
+    let newSecureUrl: string | null = null;
+
+    try {
+      const user = await queryRunner.manager.findOne(User, { where: { userID } });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userID} not found.`);
+      }
+
+      const uploadResult = await this.cloudinaryService.uploadProfilePicture(file);
+      newPublicId = uploadResult.public_id;
+      newSecureUrl = uploadResult.secure_url;
+
+      user.profile_picture = newSecureUrl;
+      user.profile_picture_public_id = newPublicId;
+
+      const updatedUser = await queryRunner.manager.save(User, user);
+
+      await queryRunner.commitTransaction();
+
+      if (oldPublicId) {
+        await this.cloudinaryService.deleteFile(oldPublicId);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      if (newPublicId) {
+        console.warn(`Attempting cleanup of Cloudinary file ${newPublicId} after DB failure.`);
+        try {
+          await this.cloudinaryService.deleteFile(newPublicId);
+        } catch (cleanupError) {
+          console.error(`Failed to cleanup Cloudinary file ${newPublicId}:`, cleanupError.message);
+        }
+      }
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update profile picture: ${error.message}`
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updatePassword(
+    userID: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { userID } });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userID} not found`);
+      throw new NotFoundException(`User ${userID} not found`);
     }
 
-    await this.userRepository.remove(user);
-    return { message: `User ${userID} removed successfully` };
-  } catch (error) {
-    if (error instanceof NotFoundException) {
-      throw error;
+    if (!user.password || !(await bcrypt.compare(currentPassword, user.password))) {
+      throw new BadRequestException('Invalid current password');
     }
-    throw new InternalServerErrorException('Failed to remove user');
+    
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Password updated successfully' };
   }
-}
+
+  async resetPassword(
+    userID: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { userID } });
+    const defaultPassword = 'companypassword';
+
+    if (!user) {
+      throw new NotFoundException(`User ${userID} not found`);
+    }
+
+    user.password = await bcrypt.hash(defaultPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Password reset successfully' };
+  }
+
+  async removeUser(userID: string): Promise<{ message: string }> {
+    try {
+      const user = await this.userRepository.findOne({ where: { userID } });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userID} not found`);
+      }
+
+      await this.userRepository.remove(user);
+      return { message: `User ${userID} removed successfully` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove user');
+    }
+  }
+
+  async updateUserInTransaction(
+    userId: string,
+    dto: UpdateUserDto,
+    entityManager: EntityManager,
+  ): Promise<User> {
+    const userRepo = entityManager.getRepository(User);
+    const user = await userRepo.findOne({ where: { userID: userId } });
+    
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.first_name !== undefined) user.first_name = dto.first_name;
+    if (dto.last_name !== undefined) user.last_name = dto.last_name;
+    if (dto.role !== undefined) user.role = dto.role as any;
+
+    return await userRepo.save(user);
+  }
 
   async createUserTransactional(
     createUserDto: CreateUserDto,
@@ -76,7 +195,7 @@ export class UserService {
   ): Promise<User> {
     try {
       const userRepo = manager.getRepository(User);
-            const existingUser = await userRepo.findOne({ 
+      const existingUser = await userRepo.findOne({ 
         where: { email: createUserDto.email } 
       });
 
