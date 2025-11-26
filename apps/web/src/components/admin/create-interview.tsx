@@ -135,7 +135,7 @@ export default function CreateInterview({ companies, students }: InterviewFormPr
   }, [searchTerm, students]);
 
   return (
-    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh] flex flex-col">
+    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh] flex flex-col dark:bg-black">
       <CardHeader>
         <CardTitle>Create Interview</CardTitle>
         <CardDescription>

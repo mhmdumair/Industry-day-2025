@@ -130,7 +130,7 @@ export default function CancelInterview({ students }: ManageInterviewsProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh]">
+    <Card className="w-full max-w-2xl shadow-md rounded-none min-h-[55vh] dark:bg-black">
       <CardHeader>
         <CardTitle>Manage Interviews</CardTitle>
         <CardDescription>
