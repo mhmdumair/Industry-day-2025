@@ -56,6 +56,7 @@
     "react-hook-form": "^7.62.0",
     "react-pdf": "^10.0.1",
     "react-router-dom": "^7.7.1",
+    "resend": "^6.5.2",
     "typeorm": "^0.3.25",
     "zod": "^4.1.5"
   }
