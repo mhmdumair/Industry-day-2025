@@ -278,6 +278,7 @@ export default function StudentReport() {
         {/* --- Filters --- */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6 items-end">
           <div className="flex-1 w-full">
+            {/* Using <p> instead of Label */}
             <p className="mb-1.5 dark:text-gray-300 text-sm font-medium">Search</p>
             <Input
               id="search"
@@ -305,8 +306,8 @@ export default function StudentReport() {
                 </SelectContent>
                 </Select>
 
-                {/* Count Badge: No Border, Aligned */}
-                <div className="h-10 px-4 flex items-center justify-center text-sm font-mono font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                {/* Count Badge */}
+                <div className="h-10 px-4 flex items-center justify-center border-y border-r border-gray-300 dark:border-gray-700 text-sm font-mono font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     Total: {filteredStudents.length}
                 </div>
             </div>
@@ -326,7 +327,7 @@ export default function StudentReport() {
           </div>
         ) : (
           <div className="w-full">
-            {/* Header Row */}
+            {/* Header Row - Centered Alignment */}
             <div className="hidden md:flex items-center px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-sm uppercase tracking-wider text-gray-600 font-bold">
                 <div className="w-[35%] pl-14 text-left">Student Info</div>
                 <div className="w-[25%] text-center">Contact</div>
@@ -349,16 +350,17 @@ export default function StudentReport() {
                     
                     <div className="flex flex-col justify-center min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-xl text-gray-900 dark:text-white leading-none">
+                            {/* Adjusted Name Font Size to text-base */}
+                            <h4 className="font-bold text-base text-gray-900 dark:text-white leading-none">
                             {s.user.first_name} {s.user.last_name}
                             </h4>
-                            {/* Clean Reg No - No border, no bg, just text color */}
-                            <span className="text-gray-500 dark:text-gray-400 text-sm font-semibold font-mono pl-2">
+                            {/* Clean Reg No */}
+                            <span className="text-gray-600 dark:text-gray-300 px-0 py-0 text-sm font-semibold font-mono border-l border-gray-300 dark:border-gray-600 pl-2">
                                 {s.student.regNo}
                             </span>
                         </div>
-                        {/* Clean Email - No bg */}
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 truncate max-w-[240px]">
+                        {/* Clean Email */}
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate max-w-[240px]">
                             {s.user.email}
                         </p>
                     </div>
