@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, XCircle, Upload } from 'lucide-react';
 import AuthNavbar from '@/components/auth/auth-navbar';
+import { z } from 'zod';
 
 type UserRole = 'student' | 'admin' | 'lecturer';
 type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
@@ -40,6 +41,35 @@ interface CreateStudentDto {
 interface StudentResponse {
     studentID: string;
 }
+
+const createStudentSchema = z.object({
+  user: z.object({
+    first_name: z
+      .string()
+      .min(2, "First name must be at least 2 characters")
+      .max(50, "First name must be less than 50 characters"),
+    last_name: z
+      .string()
+      .min(2, "Last name must be at least 2 characters")
+      .max(50, "Last name must be less than 50 characters"),
+    email: z
+      .string()
+      .email("Invalid email")
+      .regex(/s\d+@sci\.pdn\.ac\.lk$/, "Email must be a university email (sXXXXX@sci.pdn.ac.lk)"),
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters"),
+    role: z.enum(['student', 'admin', 'lecturer']),
+  }),
+  student: z.object({
+    regNo: z.string().min(3, "Registration number is required"),
+    nic: z.string().regex(/^\d{9}[VvXx]$/, "NIC must be valid, e.g., 987654321V"),
+    contact: z.string().regex(/^\d{10}$/, "Contact number must be 10 digits"),
+    linkedin: z.string().url("LinkedIn must be a valid URL").optional().or(z.literal('')),
+    group: z.string().min(1, "Group is required"),
+    level: z.enum(['level_1', 'level_2', 'level_3', 'level_4']),
+  }),
+});
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState<CreateStudentDto>({
@@ -92,6 +122,20 @@ const RegisterPage = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        
+        const result = createStudentSchema.safeParse(formData);
+
+        if (!result.success) {
+        // result.error.issues is an array of all errors
+        console.log(result.error.issues);
+
+        // Example: show the first error
+        const firstError = result.error.issues[0];
+        setMessage(firstError.message);
+        setMessageType('error');
+        return;
+        }
+        
         if (!cvFile) {
             setMessage('CV file is required.');
             setMessageType('error');
