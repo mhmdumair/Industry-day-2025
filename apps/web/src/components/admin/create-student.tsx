@@ -149,7 +149,7 @@ export default function CreateStudent() {
   };
 
   return (
-    <Card className="bg-white dark:bg-black shadow-md mt-3 mb-3 max-w-[80%] mx-auto rounded-none">
+    <Card className="bg-white dark:bg-black shadow-md mt-3 mb-3 w-full mx-auto rounded-none">
       <CardHeader>
         <CardTitle className="text-xl leading-4 dark:text-white">
           Create Student

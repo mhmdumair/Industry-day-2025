@@ -115,7 +115,6 @@ const RegisterPage = () => {
     } else if (courseType === "Honours") {
       generatedGroup = honoursSubject;
     } else if (courseType === "General" || courseType === "Applied") {
-      // Filter out empty values and join with underscore
       const subs = [generalSubjects.sub1, generalSubjects.sub2, generalSubjects.sub3].filter(Boolean);
       generatedGroup = subs.join("_");
     }
