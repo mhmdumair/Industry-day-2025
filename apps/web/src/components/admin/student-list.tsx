@@ -307,7 +307,7 @@ export default function StudentReport() {
                 </Select>
 
                 {/* Count Badge */}
-                <div className="h-10 px-4 flex items-center justify-center border-y border-r border-gray-300 dark:border-gray-700 text-sm font-mono font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                <div className="h-10 px-4 flex items-center justify-center text-md font-mono font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap mx-2">
                     Total: {filteredStudents.length}
                 </div>
             </div>
