@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,14 @@ export default function ResumePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentRemark, setCurrentRemark] = useState('');
 
+    // Ref to track current interview ID without causing callback recreation
+    const currentInterviewIDRef = useRef<string | null>(null);
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        currentInterviewIDRef.current = currentInterviewID;
+    }, [currentInterviewID]);
+
     // Dialog states
     const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
     const [interviewComment, setInterviewComment] = useState('');
@@ -76,7 +84,9 @@ export default function ResumePage() {
     const [isShortlisting, setIsShortlisting] = useState(false);
 
     const activeStudents = [...prelistedStudents, ...walkinStudents];
-    const currentStudent = activeStudents.find(s => s.interviewID === currentInterviewID) || activeStudents[0];
+    const currentStudent = currentInterviewID
+        ? activeStudents.find(s => s.interviewID === currentInterviewID)
+        : activeStudents[0];
     const maxSize = 15;
 
     // Filter students based on search
@@ -111,21 +121,40 @@ export default function ResumePage() {
 
             setPrelistedStudents(fetchedPrelisted);
             setWalkinStudents(fetchedWalkin);
-            
-            if (!currentInterviewID && fetchedPrelisted.length > 0) {
-                setCurrentInterviewID(fetchedPrelisted[0].interviewID);
-            } else if (!currentInterviewID && fetchedWalkin.length > 0) {
-                setCurrentInterviewID(fetchedWalkin[0].interviewID);
+
+            // Use the ref to get the current value without dependency
+            const currentId = currentInterviewIDRef.current;
+
+            // Only set initial interview if none is selected
+            if (!currentId) {
+                if (fetchedPrelisted.length > 0) {
+                    setCurrentInterviewID(fetchedPrelisted[0].interviewID);
+                } else if (fetchedWalkin.length > 0) {
+                    setCurrentInterviewID(fetchedWalkin[0].interviewID);
+                }
+            } else {
+                // Check if currently selected student still exists in the queue
+                const allStudents = [...fetchedPrelisted, ...fetchedWalkin];
+                const currentStudentStillExists = allStudents.some(s => s.interviewID === currentId);
+
+                // If current student no longer exists, select the first available student
+                if (!currentStudentStillExists) {
+                    if (allStudents.length > 0) {
+                        setCurrentInterviewID(allStudents[0].interviewID);
+                    } else {
+                        setCurrentInterviewID(null);
+                    }
+                }
             }
         } catch (error) {
             console.error("Failed to fetch queue:", error);
             setPrelistedStudents([]);
             setWalkinStudents([]);
         }
-    }, [currentInterviewID]);
+    }, []);
 
-    const fillEmptySlots = useCallback(async (companyId: string, stallId: string) => {
-        const slotsToFill = maxSize - (prelistedStudents.length + walkinStudents.length);
+    const fillEmptySlots = useCallback(async (companyId: string, stallId: string, currentPrelistedCount: number, currentWalkinCount: number) => {
+        const slotsToFill = maxSize - (currentPrelistedCount + currentWalkinCount);
         if (slotsToFill > 0) {
             try {
                 await api.get(`/interview/company/${companyId}/stall/${stallId}/next-walkin?count=${slotsToFill}`);
@@ -134,7 +163,7 @@ export default function ResumePage() {
                 console.error("Failed to fill empty slots:", error);
             }
         }
-    }, [prelistedStudents.length, walkinStudents.length, refreshQueue]);
+    }, [refreshQueue]);
         
     const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
@@ -159,11 +188,22 @@ export default function ResumePage() {
                     setStallID(stallId);
                     setStallNumber(stallsResponse.data[0].title);
                     await refreshQueue(companyId, stallId);
-                    await fillEmptySlots(companyId, stallId);
+                    
+                    // Get initial counts for fillEmptySlots
+                    const { data: initialPrelisted } = await api.get(`/interview/company/${companyId}/prelisted/inqueue`);
+                    const { data: initialWalkin } = await api.get(`/interview/stall/${stallId}/inqueue`);
+                    await fillEmptySlots(companyId, stallId, initialPrelisted.length, initialWalkin.length);
 
-                    const interval = setInterval(() => {
-                        refreshQueue(companyId, stallId);
-                        fillEmptySlots(companyId, stallId);
+                    const interval = setInterval(async () => {
+                        await refreshQueue(companyId, stallId);
+                        // Fetch current counts for fillEmptySlots
+                        try {
+                            const { data: currentPrelisted } = await api.get(`/interview/company/${companyId}/prelisted/inqueue`);
+                            const { data: currentWalkin } = await api.get(`/interview/stall/${stallId}/inqueue`);
+                            await fillEmptySlots(companyId, stallId, currentPrelisted.length, currentWalkin.length);
+                        } catch (error) {
+                            console.error("Failed to fill slots in interval:", error);
+                        }
                     }, 10000);
                     
                     return () => clearInterval(interval);
@@ -225,7 +265,7 @@ export default function ResumePage() {
                 setCurrentCvFileName(null);
             }
 
-            await fillEmptySlots(companyID, stallID);
+            await fillEmptySlots(companyID, stallID, prelistedStudents.length, walkinStudents.length);
         } catch (error) {
             console.error("Failed to finish interview:", error);
         } finally {
@@ -274,7 +314,7 @@ export default function ResumePage() {
                 setCurrentCvFileName(null);
             }
 
-            await fillEmptySlots(companyID, stallID);
+            await fillEmptySlots(companyID, stallID, prelistedStudents.length, walkinStudents.length);
         } catch (error) {
             const err = error as AxiosError;
             console.error("Failed to shortlist student:", error);
