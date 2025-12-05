@@ -2,8 +2,8 @@
 
 **A.D. Hettiarachchi**
 **S20381**
-**Department of Computer Science**
-**University of Jaffna**
+**Department of Computer Science and Statistics**
+**University of Peradeniya**
 
 ---
 
