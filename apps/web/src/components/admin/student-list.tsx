@@ -299,7 +299,7 @@ export default function StudentReport() {
                     <SelectValue placeholder="Select a group" />
                 </SelectTrigger>
                 <SelectContent className="rounded-none dark:bg-black dark:text-white dark:border-gray-700">
-                    <SelectItem value={Preference.ALL}>All Groups</SelectItem>
+                    <SelectItem value={Preference.ALL}>All </SelectItem>
                     {Object.values(Preference).filter(p => p !== Preference.ALL).map((group) => (
                     <SelectItem key={group} value={group}>{group}</SelectItem>
                     ))}
