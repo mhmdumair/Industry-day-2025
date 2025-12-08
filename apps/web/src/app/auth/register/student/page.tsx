@@ -13,9 +13,8 @@ import { CheckCircle2, XCircle, Upload } from 'lucide-react';
 import AuthNavbar from '@/components/auth/auth-navbar';
 import { z } from 'zod';
 
-// --- Types and Enums ---
 
-type UserRole = 'student' | 'admin' | 'lecturer';
+type UserRole = 'student' | 'admin' | 'room-admin' | 'company';
 type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
 
 interface CreateUserDto {
