@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Download, Loader2, Edit, User as UserIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Loader2, Edit, User as UserIcon, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 
@@ -75,6 +75,9 @@ export default function StudentReport() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  
+  // New state for CV file
+  const [cvFile, setCvFile] = useState<File | null>(null);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedGroup, setSelectedGroup] = useState<Preference | "ALL">(Preference.ALL);
@@ -166,6 +169,7 @@ export default function StudentReport() {
   const handleEditClick = (student: StudentResponse) => {
     try {
       setEditingStudent({ ...student });
+      setCvFile(null); // Reset file input
       setIsDialogOpen(true);
     } catch (e) {
       console.error("Error opening dialog:", e);
@@ -175,6 +179,7 @@ export default function StudentReport() {
   const handleDialogClose = () => {
     try {
       setEditingStudent(null);
+      setCvFile(null);
       setIsDialogOpen(false);
     } catch (e) {
       console.error("Error closing dialog:", e);
@@ -198,11 +203,48 @@ export default function StudentReport() {
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setCvFile(e.target.files[0]);
+    }
+  };
+
+  const handleDeleteStudent = async () => {
+    if (!editingStudent) return;
+    
+    if(!confirm("Are you sure you want to delete this student? This action cannot be undone and will delete the associated user account.")) {
+        return;
+    }
+
+    try {
+        setUpdateLoading(true);
+        await api.delete(`/student/${editingStudent.student.studentID}`);
+        
+        setStudents(prev => prev.filter(s => s.student.studentID !== editingStudent.student.studentID));
+        handleDialogClose();
+        alert("Student deleted successfully.");
+    } catch (error) {
+        console.error(error);
+        alert("Failed to delete student.");
+    } finally {
+        setUpdateLoading(false);
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStudent) return;
+
+    // Simple validation
+    if (!editingStudent.student.regNo || !editingStudent.user.email) {
+        alert("Registration Number and Email are required.");
+        return;
+    }
+
     try {
       setUpdateLoading(true);
+      
+      // 1. Update Student Data
       const payload = {
         regNo: editingStudent.student.regNo,
         nic: editingStudent.student.nic,
@@ -217,14 +259,27 @@ export default function StudentReport() {
           profile_picture: editingStudent.user.profile_picture,
         }
       };
+      
       await api.patch(`/student/${editingStudent.student.studentID}`, payload);
+
+      // 2. Upload/Update CV if file selected
+      if (cvFile) {
+        const formData = new FormData();
+        formData.append('file', cvFile);
+        await api.post(`/cv/upload/${editingStudent.student.studentID}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+
       setStudents(prev => prev.map(s =>
         s.student.studentID === editingStudent.student.studentID ? editingStudent : s
       ));
+      
       handleDialogClose();
+      alert("Student updated successfully.");
     } catch (error) {
       console.error(error);
-      alert("Failed to update");
+      alert("Failed to update student.");
     } finally {
       setUpdateLoading(false);
     }
@@ -278,7 +333,6 @@ export default function StudentReport() {
         {/* --- Filters --- */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6 items-end">
           <div className="flex-1 w-full">
-            {/* Using <p> instead of Label */}
             <p className="mb-1.5 dark:text-gray-300 text-sm font-medium">Search</p>
             <Input
               id="search"
@@ -306,7 +360,6 @@ export default function StudentReport() {
                 </SelectContent>
                 </Select>
 
-                {/* Count Badge */}
                 <div className="h-10 px-4 flex items-center justify-center text-md font-mono font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap mx-2">
                     Total: {filteredStudents.length}
                 </div>
@@ -327,7 +380,7 @@ export default function StudentReport() {
           </div>
         ) : (
           <div className="w-full">
-            {/* Header Row - Centered Alignment */}
+            {/* Header Row */}
             <div className="hidden md:flex items-center px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 text-sm uppercase tracking-wider text-gray-600 font-bold">
                 <div className="w-[35%] pl-14 text-left">Student Info</div>
                 <div className="w-[25%] text-center">Contact</div>
@@ -342,7 +395,7 @@ export default function StudentReport() {
                   key={s.student.studentID || i} 
                   className="group flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors min-h-[80px]"
                 >
-                  {/* Column 1: Identity (35%) - Left Aligned */}
+                  {/* Identity */}
                   <div className="md:w-[35%] flex items-center gap-4 mb-2 md:mb-0 pl-4">
                     <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black font-semibold text-base">
                       {s.user.first_name?.[0]}{s.user.last_name?.[0]}
@@ -350,23 +403,20 @@ export default function StudentReport() {
                     
                     <div className="flex flex-col justify-center min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                            {/* Adjusted Name Font Size to text-base */}
                             <h4 className="font-bold text-base text-gray-900 dark:text-white leading-none">
                             {s.user.first_name} {s.user.last_name}
                             </h4>
-                            {/* Clean Reg No */}
                             <span className="text-gray-600 dark:text-gray-300 px-0 py-0 text-sm font-semibold font-mono border-l border-gray-300 dark:border-gray-600 pl-2">
                                 {s.student.regNo}
                             </span>
                         </div>
-                        {/* Clean Email */}
                         <p className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate max-w-[240px]">
                             {s.user.email}
                         </p>
                     </div>
                   </div>
 
-                  {/* Column 2: Contact (25%) - Centered */}
+                  {/* Contact */}
                   <div className="md:w-[25%] mb-2 md:mb-0 flex flex-col items-center justify-center text-center">
                       <p className="text-base font-medium text-gray-800 dark:text-gray-200">
                         {s.student.contact}
@@ -378,21 +428,21 @@ export default function StudentReport() {
                       )}
                   </div>
 
-                  {/* Column 3: Group (15%) - Centered */}
+                  {/* Group */}
                   <div className="md:w-[15%] mb-2 md:mb-0 flex justify-center">
                     <span className="text-base font-bold text-black dark:text-white uppercase tracking-wide">
                       {s.student.group}
                     </span>
                   </div>
 
-                  {/* Column 4: Level (15%) - Centered */}
+                  {/* Level */}
                   <div className="md:w-[15%] mb-2 md:mb-0 flex justify-center">
                     <span className="text-base text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                       {s.student.level.replace("_", " ")}
                     </span>
                   </div>
 
-                  {/* Column 5: Actions (10%) - Right Aligned */}
+                  {/* Actions */}
                   <div className="md:w-[10%] flex justify-end pr-4">
                     <Button
                       variant="ghost"
@@ -459,16 +509,32 @@ export default function StudentReport() {
                     <InputField label="NIC" name="nic" value={editingStudent.student.nic || ""} onChange={handleInputChange} section="student" />
                     <InputField label="Contact" name="contact" value={editingStudent.student.contact} onChange={handleInputChange} section="student" />
                     <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
-                    <InputField label="Profile Picture URL" name="profile_picture" value={editingStudent.user.profile_picture || ""} onChange={handleInputChange} section="user" />
                     <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
                     <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />
+                    
+                    {/* CV Upload Field */}
+                    <div>
+                        <Label className="dark:text-gray-300 text-xs uppercase text-gray-500 mb-1.5 block font-semibold">Update CV (PDF)</Label>
+                        <Input 
+                            type="file" 
+                            accept="application/pdf"
+                            onChange={handleFileChange} 
+                            className="rounded-none border-gray-300 dark:border-gray-700 dark:bg-black dark:text-white h-10 text-base pt-1.5"
+                        />
+                         <p className="text-[10px] text-gray-400 mt-1">Upload to replace existing CV</p>
+                    </div>
                 </div>
-                <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 mt-2">
-                    <Button type="submit" className="flex-1 rounded-none bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-base" disabled={updateLoading}>
-                        {updateLoading ? "Saving..." : "Save Changes"}
+                
+                <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 mt-2 items-center">
+                    <Button type="button" variant="destructive" onClick={handleDeleteStudent} disabled={updateLoading} className="rounded-none h-10 w-10 p-0 flex items-center justify-center">
+                        <Trash2 className="h-5 w-5" />
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading} className="rounded-none border-gray-300 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800 text-base">
+
+                    <Button type="button" variant="outline" onClick={handleDialogClose} disabled={updateLoading} className="rounded-none border-gray-300 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800 text-base ml-auto">
                         Cancel
+                    </Button>
+                    <Button type="submit" className="rounded-none bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-base" disabled={updateLoading}>
+                        {updateLoading ? "Saving..." : "Save Changes"}
                     </Button>
                 </div>
               </form>
