@@ -12,11 +12,11 @@ import { Menu, X } from "lucide-react";
 const navItems = [
   { title: "Profile", url: "/company/profile" },
   { title: "Pre-listed", url: "/company/pre-listed" },
+  { title: "Vacancies", url: "/company/vacancies" },
   { title: "Interviews", url: "/company/interviews" },
   { title: "Announcements", url: "/company/announcements" },
-  { title: "Feedback", url: "/company/feedback" },
   { title: "Shortlist", url: "/company/shortlists" },
-  { title: "Vacancies", url: "/company/vacancies" },
+  { title: "Feedback", url: "/company/feedback" },
 ];
 
 export default function CompanyNavbar() {
