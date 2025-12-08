@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 // --- Types and Enums ---
 
-type UserRole = 'student' | 'admin' | 'lecturer';
+type UserRole = 'student';
 type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
 
 interface CreateUserDto {
@@ -76,7 +76,7 @@ const createStudentSchema = z.object({
       .string()
       .email("Invalid email")
       .regex(/s\d+@sci\.pdn\.ac\.lk$/, "Email must be a university email (sXXXXX@sci.pdn.ac.lk)"),
-    role: z.enum(['student', 'admin', 'lecturer']),
+    role: z.enum(['student']),
   }),
   student: z.object({
     regNo: z.string().regex(/^S\d{5}$/,
