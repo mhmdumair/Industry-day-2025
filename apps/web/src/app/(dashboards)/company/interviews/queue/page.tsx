@@ -167,7 +167,7 @@ export default function ResumePage() {
         
     const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
-        setCurrentRemark(''); // Clear remark when switching students
+        setCurrentRemark(''); 
         const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
         if (selectedStudent) {
             fetchCvFileName(selectedStudent.studentID);

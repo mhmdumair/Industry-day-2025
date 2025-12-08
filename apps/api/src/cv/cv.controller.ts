@@ -33,7 +33,8 @@ export class CvController {
       throw new BadRequestException('CV file (field name "file") is required for upload.');
     }
     
-    return this.cvService.createWithFile(studentID, file);
+    // This method now handles both "Replace Existing" and "Create New if Missing"
+    return this.cvService.updateCvFile(studentID, file);
   }
 
   @Get(':cvId/link')
@@ -54,7 +55,6 @@ export class CvController {
       shareLink: this.cvService.getDriveShareLink(driveId),
     };
   }
-
 
   @Get()
   async findAll() {

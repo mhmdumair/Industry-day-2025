@@ -23,7 +23,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import type { ComponentProps } from 'react';
-import { Download, Loader2, Edit } from "lucide-react";
+import { Download, Loader2, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 
@@ -52,10 +52,7 @@ interface Company {
 
 // --- 2. Validation Schema ---
 
-// URL Regex: Allows http/https OR www. OR plain domain
 const urlRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
-
-// Phone Regex: Allows digits, +, -, and spaces
 const phoneRegex = /^[+]?[\d\s-]+$/;
 
 const formSchema = z.object({
@@ -63,23 +60,15 @@ const formSchema = z.object({
   sponsership: z.string().min(1, "Sponsorship is required"),
   contactPersonName: z.string().min(2, "Contact Person must be at least 2 characters"),
   contactPersonDesignation: z.string().min(2, "Designation is required"),
-  
-  // Contact Number: Min 9 chars + Regex check
   contactNumber: z.string()
     .min(9, "Contact number must be at least 9 digits")
     .regex(phoneRegex, "Invalid phone number format"),
-
   location: z.string().min(2, "Location is required"),
-  
-  // Website: Regex + Optional logic
   companyWebsite: z.string()
     .regex(urlRegex, { message: "Invalid URL format (e.g., www.example.com)" })
     .optional()
     .or(z.literal("")),
-
   description: z.string().min(10, "Description must be at least 10 characters"),
-
-  // User Validation
   user: z.object({
     email: z.string().email("Invalid email address"),
     first_name: z.string().min(2, "First Name must be at least 2 characters"),
@@ -112,6 +101,7 @@ export default function CompanyList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // React Hook Form Setup
   const {
@@ -227,7 +217,36 @@ export default function CompanyList() {
     }
   };
 
-  // --- Submit Handler ---
+  const handleDelete = async () => {
+    if (!editingCompany) return;
+
+    const confirmed = window.confirm(
+        `Are you sure you want to delete ${editingCompany.companyName}? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+        setDeleteLoading(true);
+        await api.delete(`/company/${editingCompany.companyID}`);
+        
+        // Update UI immediately
+        setCompanies(prev => prev.filter(c => c.companyID !== editingCompany.companyID));
+        
+        handleDialogClose();
+        alert("Company deleted successfully.");
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 401) {
+            handleAuthError();
+        } else {
+            console.error("Delete failed:", error);
+            alert("Failed to delete company.");
+        }
+    } finally {
+        setDeleteLoading(false);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     if (!editingCompany) return;
 
@@ -338,7 +357,6 @@ export default function CompanyList() {
                     <Td>{c.companyName}</Td>
                     <Td>{c.user.email}</Td>
                     <Td>
-                      {/* Edit Icon */}
                       <Button
                         size="icon"
                         variant="ghost"
@@ -463,18 +481,26 @@ export default function CompanyList() {
                 </div>
                 
                 {/* Footer Buttons */}
-                <div className="flex gap-2 mt-4 pt-4 border-t">
-                  <Button
-                    type="submit"
-                    className="flex-1 rounded-none"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                  </Button>
-                  
+                <div className="flex gap-2 mt-4 pt-4 border-t items-center">
+                  {/* Delete Button */}
                   <Button
                     type="button"
                     variant="destructive"
+                    size="icon"
+                    className="rounded-none h-10 w-10 shrink-0"
+                    onClick={handleDelete}
+                    disabled={deleteLoading || isSubmitting}
+                    title="Delete Company"
+                  >
+                    {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </Button>
+
+                  {/* Spacer to push other buttons to right */}
+                  <div className="flex-1" />
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="rounded-none"
                     onClick={handleResetPassword}
                     disabled={resetPasswordLoading || isSubmitting}
@@ -483,13 +509,11 @@ export default function CompanyList() {
                   </Button>
 
                   <Button
-                    type="button"
-                    variant="outline"
+                    type="submit"
                     className="rounded-none"
-                    onClick={handleDialogClose}
                     disabled={isSubmitting}
                   >
-                    Cancel
+                    {isSubmitting ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               </form>

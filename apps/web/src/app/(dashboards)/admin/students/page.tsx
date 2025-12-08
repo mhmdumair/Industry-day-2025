@@ -8,7 +8,7 @@ import StudentList from "../../../../components/admin/student-list";
 export default function StudentDashboard() {
   return (
     <Suspense fallback={<div className="flex justify-center items-center h-64"><Spinner className="h-8 w-8" /></div>}>
-      <div className="flex-row gap-5 px-2 mx-2 w-full">
+      <div className="flex-row gap-5 px-2 mx-auto w-[75%]">
           <CreateStudent />
           <StudentList />
       </div>

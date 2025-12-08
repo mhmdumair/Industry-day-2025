@@ -22,7 +22,6 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 
-/* ----------  types ---------- */
 interface Company {
   companyID: string;
   companyName: string;
@@ -41,7 +40,6 @@ interface StudentProfile {
   userID: string;
 }
 
-/* ----------  helpers ---------- */
 const statusMap: Record<
   string,
   { class: string; text: string; icon: React.ReactNode }
@@ -75,7 +73,6 @@ const btnForStatus = (s: string) =>
     icon: null,
   };
 
-/* ----------  component ---------- */
 const RegisteredQueues = () => {
   const router = useRouter();
   const [studentID, setStudentID] = useState<string>();
@@ -87,12 +84,10 @@ const RegisteredQueues = () => {
     null,
   );
 
-  /* load interviews + companies for authenticated user */
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        // Fetch student profile first to get studentID securely
         const studentRes = await api.get<StudentProfile>("/student/by-user");
         const fetchedStudentID = studentRes.data.studentID;
 
@@ -128,7 +123,6 @@ const RegisteredQueues = () => {
       companyName: id,
     };
 
-  /* ----------  preference handling ---------- */
   const handlePreferenceChange = async (
     interviewID: string,
     newPreference: number,
@@ -147,7 +141,6 @@ const RegisteredQueues = () => {
 
     try {
       if (clash) {
-        // swap
         await Promise.all([
           api.patch(`/interview/${clash.interviewID}/student-preference`, {
             student_preference: oldPreference === 0 ? null : oldPreference,
@@ -192,7 +185,6 @@ const RegisteredQueues = () => {
   const getAvailablePreferences = () =>
     Array.from({ length: prelist.length }, (_, i) => i + 1);
 
-  /* ----------  render helpers ---------- */
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center">
@@ -211,7 +203,6 @@ const RegisteredQueues = () => {
           <CardTitle className="text-gray-900 dark:text-gray-100">{c.companyName}</CardTitle>
         </CardHeader>
         <div className="p-6 pt-0 space-y-3">
-          {/* Preference Selector */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">My Preference:</span>
             <Select
@@ -237,7 +228,6 @@ const RegisteredQueues = () => {
             )}
           </div>
 
-          {/* Status Button */}
           <Button
             variant="secondary"
             disabled
@@ -260,6 +250,7 @@ const RegisteredQueues = () => {
 
       try {
         await api.delete(`/interview/${interviewID}`);
+        setWalkin((prev) => prev.filter((item) => item.interviewID !== interviewID));
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error(err);
@@ -300,14 +291,9 @@ const RegisteredQueues = () => {
     );
   };
 
-
-
-  /* ----------  render ---------- */
   return (
     <div className="w-full p-6">
-      {/* 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Pre-Listed Interviews */}
         <div>
           <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none shadow-lg">
             <CardHeader>
@@ -328,7 +314,6 @@ const RegisteredQueues = () => {
           </Card>
         </div>
 
-        {/* Right Column - Walk-In Interviews */}
         <div>
           <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700/50 rounded-none shadow-lg">
             <CardHeader>
