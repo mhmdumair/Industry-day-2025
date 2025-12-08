@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, ChangeEvent, FormEvent, Suspense } from 'react';
-import api from '@/lib/axios';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,21 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, XCircle, Upload } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import AuthNavbar from '@/components/auth/auth-navbar';
 
-type UserRole = 'company' | 'admin' | 'lecturer';
 type CompanySponsorship = 'MAIN' | 'GOLD' | 'SILVER' | 'BRONZE';
 
-interface CreateUserDto {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-}
-
-interface CompanyDto {
+interface CompanyRegistrationRequest {
     companyName: string;
     description: string;
     sponsership: CompanySponsorship;
@@ -35,80 +25,34 @@ interface CompanyDto {
     companyWebsite: string;
 }
 
-interface CreateCompanyDto {
-    user: CreateUserDto;
-    company: CompanyDto;
-}
-
-interface CompanyResponse {
-    companyID: string;
-}
-
 const RegisterCompanyPage = () => {
-    const [formData, setFormData] = useState<CreateCompanyDto>({
-        user: { email: '', password: '', firstName: '', lastName: '', role: 'company' as UserRole },
-        company: {
-            companyName: '',
-            description: '',
-            sponsership: 'BRONZE' as CompanySponsorship,
-            contactPersonName: '',
-            contactPersonDesignation: '',
-            contactNumber: '',
-            location: '',
-            companyWebsite: ''
-        }
+    const [formData, setFormData] = useState<CompanyRegistrationRequest>({
+        companyName: '',
+        description: '',
+        sponsership: 'BRONZE' as CompanySponsorship,
+        contactPersonName: '',
+        contactPersonDesignation: '',
+        contactNumber: '',
+        location: '',
+        companyWebsite: ''
     });
-    const [logoFile, setLogoFile] = useState<File | null>(null);
     const [message, setMessage] = useState<string>('');
     const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        const [parent, field] = name.split('.') as ['user' | 'company', keyof CreateUserDto | keyof CompanyDto];
-
         setFormData(prevData => ({
             ...prevData,
-            [parent]: {
-                ...prevData[parent],
-                [field]: value
-            }
+            [name]: value
         }));
     };
 
     const handleSelectChange = (name: string, value: string) => {
-        const [parent, field] = name.split('.') as ['user' | 'company', keyof CreateUserDto | keyof CompanyDto];
-
         setFormData(prevData => ({
             ...prevData,
-            [parent]: {
-                ...prevData[parent],
-                [field]: value
-            }
+            [name]: value
         }));
-    };
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files ? e.target.files[0] : null;
-
-        if (file) {
-            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
-            if (!validTypes.includes(file.type)) {
-                setMessage('Only PNG, JPG, JPEG, or SVG files are allowed for logo.');
-                setMessageType('error');
-                setLogoFile(null);
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setMessage('Logo file size must be less than 5MB.');
-                setMessageType('error');
-                setLogoFile(null);
-                return;
-            }
-        }
-        setMessage('');
-        setMessageType(null);
-        setLogoFile(file);
     };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -116,41 +60,54 @@ const RegisterCompanyPage = () => {
 
         // Validate website URL
         try {
-            new URL(formData.company.companyWebsite);
+            new URL(formData.companyWebsite);
         } catch {
             setMessage('Please enter a valid website URL (e.g., https://example.com)');
             setMessageType('error');
             return;
         }
 
-        const jsonPayload = JSON.stringify(formData, null, 2);
-        console.log("--- JSON PAYLOAD SENT TO NESTJS ---");
-        console.log(jsonPayload);
-
         setLoading(true);
-        setMessage('Registering company...');
+        setMessage('Sending registration request...');
         setMessageType(null);
 
-        const dataToSend = new FormData();
-        if (logoFile) {
-            dataToSend.append('logo', logoFile);
-        }
-        dataToSend.append('createCompanyDto', jsonPayload);
-
         try {
-            const response = await api.post<CompanyResponse>('/company/register', dataToSend, {
+            console.log('Sending registration request with data:', formData);
+
+            // Send email to admin with company registration details via Next.js API route
+            const response = await fetch('/api/email/company-registration-request', {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify(formData),
             });
 
-            setMessage(`Registration successful! Company ID: ${response.data.companyID}`);
+            const responseData = await response.json();
+            console.log('Response:', responseData);
+
+            if (!response.ok) {
+                throw new Error(responseData.message || 'Failed to send registration request');
+            }
+
+            setMessage('Registration request submitted successfully! The admin will review your application and contact you soon.');
             setMessageType('success');
 
-            // Reset form after successful registration
+            // Reset form after successful submission
             setTimeout(() => {
-                window.location.href = '/auth/login';
-            }, 2000);
+                setFormData({
+                    companyName: '',
+                    description: '',
+                    sponsership: 'BRONZE' as CompanySponsorship,
+                    contactPersonName: '',
+                    contactPersonDesignation: '',
+                    contactNumber: '',
+                    location: '',
+                    companyWebsite: ''
+                });
+                setMessage('');
+                setMessageType(null);
+            }, 3000);
 
         } catch (error) {
             const status = axios.isAxiosError(error) && error.response
@@ -186,79 +143,6 @@ const RegisterCompanyPage = () => {
 
                     <form onSubmit={handleSubmit}>
                         <CardContent className="space-y-6">
-                            {/* User Credentials Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                                    User Credentials
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="user.firstName" className="text-gray-700 dark:text-gray-300">
-                                            First Name
-                                        </Label>
-                                        <Input
-                                            id="user.firstName"
-                                            name="user.firstName"
-                                            type="text"
-                                            placeholder="John"
-                                            value={formData.user.firstName}
-                                            onChange={handleChange}
-                                            required
-                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="user.lastName" className="text-gray-700 dark:text-gray-300">
-                                            Last Name
-                                        </Label>
-                                        <Input
-                                            id="user.lastName"
-                                            name="user.lastName"
-                                            type="text"
-                                            placeholder="Doe"
-                                            value={formData.user.lastName}
-                                            onChange={handleChange}
-                                            required
-                                            className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="user.email" className="text-gray-700 dark:text-gray-300">
-                                        Company Email
-                                    </Label>
-                                    <Input
-                                        id="user.email"
-                                        name="user.email"
-                                        type="email"
-                                        placeholder="contact@company.com"
-                                        value={formData.user.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="user.password" className="text-gray-700 dark:text-gray-300">
-                                        Password
-                                    </Label>
-                                    <Input
-                                        id="user.password"
-                                        name="user.password"
-                                        type="password"
-                                        placeholder="Enter a strong password"
-                                        value={formData.user.password}
-                                        onChange={handleChange}
-                                        required
-                                        minLength={6}
-                                        className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                                    />
-                                </div>
-                            </div>
 
                             {/* Company Information Section */}
                             <div className="space-y-4">
@@ -267,15 +151,15 @@ const RegisterCompanyPage = () => {
                                 </h3>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="company.companyName" className="text-gray-700 dark:text-gray-300">
+                                    <Label htmlFor="companyName" className="text-gray-700 dark:text-gray-300">
                                         Company Name
                                     </Label>
                                     <Input
-                                        id="company.companyName"
-                                        name="company.companyName"
+                                        id="companyName"
+                                        name="companyName"
                                         type="text"
                                         placeholder="ABC Corporation"
-                                        value={formData.company.companyName}
+                                        value={formData.companyName}
                                         onChange={handleChange}
                                         required
                                         className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -283,14 +167,14 @@ const RegisterCompanyPage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="company.description" className="text-gray-700 dark:text-gray-300">
+                                    <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">
                                         Company Description
                                     </Label>
                                     <Textarea
-                                        id="company.description"
-                                        name="company.description"
+                                        id="description"
+                                        name="description"
                                         placeholder="Brief description of your company, products, and services..."
-                                        value={formData.company.description}
+                                        value={formData.description}
                                         onChange={handleChange}
                                         required
                                         rows={4}
@@ -300,15 +184,15 @@ const RegisterCompanyPage = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="company.location" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="location" className="text-gray-700 dark:text-gray-300">
                                             Location
                                         </Label>
                                         <Input
-                                            id="company.location"
-                                            name="company.location"
+                                            id="location"
+                                            name="location"
                                             type="text"
                                             placeholder="Colombo, Sri Lanka"
-                                            value={formData.company.location}
+                                            value={formData.location}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -316,15 +200,15 @@ const RegisterCompanyPage = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="company.companyWebsite" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="companyWebsite" className="text-gray-700 dark:text-gray-300">
                                             Company Website
                                         </Label>
                                         <Input
-                                            id="company.companyWebsite"
-                                            name="company.companyWebsite"
+                                            id="companyWebsite"
+                                            name="companyWebsite"
                                             type="url"
                                             placeholder="https://www.company.com"
-                                            value={formData.company.companyWebsite}
+                                            value={formData.companyWebsite}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -333,12 +217,12 @@ const RegisterCompanyPage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="company.sponsership" className="text-gray-700 dark:text-gray-300">
+                                    <Label htmlFor="sponsership" className="text-gray-700 dark:text-gray-300">
                                         Sponsorship Level
                                     </Label>
                                     <Select
-                                        value={formData.company.sponsership}
-                                        onValueChange={(value) => handleSelectChange('company.sponsership', value)}
+                                        value={formData.sponsership}
+                                        onValueChange={(value) => handleSelectChange('sponsership', value)}
                                     >
                                         <SelectTrigger className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
                                             <SelectValue placeholder="Select sponsorship level" />
@@ -361,15 +245,15 @@ const RegisterCompanyPage = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="company.contactPersonName" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="contactPersonName" className="text-gray-700 dark:text-gray-300">
                                             Contact Person Name
                                         </Label>
                                         <Input
-                                            id="company.contactPersonName"
-                                            name="company.contactPersonName"
+                                            id="contactPersonName"
+                                            name="contactPersonName"
                                             type="text"
                                             placeholder="Jane Smith"
-                                            value={formData.company.contactPersonName}
+                                            value={formData.contactPersonName}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -377,15 +261,15 @@ const RegisterCompanyPage = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="company.contactPersonDesignation" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="contactPersonDesignation" className="text-gray-700 dark:text-gray-300">
                                             Designation
                                         </Label>
                                         <Input
-                                            id="company.contactPersonDesignation"
-                                            name="company.contactPersonDesignation"
+                                            id="contactPersonDesignation"
+                                            name="contactPersonDesignation"
                                             type="text"
                                             placeholder="HR Manager"
-                                            value={formData.company.contactPersonDesignation}
+                                            value={formData.contactPersonDesignation}
                                             onChange={handleChange}
                                             required
                                             className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
@@ -394,89 +278,19 @@ const RegisterCompanyPage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="company.contactNumber" className="text-gray-700 dark:text-gray-300">
+                                    <Label htmlFor="contactNumber" className="text-gray-700 dark:text-gray-300">
                                         Contact Number
                                     </Label>
                                     <Input
-                                        id="company.contactNumber"
-                                        name="company.contactNumber"
+                                        id="contactNumber"
+                                        name="contactNumber"
                                         type="tel"
                                         placeholder="0771234567"
-                                        value={formData.company.contactNumber}
+                                        value={formData.contactNumber}
                                         onChange={handleChange}
                                         required
                                         className="rounded-none dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                                     />
-                                </div>
-                            </div>
-
-                            {/* Logo Upload Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                                    Company Logo (Optional)
-                                </h3>
-
-                                <div className="space-y-3">
-                                    <Label htmlFor="logo" className="text-gray-700 dark:text-gray-300">
-                                        Upload Company Logo (PNG, JPG, SVG)
-                                    </Label>
-
-                                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-none p-6 bg-gray-50 dark:bg-gray-900/50 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                                        <div className="flex flex-col items-center justify-center space-y-3">
-                                            <div className="p-3 rounded-none">
-                                                <Upload className="h-8 w-8" />
-                                            </div>
-
-                                            <div className="text-center justify-center items-center">
-                                                <Label htmlFor="logo" className="cursor-pointer">
-                                                    <span className="mx-auto text-sm font-medium underline">
-                                                        Click to upload
-                                                    </span>
-                                                </Label>
-                                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                                    PNG, JPG, or SVG (Max 5MB)
-                                                </p>
-                                            </div>
-
-                                            <Input
-                                                id="logo"
-                                                name="logo"
-                                                type="file"
-                                                accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                                                onChange={handleFileChange}
-                                                className="hidden"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {logoFile && (
-                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-none">
-                                            <div className="flex-shrink-0">
-                                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                                                    Logo selected
-                                                </p>
-                                                <p className="text-xs text-green-700 dark:text-green-300 truncate">
-                                                    {logoFile.name}
-                                                </p>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setLogoFile(null);
-                                                    const fileInput = document.getElementById('logo') as HTMLInputElement;
-                                                    if (fileInput) fileInput.value = '';
-                                                }}
-                                                className="rounded-none text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 hover:bg-green-100 dark:hover:bg-green-900/40"
-                                            >
-                                                <XCircle className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
@@ -498,13 +312,13 @@ const RegisterCompanyPage = () => {
                             )}
                         </CardContent>
 
-                        <CardFooter className="flex justify-center border-t border-gray-200 dark:border-gray-700">
+                        <CardFooter className="flex justify-center pt-4">
                             <Button
                                 type="submit"
                                 disabled={loading}
                                 className="w-full md:w-auto rounded-none"
                             >
-                                {loading ? 'Processing...' : 'Register Company'}
+                                {loading ? 'Processing...' : 'Submit Details'}
                             </Button>
                         </CardFooter>
                     </form>
