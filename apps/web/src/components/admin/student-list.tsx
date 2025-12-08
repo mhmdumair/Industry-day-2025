@@ -270,7 +270,6 @@ export default function StudentReport() {
         errors.contact = "Contact number must be exactly 10 digits";
     }
 
-    // LinkedIn: Valid URL or empty
     if (student.linkedin && student.linkedin.trim() !== "") {
         try {
             new URL(student.linkedin);
