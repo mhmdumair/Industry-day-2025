@@ -76,7 +76,9 @@ export default function StudentReport() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   
-  // New state for CV file
+  // Validation State
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
   const [cvFile, setCvFile] = useState<File | null>(null);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -169,7 +171,8 @@ export default function StudentReport() {
   const handleEditClick = (student: StudentResponse) => {
     try {
       setEditingStudent({ ...student });
-      setCvFile(null); // Reset file input
+      setCvFile(null); 
+      setFormErrors({}); 
       setIsDialogOpen(true);
     } catch (e) {
       console.error("Error opening dialog:", e);
@@ -180,6 +183,7 @@ export default function StudentReport() {
     try {
       setEditingStudent(null);
       setCvFile(null);
+      setFormErrors({});
       setIsDialogOpen(false);
     } catch (e) {
       console.error("Error closing dialog:", e);
@@ -189,6 +193,12 @@ export default function StudentReport() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => {
     if (!editingStudent) return;
     const { name, value } = e.target;
+    
+    // Clear error when user types
+    if (formErrors[name]) {
+        setFormErrors(prev => ({ ...prev, [name]: "" }));
+    }
+
     setEditingStudent(prev => ({
       ...prev!,
       [section]: { ...prev![section], [name]: value, },
@@ -231,20 +241,59 @@ export default function StudentReport() {
     }
   }
 
+  // --- Validation Logic ---
+  const validateForm = () => {
+    if (!editingStudent) return false;
+    const errors: Record<string, string> = {};
+    const { student, user } = editingStudent;
+
+    const regNoRegex = /^S\/\d{2}\/\d{3}$/;
+    if (!student.regNo || !regNoRegex.test(student.regNo)) {
+        errors.regNo = "Reg No must follow format S/xx/xxx";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!user.email || !emailRegex.test(user.email)) {
+        errors.email = "Please enter a valid email address";
+    }
+
+    if (!user.first_name || user.first_name.trim().length === 0) errors.first_name = "First name is required";
+    if (!user.last_name || user.last_name.trim().length === 0) errors.last_name = "Last name is required";
+
+    const nicRegex = /^(?:\d{9}[VvXx]|\d{12})$/;
+    if (student.nic && student.nic.trim() !== "" && !nicRegex.test(student.nic)) {
+        errors.nic = "NIC must be 9 digits followed by V or X";
+    }
+
+    const contactRegex = /^\d{10}$/;
+    if (!student.contact || !contactRegex.test(student.contact)) {
+        errors.contact = "Contact number must be exactly 10 digits";
+    }
+
+    // LinkedIn: Valid URL or empty
+    if (student.linkedin && student.linkedin.trim() !== "") {
+        try {
+            new URL(student.linkedin);
+        } catch (_) {
+            errors.linkedin = "LinkedIn must be a valid URL";
+        }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStudent) return;
 
-    // Simple validation
-    if (!editingStudent.student.regNo || !editingStudent.user.email) {
-        alert("Registration Number and Email are required.");
+    if (!validateForm()) {
         return;
     }
 
     try {
       setUpdateLoading(true);
       
-      // 1. Update Student Data
       const payload = {
         regNo: editingStudent.student.regNo,
         nic: editingStudent.student.nic,
@@ -262,7 +311,6 @@ export default function StudentReport() {
       
       await api.patch(`/student/${editingStudent.student.studentID}`, payload);
 
-      // 2. Upload/Update CV if file selected
       if (cvFile) {
         const formData = new FormData();
         formData.append('file', cvFile);
@@ -277,9 +325,22 @@ export default function StudentReport() {
       
       handleDialogClose();
       alert("Student updated successfully.");
+
     } catch (error) {
-      console.error(error);
-      alert("Failed to update student.");
+      console.error("Update failed:", error);
+      
+      const axiosError = error as AxiosError<{ message: string | string[] }>;
+      let errorMessage = "Failed to update student (Unknown Server Error)";
+
+      if (axiosError.response?.data?.message) {
+        errorMessage = Array.isArray(axiosError.response.data.message)
+          ? axiosError.response.data.message.join(", ")
+          : axiosError.response.data.message;
+      } else if (axiosError.message) {
+        errorMessage = axiosError.message;
+      }
+
+      alert(`Error: ${errorMessage}`);
     } finally {
       setUpdateLoading(false);
     }
@@ -502,15 +563,75 @@ export default function StudentReport() {
             {editingStudent && (
               <form onSubmit={handleSubmit} className="space-y-5">
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <InputField label="Registration Number" name="regNo" value={editingStudent.student.regNo} onChange={handleInputChange} section="student" />
-                    <InputField label="Email" name="email" value={editingStudent.user.email} onChange={handleInputChange} section="user" />
-                    <InputField label="First Name" name="first_name" value={editingStudent.user.first_name} onChange={handleInputChange} section="user" />
-                    <InputField label="Last Name" name="last_name" value={editingStudent.user.last_name} onChange={handleInputChange} section="user" />
-                    <InputField label="NIC" name="nic" value={editingStudent.student.nic || ""} onChange={handleInputChange} section="student" />
-                    <InputField label="Contact" name="contact" value={editingStudent.student.contact} onChange={handleInputChange} section="student" />
-                    <InputField label="LinkedIn" name="linkedin" value={editingStudent.student.linkedin || ""} onChange={handleInputChange} section="student" />
-                    <InputField label="Group" name="group" value={editingStudent.student.group} onChange={handleInputChange} section="student" />
-                    <SelectField label="Level" value={editingStudent.student.level} options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} onChange={(val) => handleSelectChange("level", val)} />
+                    <InputField 
+                        label="Registration Number" 
+                        name="regNo" 
+                        value={editingStudent.student.regNo} 
+                        onChange={handleInputChange} 
+                        section="student"
+                        error={formErrors.regNo} 
+                    />
+                    <InputField 
+                        label="Email" 
+                        name="email" 
+                        value={editingStudent.user.email} 
+                        onChange={handleInputChange} 
+                        section="user"
+                        error={formErrors.email}
+                    />
+                    <InputField 
+                        label="First Name" 
+                        name="first_name" 
+                        value={editingStudent.user.first_name} 
+                        onChange={handleInputChange} 
+                        section="user"
+                        error={formErrors.first_name}
+                    />
+                    <InputField 
+                        label="Last Name" 
+                        name="last_name" 
+                        value={editingStudent.user.last_name} 
+                        onChange={handleInputChange} 
+                        section="user"
+                        error={formErrors.last_name}
+                    />
+                    <InputField 
+                        label="NIC" 
+                        name="nic" 
+                        value={editingStudent.student.nic || ""} 
+                        onChange={handleInputChange} 
+                        section="student"
+                        error={formErrors.nic}
+                    />
+                    <InputField 
+                        label="Contact" 
+                        name="contact" 
+                        value={editingStudent.student.contact} 
+                        onChange={handleInputChange} 
+                        section="student" 
+                        error={formErrors.contact}
+                    />
+                    <InputField 
+                        label="LinkedIn" 
+                        name="linkedin" 
+                        value={editingStudent.student.linkedin || ""} 
+                        onChange={handleInputChange} 
+                        section="student" 
+                        error={formErrors.linkedin}
+                    />
+                    <InputField 
+                        label="Group" 
+                        name="group" 
+                        value={editingStudent.student.group} 
+                        onChange={handleInputChange} 
+                        section="student"
+                    />
+                    <SelectField 
+                        label="Level" 
+                        value={editingStudent.student.level} 
+                        options={studentLevels.map(l => ({ label: l.replace("_", " ").toUpperCase(), value: l }))} 
+                        onChange={(val) => handleSelectChange("level", val)} 
+                    />
                     
                     {/* CV Upload Field */}
                     <div>
@@ -547,11 +668,17 @@ export default function StudentReport() {
 
 // --- Helper Components ---
 
-function InputField({ label, name, value, onChange, section }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => void, section: "user" | "student" }) {
+function InputField({ label, name, value, onChange, section, error }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>, section: "user" | "student") => void, section: "user" | "student", error?: string }) {
     return (
         <div>
             <Label className="dark:text-gray-300 text-xs uppercase text-gray-500 mb-1.5 block font-semibold">{label}</Label>
-            <Input name={name} value={value} onChange={(e) => onChange(e, section)} className="rounded-none border-gray-300 dark:border-gray-700 dark:bg-black dark:text-white h-10 text-base" />
+            <Input 
+                name={name} 
+                value={value} 
+                onChange={(e) => onChange(e, section)} 
+                className={`rounded-none border-gray-300 dark:border-gray-700 dark:bg-black dark:text-white h-10 text-base ${error ? 'border-red-500' : ''}`}
+            />
+            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
         </div>
     );
 }
