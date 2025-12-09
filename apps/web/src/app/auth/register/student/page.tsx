@@ -13,8 +13,9 @@ import { CheckCircle2, XCircle, Upload } from 'lucide-react';
 import AuthNavbar from '@/components/auth/auth-navbar';
 import { z } from 'zod';
 
+// --- Types and Enums ---
 
-type UserRole = 'student' | 'admin' | 'room-admin' | 'company';
+type UserRole = 'student';
 type StudentLevel = 'level_1' | 'level_2' | 'level_3' | 'level_4';
 
 interface CreateUserDto {
@@ -75,14 +76,17 @@ const createStudentSchema = z.object({
       .string()
       .email("Invalid email")
       .regex(/s\d+@sci\.pdn\.ac\.lk$/, "Email must be a university email (sXXXXX@sci.pdn.ac.lk)"),
-    role: z.enum(['student', 'admin', 'lecturer']),
+    role: z.enum(['student']),
   }),
   student: z.object({
-    regNo: z.string().min(3, "Registration number is required"),
-    nic: z.string().regex(/^\d{9}[VvXx]$/, "NIC must be valid, e.g., 987654321V"),
-    contact: z.string().regex(/^\d{10}$/, "Contact number must be 10 digits"),
+    regNo: z.string().regex(/^S\d{5}$/,
+        "Registration number must start with 'S' followed by 5 digits (e.g., S12345)"),
+     nic: z.string().regex(/^(\d{9}[VvXx]|\d{12})$/,
+        "NIC must be either old format (9 digits + V) or new format (12 digits)"),
+    contact: z.string().regex(/^(0\d{9}|\+94\d{9})$/,
+        "Contact number must be 10 digits starting with 0 or in +94 format"),
     linkedin: z.string().url("LinkedIn must be a valid URL").optional().or(z.literal('')),
-    group: z.string().min(1, "Group is required"),
+    group: z.string().min(1, "Course of study is required"),
     level: z.enum(['level_1', 'level_2', 'level_3', 'level_4']),
   }),
 });
@@ -114,6 +118,7 @@ const RegisterPage = () => {
     } else if (courseType === "Honours") {
       generatedGroup = honoursSubject;
     } else if (courseType === "General" || courseType === "Applied") {
+      // Filter out empty values and join with underscore
       const subs = [generalSubjects.sub1, generalSubjects.sub2, generalSubjects.sub3].filter(Boolean);
       generatedGroup = subs.join("_");
     }
@@ -382,6 +387,7 @@ const RegisterPage = () => {
                     </Select>
                   </div>
                 </div>
+                </div>
 
                 {/* Course Selection Logic */}
                 <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
@@ -563,21 +569,41 @@ const RegisterPage = () => {
                 </div>
 
                 {message && (
-                  <Alert className={`rounded-none ${messageType === 'success' ? 'border-green-600 dark:border-green-500 bg-green-50 dark:bg-green-900/30' : messageType === 'error' ? 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-900/30' : 'border-gray-300 dark:border-gray-600'}`}>
-                    <div className="flex items-center gap-2">
-                      {messageType === 'success' && (
-                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      )}
-                      {messageType === 'error' && (
-                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                      )}
-                      <AlertDescription className={`${messageType === 'success' ? 'text-green-800 dark:text-green-200' : messageType === 'error' ? 'text-red-800 dark:text-red-200' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {message}
-                      </AlertDescription>
-                    </div>
-                  </Alert>
+                    <Alert
+                        className={`rounded-none p-4 ${
+                        messageType === 'success'
+                            ? 'border-green-600 dark:border-green-500 bg-green-50 dark:bg-green-900/30'
+                            : messageType === 'error'
+                            ? 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-900/30'
+                            : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                    >
+                        <div className="flex items-start gap-3 w-full">
+                        {messageType === 'success' && (
+                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        )}
+                        {messageType === 'error' && (
+                            <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                        )}
+
+                        <AlertDescription
+                            className={`
+                            w-full whitespace-normal break-words text-base leading-relaxed
+                            ${
+                                messageType === 'success'
+                                ? 'text-green-800 dark:text-green-200'
+                                : messageType === 'error'
+                                ? 'text-red-800 dark:text-red-200'
+                                : 'text-gray-700 dark:text-gray-300'
+                            }
+                            `}
+                        >
+                            {message}
+                        </AlertDescription>
+                        </div>
+                    </Alert>
                 )}
-              </div>
+            
 
               <CardFooter className="flex justify-center border-t border-gray-200 dark:border-gray-700">
                 <Button
