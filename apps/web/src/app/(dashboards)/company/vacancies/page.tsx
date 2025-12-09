@@ -29,7 +29,6 @@ import axios from "axios";
 interface JobPost {
     jobPostID: string;
     companyID: string;
-    // This field contains the Google Drive File ID
     fileName: string;
 }
 
@@ -407,8 +406,9 @@ export default function VacanciesPage() {
             <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
                 <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] h-[90vh] rounded-none dark:bg-black flex flex-col gap-0">
                     <DialogHeader className="p-6 pb-0">
-                        <div className="flex items-center justify-between">
+                        <div className="items-center justify-between">
                             <DialogTitle className="text-xl dark:text-white">Job Vacancy Preview</DialogTitle>
+                            <DialogDescription>Preview of previously posted vacancy</DialogDescription>
                         </div>
                     </DialogHeader>
 
@@ -421,7 +421,7 @@ export default function VacanciesPage() {
                                 <iframe
                                     src={pdfSource}
                                     className="w-full h-full border-0 rounded-none"
-                                    title="Job Vacancy Preview"
+                                    title="Preview"
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">

@@ -142,68 +142,78 @@ export default function AdminProfileCard() {
         setIsDialogOpen(true);
     };
 
-   const handleSave = async () => {
-    if (!editData || !profileData?.adminID) {
-        console.error("Missing edit data or admin ID.");
-        return;
-    }
-
-    setLoading(true);
-
-    const correctPayload = {
-        designation: editData.designation,
-        user: {
-            first_name: editData.user.first_name,
-            last_name: editData.user.last_name,
-            email: editData.user.email,
-            role: editData.user.role,
-        },
-    };
-
-    try {
-        await api.patch(`/admin/${profileData.adminID}`, correctPayload);
-
-        setProfileData((prev) =>
-            prev ? {
-                ...prev,
-                designation: editData.designation,
-                user: {
-                    ...prev.user,
-                    first_name: editData.user.first_name,
-                    last_name: editData.user.last_name,
-                    email: editData.user.email,
-                },
-            } : prev
-        );
-
-        setIsDialogOpen(false);
-        alert("Profile updated successfully!");
-
-    } catch (error) {
-        const apiError = error as AxiosError;
-        
-        if (apiError.response?.status === 401) {
-            handleAuthError();
+    const handleSave = async () => {
+        if (!editData || !profileData?.adminID) {
+            console.error("Missing edit data or admin ID.");
             return;
         }
+
+        // --- EMAIL VALIDATION START ---
+        // Basic regex for email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         
-        console.error("Save error:", apiError.response?.data || apiError.message);
-        
-        const errorData = apiError.response?.data as { message?: string | string[] };
-        let errorMessage = apiError.message;
-        
-        if (errorData?.message) {
-            errorMessage = Array.isArray(errorData.message) 
-                ? errorData.message.join(', ') 
-                : errorData.message;
+        if (!editData.user.email || !emailRegex.test(editData.user.email)) {
+            alert("Please enter a valid email address.");
+            return; // Stop execution if invalid
         }
-        
-        alert(`Error saving profile: ${errorMessage}`);
-    } finally {
-        setLoading(false);
-    }
-};
-    
+        // --- EMAIL VALIDATION END ---
+
+        setLoading(true);
+
+        const correctPayload = {
+            designation: editData.designation,
+            user: {
+                first_name: editData.user.first_name,
+                last_name: editData.user.last_name,
+                email: editData.user.email,
+                role: editData.user.role,
+            },
+        };
+
+        try {
+            await api.patch(`/admin/${profileData.adminID}`, correctPayload);
+
+            setProfileData((prev) =>
+                prev ? {
+                    ...prev,
+                    designation: editData.designation,
+                    user: {
+                        ...prev.user,
+                        first_name: editData.user.first_name,
+                        last_name: editData.user.last_name,
+                        email: editData.user.email,
+                    },
+                } : prev
+            );
+
+            setIsDialogOpen(false);
+            alert("Profile updated successfully!");
+
+        } catch (error) {
+            const apiError = error as AxiosError;
+
+            if (apiError.response?.status === 401) {
+                handleAuthError();
+                return;
+            }
+
+            console.error("Save error:", apiError.response?.data || apiError.message);
+
+            const errorData = apiError.response?.data as { message?: string | string[] };
+            let errorMessage = apiError.message;
+
+            if (errorData?.message) {
+                errorMessage = Array.isArray(errorData.message)
+                    ? errorData.message.join(', ')
+                    : errorData.message;
+            }
+
+            alert(`Error saving profile: ${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setProfileImageFile(e.target.files[0]);
@@ -222,7 +232,7 @@ export default function AdminProfileCard() {
 
         setImageUploadLoading(true);
         const formData = new FormData();
-        formData.append('file', profileImageFile); 
+        formData.append('file', profileImageFile);
 
         try {
             const res = await api.patch('/admin/profile-picture', formData, {
@@ -231,15 +241,15 @@ export default function AdminProfileCard() {
                 },
             });
 
-            const updatedUser = res.data; 
+            const updatedUser = res.data;
 
-            setProfileData(prev => prev ? { 
-                ...prev, 
-                user: { 
-                    ...prev.user, 
+            setProfileData(prev => prev ? {
+                ...prev,
+                user: {
+                    ...prev.user,
                     profile_picture: updatedUser.profile_picture,
                     profile_picture_public_id: updatedUser.profile_picture_public_id,
-                } 
+                }
             } : null);
 
             alert("Profile picture updated successfully!");
@@ -248,12 +258,12 @@ export default function AdminProfileCard() {
 
         } catch (error) {
             const apiError = error as AxiosError;
-            
+
             if (apiError.response?.status === 401) {
                 handleAuthError();
                 return;
             }
-            
+
             const errorMessage = (apiError.response?.data as { message: string })?.message || apiError.message;
             alert(`Image update failed: ${errorMessage}`);
         } finally {
@@ -287,8 +297,8 @@ export default function AdminProfileCard() {
 
                         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button 
-                                    size="icon" 
+                                <Button
+                                    size="icon"
                                     className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 shadow-md"
                                     onClick={() => {
                                         setIsImageDialogOpen(true);
@@ -306,9 +316,9 @@ export default function AdminProfileCard() {
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
-                                    <Input 
-                                        id="image-file" 
-                                        type="file" 
+                                    <Input
+                                        id="image-file"
+                                        type="file"
                                         accept="image/*"
                                         onChange={handleImageFileChange}
                                         className="col-span-3 rounded-none dark:bg-gray-800 dark:text-gray-100"
@@ -318,9 +328,9 @@ export default function AdminProfileCard() {
                                     )}
                                 </div>
                                 <DialogFooter>
-                                    <Button 
-                                        type="submit" 
-                                        onClick={handleImageUploadSubmit} 
+                                    <Button
+                                        type="submit"
+                                        onClick={handleImageUploadSubmit}
                                         className="rounded-none"
                                         disabled={!profileImageFile || imageUploadLoading}
                                     >

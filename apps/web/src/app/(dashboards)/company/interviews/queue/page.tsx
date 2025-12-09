@@ -167,7 +167,7 @@ export default function ResumePage() {
         
     const handleStudentClick = useCallback((interviewId: string) => {
         setCurrentInterviewID(interviewId);
-        setCurrentRemark(''); // Clear remark when switching students
+        setCurrentRemark(''); 
         const selectedStudent = activeStudents.find(s => s.interviewID === interviewId);
         if (selectedStudent) {
             fetchCvFileName(selectedStudent.studentID);
@@ -384,7 +384,7 @@ export default function ResumePage() {
                                         {currentStudent.student.regNo}
                                     </span>
                                     <Badge className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-0 px-2 py-1 rounded-none">
-                                        {currentStudent.type === 'walkin' ? 'Walk-in' : `Pre-listed : ${currentStudent.company_preference}`}
+                                        {currentStudent.type === 'walkin' || currentStudent.company_preference === 999 ? 'Walk-in' : `Pre-listed : ${currentStudent.company_preference}`}
                                     </Badge>
                                 </div>
                                 <h3 className="text-2xl font-bold mb-1 dark:text-white">
@@ -516,7 +516,7 @@ export default function ResumePage() {
                                     {currentStudent.student.regNo}
                                 </span>
                                 <Badge className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-0 px-2 py-1 rounded-none">
-                                    {currentStudent.type === 'walkin' ? 'Walk-in' : `Pre-listed : ${currentStudent.company_preference}`}
+                                    {currentStudent.type === 'walkin' || currentStudent.company_preference === 999 ? 'Walk-in' : `Pre-listed : ${currentStudent.company_preference}`}
                                 </Badge>
                             </div>
                             <h3 className="text-xl font-bold mb-1 dark:text-white">
@@ -541,16 +541,17 @@ export default function ResumePage() {
                         <Button
                             onClick={handleShortlistAndFinish}
                             disabled={isSubmittingComment || isShortlisting}
-                            className="rounded-none bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-2"
+                            className="rounded-none px-6 py-2"
                         >
                             {isShortlisting ? 'Shortlisting...' : 'Shortlist'}
                         </Button>
                         <Button
+                            variant='outline'
                             onClick={handleSubmitInterview}
                             disabled={isSubmittingComment || isShortlisting}
-                            className="rounded-none bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black px-6 py-2"
+                            className="rounded-none px-6 py-2"
                         >
-                            {isSubmittingComment ? 'Submitting...' : 'Submit'}
+                            {isSubmittingComment ? 'Finishing...' : 'Finish Interview'}
                         </Button>
                     </div>
                 </DialogContent>
