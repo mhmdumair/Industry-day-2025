@@ -102,7 +102,7 @@ export default function CreateAdmin() {
   return (
     <Card className=" dark:bg-black shadow-md mt-3 mb-3 max-w-[75%] mx-auto rounded-none">
       <CardHeader>
-        <CardTitle className="text-xl leading-4 dark:text-white">Create New Room Admin</CardTitle>
+        <CardTitle className="text-xl leading-4 dark:text-white">Create New Admin</CardTitle>
         <CardDescription className="dark:text-gray-400">
           Register a new user with administrative privileges.
         </CardDescription>

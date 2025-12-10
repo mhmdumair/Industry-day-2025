@@ -3,22 +3,19 @@
 import React from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ModeToggle } from "../common/mode-toggle";
-import { Home } from "lucide-react";
-import { Button } from "../ui/button";
 
 const navItems = [
   { title: "Profile", url: "/admin/profile" },
+  { title: "Announcements", url: "/admin/announcements" },
   { title: "Students", url: "/admin/students" },
   { title: "Companies", url: "/admin/companies" },
   { title: "Interviews", url: "/admin/interviews" },
-  { title: "Reports", url: "/admin/reports" },
-  { title: "Announcements", url: "/admin/announcements" },
+  { title: "Admins", url: "/admin/admins" },
   { title: "Rooms", url: "/admin/rooms" },
   { title: "Room Admins", url: "/admin/room-admins" },
   { title: "Stalls", url: "/admin/stalls" },
   { title: "Feedbacks", url: "/admin/feedback" },
-  { title: "Admins", url: "/admin/admins" }
+  { title: "Reports", url: "/admin/reports" },
 ];
 
 export default function AdminNavbar() {

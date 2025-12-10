@@ -24,7 +24,7 @@ export default function Page() {
             />
             <div className="flex flex-col">
               <h1 className="lg:text-3xl md:text-4xl text-xl font-extrabold text-black dark:text-white lg:leading-7 tracking-tighter leading-5 md:leading-7">
-                INDUSTRY DAY 2025
+                SCIENCE INDUSTRY INTERACTION CELL
               </h1>
               <span className="text-xs md:text-base lg:text-base font-bold text-gray-700 dark:text-gray-300">
                 FACULTY OF SCIENCE
@@ -52,7 +52,7 @@ export default function Page() {
           {/* Registration Alert */}
           <Alert className="rounded-none ">
             <AlertTitle className="text-xl font-semibold  mb-3">
-              Welcome to SIIC Website!
+              Welcome to the SIIC Website!
             </AlertTitle>
             <AlertDescription className="space-y-4">
               <p className="text-base tracking-tight">
